@@ -1,0 +1,351 @@
+{% extends "base/base_panel.html" %}
+{% load static %}
+
+{% block title %}Gestión de Ciclistas | Municipalidad de Malagueño{% endblock %}
+{% block page_title %}Ciclistas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/panel_ciclistas.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="ciclistas-wrapper">
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 1. ENCABEZADO DE PÁGINA Y BOTONES DE ACCIÓN PRINCIPAL                   -->
+    <!-- ----------------------------------------------------------------------- -->
+    <section class="ciclistas-header-section">
+        <div class="header-titles">
+            <h1 class="header-title-main">Gestión de Ciclistas</h1>
+            <p class="header-subtitle-main">
+                Administra la base de datos de usuarios, valida documentos de identidad y gestiona estados de participación.
+            </p>
+        </div>
+
+        <div class="header-actions-group">
+            <a href="{% url 'panel_ciclistas_exportar_csv' %}" class="btn-export-csv" title="Descargar base de ciclistas en CSV">
+                <i class="fa-solid fa-arrow-down-to-bracket"></i>
+                <span>Exportar CSV</span>
+            </a>
+            <a href="{% url 'panel_ciclistas_nuevo' %}" class="btn-create-ciclista" title="Registrar un nuevo ciclista">
+                <i class="fa-solid fa-user-plus"></i>
+                <span>Nuevo Ciclista</span>
+            </a>
+        </div>
+    </section>
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 2. FILA DE 4 TARJETAS DE KPIS                                            -->
+    <!-- ----------------------------------------------------------------------- -->
+    <section class="ciclistas-kpis-grid">
+        <!-- KPI 1: Total Registrados -->
+        <div class="metric-box-card">
+            <div class="metric-box-info">
+                <span class="metric-box-label">TOTAL REGISTRADOS</span>
+                <h2 class="metric-box-number">{{ total_registrados|default:"1,284" }}</h2>
+            </div>
+            <div class="metric-box-icon icon-box-green">
+                <i class="fa-solid fa-user-group"></i>
+            </div>
+        </div>
+
+        <!-- KPI 2: Pendientes Validación -->
+        <div class="metric-box-card">
+            <div class="metric-box-info">
+                <span class="metric-box-label">PENDIENTES VALIDACIÓN</span>
+                <h2 class="metric-box-number">{{ pendientes_validacion|default:"42" }}</h2>
+            </div>
+            <div class="metric-box-icon icon-box-amber">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+        </div>
+
+        <!-- KPI 3: Activos Hoy -->
+        <div class="metric-box-card">
+            <div class="metric-box-info">
+                <span class="metric-box-label">ACTIVOS HOY</span>
+                <h2 class="metric-box-number">{{ activos_hoy|default:"315" }}</h2>
+            </div>
+            <div class="metric-box-icon icon-box-green">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+        </div>
+
+        <!-- KPI 4: Nuevos 7 días -->
+        <div class="metric-box-card">
+            <div class="metric-box-info">
+                <span class="metric-box-label">NUEVOS (7 DÍAS)</span>
+                <h2 class="metric-box-number">+{{ nuevos_semana|default:"12" }}</h2>
+            </div>
+            <div class="metric-box-icon icon-box-green">
+                <i class="fa-regular fa-calendar"></i>
+            </div>
+        </div>
+    </section>
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 3. TARJETA PRINCIPAL: TABLA DE CICLISTAS Y FILTROS                      -->
+    <!-- ----------------------------------------------------------------------- -->
+    <section class="ciclistas-table-card">
+        <!-- Encabezado de la Tarjeta con Filtros -->
+        <div class="table-card-header">
+            <div class="table-title-group">
+                <i class="fa-regular fa-file-lines table-title-icon"></i>
+                <h2 class="table-title-text">Listado de Ciclistas</h2>
+            </div>
+
+            <form method="GET" action="{% url 'panel_ciclistas_listado' %}" class="table-filters-group">
+                <!-- Buscador de Texto -->
+                <div class="search-input-wrap">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" name="q" value="{{ query|default:'' }}" placeholder="Nombre, DNI o ID..." class="search-input-field">
+                </div>
+
+                <!-- Botón de Búsqueda -->
+                <button type="submit" class="btn-filter-icon" title="Buscar">
+                    <i class="fa-solid fa-filter"></i>
+                </button>
+
+                <!-- Selector de Estado -->
+                <select name="estado" class="select-status-filter" onchange="this.form.submit()">
+                    <option value="" {% if not estado_filtro %}selected{% endif %}>Todos</option>
+                    <option value="Validado" {% if estado_filtro == 'Validado' %}selected{% endif %}>Validado</option>
+                    <option value="Pendiente" {% if estado_filtro == 'Pendiente' %}selected{% endif %}>Pendiente</option>
+                    <option value="Rechazado" {% if estado_filtro == 'Rechazado' %}selected{% endif %}>Rechazado</option>
+                </select>
+            </form>
+        </div>
+
+        <!-- Tabla de Datos -->
+        <div class="table-responsive-container">
+            <table class="ciclistas-data-table">
+                <thead>
+                    <tr>
+                        <th style="width: 100px;">ID</th>
+                        <th>Ciclista</th>
+                        <th>DNI / Documento</th>
+                        <th>Club / Entidad</th>
+                        <th>Nivel</th>
+                        <th>Estado</th>
+                        <th style="text-align: right;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in ciclistas %}
+                    <tr>
+                        <!-- ID -->
+                        <td class="col-id">{{ c.codigo_id }}</td>
+
+                        <!-- Ciclista con Avatar, Nombre y Email -->
+                        <td class="col-ciclista">
+                            <div class="ciclista-info-cell">
+                                <div class="ciclista-avatar-circle">
+                                    {% if c.foto %}
+                                        <img src="{{ c.foto.url }}" alt="{{ c.nombre }}">
+                                    {% else %}
+                                        <span>{{ c.nombre|slice:":1"|upper }}</span>
+                                    {% endif %}
+                                </div>
+                                <div class="ciclista-names-wrap">
+                                    <span class="ciclista-name-txt">{{ c.nombre }}</span>
+                                    <span class="ciclista-email-txt">{{ c.email }}</span>
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- DNI -->
+                        <td class="col-dni">{{ c.dni }}</td>
+
+                        <!-- Club / Entidad -->
+                        <td class="col-club">{{ c.club_entidad|default:"Independiente" }}</td>
+
+                        <!-- Nivel -->
+                        <td>
+                            <span class="badge-level">{{ c.nivel }}</span>
+                        </td>
+
+                        <!-- Estado con Badge Dinámico -->
+                        <td>
+                            {% if c.estado == 'Validado' %}
+                                <span class="badge-status badge-validado">
+                                    <i class="fa-solid fa-circle-check"></i> Validado
+                                </span>
+                            {% elif c.estado == 'Pendiente' %}
+                                <span class="badge-status badge-pendiente">
+                                    <i class="fa-solid fa-circle-exclamation"></i> Pendiente
+                                </span>
+                            {% else %}
+                                <span class="badge-status badge-rechazado">
+                                    <i class="fa-solid fa-circle-xmark"></i> Rechazado
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Acciones Rápidas y Decisión del Administrador -->
+                        <td>
+                            <div class="actions-cell-wrap">
+                                {% if c.estado == 'Pendiente' %}
+                                    <button type="button" onclick="abrirModalValidar('{{ c.id }}', '{{ c.nombre|escapejs }}', '{{ c.dni|escapejs }}', '{{ c.email|escapejs }}')" class="btn-action-mini btn-validate" title="Aprobar y Asignar Credenciales" style="cursor: pointer; border: none;">
+                                        <i class="fa-solid fa-check"></i>
+                                    </button>
+                                    <a href="{% url 'panel_ciclista_cambiar_estado' c.id 'Rechazado' %}" class="btn-action-mini btn-reject" title="Rechazar Inscripción">
+                                        <i class="fa-solid fa-xmark"></i>
+                                    </a>
+                                {% elif c.estado == 'Rechazado' %}
+                                    <button type="button" onclick="abrirModalValidar('{{ c.id }}', '{{ c.nombre|escapejs }}', '{{ c.dni|escapejs }}', '{{ c.email|escapejs }}')" class="btn-action-mini btn-validate" title="Reconsiderar y Dar de Alta" style="cursor: pointer; border: none;">
+                                        <i class="fa-solid fa-check"></i>
+                                    </button>
+                                {% endif %}
+                                <a href="{% url 'panel_ciclista_ver' c.id %}" class="btn-action-mini btn-view" title="Ver Ficha Técnica">
+                                    <i class="fa-regular fa-eye"></i>
+                                </a>
+                                <a href="{% url 'panel_ciclista_editar' c.id %}" class="btn-action-mini btn-edit" title="Editar Datos">
+                                    <i class="fa-regular fa-pen-to-square"></i>
+                                </a>
+                                <a href="{% url 'panel_ciclista_eliminar' c.id %}" class="btn-action-mini btn-delete" title="Eliminar Ciclista">
+                                    <i class="fa-regular fa-trash-can"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 2.5rem; color: #64748b;">
+                            <i class="fa-solid fa-users-slash" style="font-size: 2rem; margin-bottom: 0.5rem; display: block; color: #cbd5e1;"></i>
+                            No se encontraron ciclistas con los criterios de búsqueda seleccionados.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer de Paginación -->
+        <div class="table-card-footer">
+            <span class="table-records-count">
+                Mostrando {{ ciclistas|length }} de {{ total_registrados }} ciclistas
+            </span>
+            <div class="table-pagination-nav">
+                <a href="#" class="btn-page-step disabled">Anterior</a>
+                <a href="#" class="btn-page-step disabled">Siguiente</a>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<!-- ======================================================================= -->
+<!-- MODAL DE VALIDACIÓN Y ALTA DE CREDENCIALES                              -->
+<!-- ======================================================================= -->
+<div id="modalValidarCiclista" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center; padding: 1rem;">
+    <div style="background: #ffffff; border-radius: 16px; width: 100%; max-width: 480px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); overflow: hidden; animation: modalPop 0.2s ease-out;">
+        <!-- Header del Modal -->
+        <div style="background: #0b381e; color: #ffffff; padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(34, 197, 94, 0.2); display: flex; align-items: center; justify-content: center; color: #4ade80;">
+                    <i class="fa-solid fa-key" style="font-size: 1.1rem;"></i>
+                </div>
+                <div>
+                    <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: #ffffff;">Aprobar y Dar de Alta</h3>
+                    <span style="font-size: 0.8rem; color: #cbd5e1;">Asignación de credenciales para la App Ciclista</span>
+                </div>
+            </div>
+            <button type="button" onclick="cerrarModalValidar()" style="background: none; border: none; color: #94a3b8; font-size: 1.2rem; cursor: pointer;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Formulario del Modal -->
+        <form id="formValidarCiclista" method="POST" action="" style="padding: 1.5rem;">
+            {% csrf_token %}
+
+            <!-- Resumen de Ciclista -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.85rem 1rem; margin-bottom: 1.25rem;">
+                <div style="font-weight: 700; color: #0f172a; font-size: 0.95rem; margin-bottom: 0.25rem;" id="modalNombreCiclista">Nombre del Ciclista</div>
+                <div style="font-size: 0.82rem; color: #64748b; display: flex; flex-direction: column; gap: 0.2rem;">
+                    <span><i class="fa-regular fa-id-card" style="width: 16px;"></i> <strong>DNI:</strong> <span id="modalDniCiclista"></span></span>
+                    <span><i class="fa-regular fa-envelope" style="width: 16px;"></i> <strong>Gmail / Correo:</strong> <span id="modalEmailCiclista"></span></span>
+                </div>
+            </div>
+
+            <!-- Campo Contraseña -->
+            <div style="margin-bottom: 1.25rem;">
+                <label for="modalPasswordInput" style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.4rem;">
+                    Contraseña de Acceso para el Ciclista <span style="color: #dc2626;">*</span>
+                </label>
+                <div style="position: relative; display: flex; align-items: center;">
+                    <input 
+                        type="text" 
+                        id="modalPasswordInput" 
+                        name="password" 
+                        required 
+                        style="width: 100%; padding: 0.7rem 2.5rem 0.7rem 0.85rem; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; font-family: monospace; font-weight: 600; color: #0f172a;"
+                    >
+                    <button 
+                        type="button" 
+                        onclick="generarClaveModal()" 
+                        title="Generar otra clave aleatoria"
+                        style="position: absolute; right: 8px; background: none; border: none; color: #2e7d32; font-size: 1rem; cursor: pointer; padding: 4px;"
+                    >
+                        <i class="fa-solid fa-arrows-rotate"></i>
+                    </button>
+                </div>
+                <small style="display: block; color: #64748b; font-size: 0.78rem; margin-top: 0.35rem;">
+                    El ciclista podrá ingresar en <a href="{% url 'login' %}" target="_blank" style="color: #2e7d32;">/login/</a> usando su Gmail o su DNI y esta contraseña.
+                </small>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; border-top: 1px solid #f1f5f9; padding-top: 1.25rem;">
+                <button type="button" onclick="cerrarModalValidar()" style="padding: 0.6rem 1.1rem; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; font-weight: 600; font-size: 0.85rem; cursor: pointer;">
+                    Cancelar
+                </button>
+                <button type="submit" style="padding: 0.6rem 1.25rem; border-radius: 8px; border: none; background: #15803d; color: #ffffff; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fa-solid fa-check"></i>
+                    <span>Aprobar y Dar de Alta</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function abrirModalValidar(id, nombre, dni, email) {
+    const modal = document.getElementById('modalValidarCiclista');
+    const form = document.getElementById('formValidarCiclista');
+    const txtNombre = document.getElementById('modalNombreCiclista');
+    const txtDni = document.getElementById('modalDniCiclista');
+    const txtEmail = document.getElementById('modalEmailCiclista');
+    const inputPass = document.getElementById('modalPasswordInput');
+
+    form.action = `/panel/ciclistas/${id}/estado/Validado/`;
+    txtNombre.textContent = nombre;
+    txtDni.textContent = dni;
+    txtEmail.textContent = email;
+
+    // Generar sugerencia de clave inicial: Muni + últimos 4 dígitos o caracteres aleatorios
+    const digitos = dni.replace(/\D/g, '').slice(-4) || '2026';
+    inputPass.value = `Muni${digitos}!`;
+
+    modal.style.display = 'flex';
+}
+
+function generarClaveModal() {
+    const chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let rand = '';
+    for (let i = 0; i < 4; i++) {
+        rand += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    document.getElementById('modalPasswordInput').value = `Muni-${rand}!`;
+}
+
+function cerrarModalValidar() {
+    document.getElementById('modalValidarCiclista').style.display = 'none';
+}
+
+// Cerrar con Escape o clic exterior
+window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') cerrarModalValidar();
+});
+</script>
+{% endblock %}

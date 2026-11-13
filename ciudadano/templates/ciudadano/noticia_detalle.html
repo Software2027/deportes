@@ -1,0 +1,151 @@
+{% extends "base/base_ciudadano.html" %}
+{% load static %}
+
+{% block title %}{{ noticia.titulo }} | Ciclismo Malagueño{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/noticias.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- --------------------------------------------------------------------------- -->
+<!-- 1. HERO INSTITUCIONAL OSCURO: TÍTULO Y DESCRIPCIÓN CON FONDO FOTOGRÁFICO    -->
+<!-- --------------------------------------------------------------------------- -->
+<section class="article-hero-section" {% if noticia.imagen %}style="background-image: url('{{ noticia.imagen.url }}');"{% endif %}>
+    <div class="article-hero-overlay"></div>
+    <div class="container" style="position: relative; z-index: 2;">
+
+        <!-- Botón Volver a Noticias -->
+        <div class="article-hero-nav">
+            <a href="{% url 'noticias_listado' %}" class="btn-volver-hero">
+                <i class="fa-solid fa-arrow-left"></i>
+                <span>Volver a Noticias</span>
+            </a>
+        </div>
+
+        <!-- Encabezado: Metadatos, Título y Descripción -->
+        <div class="article-hero-content">
+            <!-- Metadatos de la Noticia (Sin contador de vistas) -->
+            <div class="article-hero-meta">
+                <span class="category-tag-hero">
+                    <i class="fa-solid fa-tag"></i> {{ noticia.categoria|default:"Oficial" }}
+                </span>
+                <span class="meta-item-hero">
+                    <i class="fa-regular fa-calendar"></i> {{ noticia.fecha_publicacion|date:"d \d\e F, Y" }}
+                </span>
+                <span class="meta-item-hero">
+                    <i class="fa-regular fa-user"></i> {{ noticia.autor_display }}
+                </span>
+            </div>
+
+            <!-- Título Principal de la Noticia -->
+            <h1 class="article-hero-title">{{ noticia.titulo }}</h1>
+
+            <!-- Descripción / Resumen de la Noticia -->
+            <div class="article-hero-desc">
+                <p>{{ noticia.contenido }}</p>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- --------------------------------------------------------------------------- -->
+<!-- 2. SECCIÓN DE CONTENIDO: FONDO BLANCO LIMPIO                                -->
+<!-- --------------------------------------------------------------------------- -->
+<section class="article-detail-wrap">
+    <div class="container">
+
+        <!-- Imagen Destacada si existe -->
+        {% if noticia.imagen %}
+        <div class="article-featured-hero">
+            <img src="{{ noticia.imagen.url }}" alt="{{ noticia.titulo }}">
+        </div>
+        {% endif %}
+
+        <div class="article-body-clean">
+            <!-- Tarjeta Informativa Municipal -->
+            <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #2e7d32; border-radius: 14px; padding: 1.25rem 1.6rem; margin-bottom: 2.5rem; display: flex; align-items: flex-start; gap: 1.15rem;">
+                <div style="width: 44px; height: 44px; border-radius: 50%; background: #e8f5e9; color: #2e7d32; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0;">
+                    <i class="fa-solid fa-bullhorn"></i>
+                </div>
+                <div>
+                    <h4 style="font-family: 'Outfit', sans-serif; font-size: 1.05rem; font-weight: 700; color: #114224; margin: 0 0 0.35rem 0;">
+                        Comunicado Oficial | Municipalidad de Malagueño
+                    </h4>
+                    <p style="font-size: 0.92rem; color: #64748b; margin: 0; line-height: 1.55;">
+                        Publicación de interés público emitida por el área de Deportes y Movilidad Urbana. Los circuitos y novedades se actualizan periódicamente en este portal.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Si la noticia contiene más de 40 palabras se muestra el cuerpo detallado completo -->
+            {% if noticia.contenido|wordcount > 40 %}
+            <div class="article-full-text">
+                {{ noticia.contenido|linebreaks }}
+            </div>
+            {% endif %}
+
+            <!-- Barra inferior con compartir y navegación -->
+            <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #f1f5f9; padding-top: 1.75rem; margin-top: 2rem; flex-wrap: wrap; gap: 1rem;">
+                <a href="{% url 'noticias_listado' %}" class="btn-volver-noticias">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>Ver más noticias</span>
+                </a>
+
+                <div style="display: flex; align-items: center; gap: 0.75rem; font-size: 0.88rem; color: #64748b;">
+                    <span>Compartir comunicado:</span>
+                    <a href="https://api.whatsapp.com/send?text={{ noticia.titulo|urlencode }}" target="_blank" rel="noopener noreferrer" style="width: 34px; height: 34px; border-radius: 50%; background: #25d366; color: white; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; font-size: 0.95rem; transition: transform 0.15s ease;" title="Compartir en WhatsApp">
+                        <i class="fa-brands fa-whatsapp"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Otras Noticias Relacionadas -->
+        {% if otras_noticias %}
+        <div style="border-top: 1px solid #e2e8f0; padding-top: 3.5rem; margin-top: 2rem;">
+            <div style="text-align: center; margin-bottom: 2.5rem;">
+                <span class="category-tag" style="margin-bottom: 0.5rem; display: inline-block;">Más información</span>
+                <h2 style="font-family: 'Outfit', sans-serif; font-size: 2rem; font-weight: 800; color: #114224; margin: 0.25rem 0 0 0;">
+                    Otras Noticias Recientes
+                </h2>
+            </div>
+
+            <div class="news-clean-grid">
+                {% for otra in otras_noticias %}
+                <article class="news-clean-card">
+                    <a href="{% url 'noticia_detalle' otra.pk %}" class="news-clean-img-wrap" title="Ver: {{ otra.titulo }}">
+                        {% if otra.imagen %}
+                            <img src="{{ otra.imagen.url }}" alt="{{ otra.titulo }}">
+                        {% else %}
+                            <div class="news-clean-placeholder">
+                                <i class="fa-solid fa-bicycle"></i>
+                            </div>
+                        {% endif %}
+                    </a>
+                    <div class="news-clean-body">
+                        <div class="news-meta-row">
+                            <span class="category-tag">{{ otra.categoria|default:"Comunidad" }}</span>
+                            <span class="news-date-text">{{ otra.fecha_publicacion|date:"d M, Y" }}</span>
+                        </div>
+                        <a href="{% url 'noticia_detalle' otra.pk %}" style="text-decoration: none;">
+                            <h3 class="news-clean-headline">{{ otra.titulo }}</h3>
+                        </a>
+                        <p class="news-clean-summary">{{ otra.contenido|truncatewords:16 }}</p>
+                        <div class="news-card-bottom">
+                            <a href="{% url 'noticia_detalle' otra.pk %}" class="news-read-more">
+                                <span>Leer comunicado</span>
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,777 @@
+/* ==============================================================================
+   DASHBOARD ADMINISTRATIVO - MUNICIPALIDAD DE MALAGUEÑO
+   Diseño fiel a imagen de referencia institucional.
+   Incluye orden responsive: Accesos Rápidos al final en Desktop y al principio en Móvil.
+   ============================================================================== */
+
+/* ------------------------------------------------------------------------------
+   1. CONTENEDOR GENERAL Y ORDENAMIENTO FLEXBOX
+   ------------------------------------------------------------------------------ */
+.dashboard-main-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* En Desktop (pantallas grandes > 992px):
+   1: Header
+   2: KPIs
+   3: Gráfico de Participación Semanal
+   4: Fila Intermedia (Actividad + Impacto Comercial)
+   5: Accesos Rápidos (AL FINAL)
+   6: Footer Legal
+*/
+.dashboard-header-section {
+    order: 1;
+}
+
+.dashboard-kpis-section {
+    order: 2;
+}
+
+.dashboard-chart-section {
+    order: 3;
+}
+
+.dashboard-middle-grid {
+    order: 4;
+}
+
+.dashboard-quick-actions {
+    order: 5; /* En desktop se muestra al final */
+}
+
+.dashboard-footer-section {
+    order: 6;
+}
+
+/* ------------------------------------------------------------------------------
+   2. HEADER DEL DASHBOARD (FONDO OSCURO INSTITUCIONAL IDENTICO AL SIDEBAR)
+   ------------------------------------------------------------------------------ */
+.dashboard-header-section {
+    background: linear-gradient(135deg, #0b381e 0%, #0e4425 60%, #14532d 100%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 20px;
+    padding: 1.6rem 2rem;
+    box-shadow: 0 10px 30px rgba(11, 56, 30, 0.22);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.dashboard-header-section::before {
+    content: '';
+    position: absolute;
+    top: -60px;
+    right: -60px;
+    width: 260px;
+    height: 260px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(34, 197, 94, 0.22) 0%, rgba(34, 197, 94, 0) 70%);
+    pointer-events: none;
+}
+
+.header-titles-block {
+    flex: 1;
+    position: relative;
+    z-index: 1;
+}
+
+.header-pretitle-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background-color: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(134, 239, 172, 0.4);
+    color: #86efac;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    padding: 0.22rem 0.65rem;
+    border-radius: 9999px;
+    margin-bottom: 0.45rem;
+    backdrop-filter: blur(4px);
+}
+
+.header-pretitle-badge i {
+    font-size: 0.72rem;
+    color: #4ade80;
+}
+
+.header-main-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.85rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0 0 0.35rem 0;
+    line-height: 1.2;
+    letter-spacing: -0.3px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.header-main-subtitle {
+    font-size: 0.92rem;
+    color: #cbd5e1;
+    margin: 0;
+    line-height: 1.45;
+}
+
+/* ------------------------------------------------------------------------------
+   3. FILA DE 4 TARJETAS DE KPIS PRINCIPALES
+   ------------------------------------------------------------------------------ */
+.kpis-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+}
+
+.metric-card {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 1.35rem 1.25rem 1.25rem 1.25rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+    border-color: #cbd5e1;
+}
+
+.metric-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.9rem;
+}
+
+.metric-icon-wrap {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    background-color: #ecfdf5;
+    color: #15803d;
+}
+
+.trend-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.trend-badge.trend-up {
+    color: #15803d;
+}
+
+.trend-badge.trend-down {
+    color: #dc2626;
+}
+
+.metric-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.metric-value-wrap {
+    margin-bottom: 0.25rem;
+}
+
+.metric-number {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.85rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0;
+    line-height: 1.1;
+    letter-spacing: -0.5px;
+}
+
+.metric-subtext {
+    font-size: 0.74rem;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+/* ------------------------------------------------------------------------------
+   4. GRÁFICO PRINCIPAL: PARTICIPACIÓN SEMANAL (ÁREA SUAVE CON GRADIENTES)
+   ------------------------------------------------------------------------------ */
+.chart-main-card {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 1.6rem 1.75rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.chart-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.chart-card-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 0.25rem 0;
+}
+
+.chart-card-subtitle {
+    font-size: 0.84rem;
+    color: #64748b;
+    margin: 0;
+}
+
+.badge-live-stream {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background-color: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #15803d;
+    font-size: 0.74rem;
+    font-weight: 700;
+    padding: 0.3rem 0.75rem;
+    border-radius: 9999px;
+    letter-spacing: 0.3px;
+}
+
+.live-dot-pulse {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: #22c55e;
+    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.3);
+    animation: pulseDotLive 2s infinite;
+}
+
+@keyframes pulseDotLive {
+    0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6); }
+    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+    100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+.chart-svg-container {
+    width: 100%;
+    position: relative;
+}
+
+.weekly-area-chart {
+    width: 100%;
+    height: 270px;
+    display: block;
+    overflow: visible;
+}
+
+.axis-y-label {
+    font-size: 11px;
+    fill: #94a3b8;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    text-anchor: end;
+}
+
+.axis-x-row {
+    display: flex;
+    justify-content: space-between;
+    padding-left: 55px;
+    padding-right: 20px;
+    margin-top: 0.85rem;
+}
+
+.day-label {
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: #64748b;
+}
+
+.chart-legend-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid #f8fafc;
+}
+
+.legend-point-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #475569;
+}
+
+.legend-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+}
+
+.dot-inscritos {
+    background-color: #15803d;
+}
+
+.dot-activos {
+    background-color: #ca8a04;
+}
+
+/* ------------------------------------------------------------------------------
+   5. FILA INTERMEDIA: ACTIVIDAD RECIENTE + IMPACTO COMERCIAL LOCAL
+   ------------------------------------------------------------------------------ */
+.dashboard-middle-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+}
+
+.middle-card {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 1.6rem 1.75rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    display: flex;
+    flex-direction: column;
+}
+
+.middle-card-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 0.25rem 0;
+}
+
+.middle-card-subtitle {
+    font-size: 0.82rem;
+    color: #64748b;
+    margin: 0 0 1.25rem 0;
+}
+
+/* Actividad Reciente */
+.activity-card .middle-card-header {
+    margin-bottom: 1.25rem;
+}
+
+.activity-timeline-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.15rem;
+    flex: 1;
+}
+
+.activity-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+}
+
+.activity-status-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    margin-top: 5px;
+    flex-shrink: 0;
+}
+
+.dot-green {
+    background-color: #16a34a;
+}
+
+.dot-blue {
+    background-color: #94a3b8; /* Gris/azul suave como en la imagen */
+}
+
+.dot-amber {
+    background-color: #eab308;
+}
+
+.activity-item-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.activity-user-name {
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.25;
+}
+
+.activity-action-desc {
+    font-size: 0.78rem;
+    color: #64748b;
+    line-height: 1.35;
+}
+
+.activity-time-ago {
+    font-size: 0.74rem;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    white-space: nowrap;
+}
+
+.activity-card .middle-card-footer {
+    text-align: center;
+    margin-top: 1.5rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid #f8fafc;
+}
+
+.link-view-all {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #64748b;
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+
+.link-view-all:hover {
+    color: #15803d;
+    text-decoration: underline;
+}
+
+/* Impacto Comercial Local (Barras Horizontales Verdes) */
+.horizontal-bars-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.15rem;
+    position: relative;
+}
+
+.bar-chart-row {
+    display: flex;
+    align-items: center;
+    gap: 1.1rem;
+}
+
+.bar-category-label {
+    width: 85px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #475569;
+    text-align: left;
+    flex-shrink: 0;
+}
+
+.bar-track-wrap {
+    flex: 1;
+    height: 20px;
+    background-color: #f8fafc;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid #f1f5f9;
+}
+
+.bar-fill-green {
+    height: 100%;
+    background-color: #0b381e; /* Verde oscuro idéntico a la barra de la imagen */
+    border-radius: 4px;
+    transition: width 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ------------------------------------------------------------------------------
+   6. SECCIÓN DE ACCESOS RÁPIDOS
+   ------------------------------------------------------------------------------ */
+.quick-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+}
+
+.quick-card-item {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 1.4rem 1.25rem 1.25rem 1.25rem;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 165px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.quick-card-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
+    border-color: #cbd5e1;
+}
+
+.quick-card-header {
+    margin-bottom: 0.9rem;
+}
+
+.quick-card-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+}
+
+.icon-yellow {
+    background-color: #fef3c7;
+    color: #b45309;
+}
+
+.icon-green {
+    background-color: #dcfce7;
+    color: #15803d;
+}
+
+.quick-card-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.96rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 0.35rem 0;
+    line-height: 1.25;
+}
+
+.quick-card-desc {
+    font-size: 0.76rem;
+    color: #64748b;
+    line-height: 1.4;
+    margin: 0;
+}
+
+.quick-card-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.85rem;
+}
+
+.quick-card-arrow {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.quick-card-item:hover .quick-card-arrow {
+    transform: translateX(4px);
+    color: #15803d;
+}
+
+/* ------------------------------------------------------------------------------
+   7. FOOTER INFERIOR DEL DASHBOARD
+   ------------------------------------------------------------------------------ */
+.dashboard-footer-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 1.25rem;
+    border-top: 1px solid #e2e8f0;
+    font-size: 0.74rem;
+    color: #94a3b8;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.footer-left-legal {
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+.footer-right-links {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.legal-link {
+    color: #64748b;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.15s ease;
+}
+
+.legal-link:hover {
+    color: #15803d;
+    text-decoration: underline;
+}
+
+.sep {
+    color: #cbd5e1;
+}
+
+/* ------------------------------------------------------------------------------
+   8. RESPONSIVE BREAKPOINTS Y REGLA CRUCIAL DE REORDENAMIENTO EN MÓVILES
+   ------------------------------------------------------------------------------ */
+
+/* PANTALLAS MEDIANAS / TABLETS / MÓVILES (<= 992px) */
+@media (max-width: 992px) {
+    /* 
+       REORDENAMIENTO EN MÓVIL:
+       1: Header
+       2: ACCESOS RÁPIDOS (SE MUESTRAN AL PRINCIPIO PARA MÓVIL)
+       3: KPIs
+       4: Gráfico Semanal
+       5: Actividad e Impacto
+       6: Footer
+    */
+    .dashboard-header-section {
+        order: 1;
+        padding: 1.35rem 1.25rem;
+        border-radius: 16px;
+    }
+
+    .dashboard-quick-actions {
+        order: 2; /* <-- MOVIDO AL PRINCIPIO EN MÓVIL SEGÚN SOLICITUD DEL USUARIO */
+        margin-top: 0.25rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .dashboard-kpis-section {
+        order: 3;
+    }
+
+    .dashboard-chart-section {
+        order: 4;
+    }
+
+    .dashboard-middle-grid {
+        order: 5;
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-footer-section {
+        order: 6;
+    }
+
+    .quick-cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.85rem;
+    }
+
+    .kpis-cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.85rem;
+    }
+
+    .header-main-title {
+        font-size: 1.55rem;
+    }
+}
+
+/* SMARTPHONES PEQUEÑOS (<= 640px) */
+@media (max-width: 640px) {
+    .dashboard-main-container {
+        gap: 1.1rem;
+    }
+
+    .dashboard-header-section {
+        padding: 1.2rem 1.05rem;
+        border-radius: 16px;
+    }
+
+    .header-titles-block {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .header-pretitle-badge {
+        font-size: 0.68rem;
+        padding: 0.18rem 0.55rem;
+        margin-bottom: 0.35rem;
+    }
+
+    .header-main-title {
+        font-size: 1.35rem;
+        line-height: 1.25;
+        margin: 0 0 0.25rem 0;
+    }
+
+    .header-main-subtitle {
+        font-size: 0.82rem;
+        line-height: 1.38;
+    }
+
+    .quick-cards-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+
+    .quick-card-item {
+        min-height: auto;
+        padding: 1.1rem 1rem;
+    }
+
+    .kpis-cards-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+
+    .chart-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .axis-x-row {
+        padding-left: 35px;
+        padding-right: 10px;
+    }
+
+    .bar-category-label {
+        width: 70px;
+        font-size: 0.75rem;
+    }
+
+    .dashboard-footer-section {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 0.5rem;
+    }
+}
+
+/* SMARTPHONES COMPACTOS (<= 480px) */
+@media (max-width: 480px) {
+    .dashboard-header-section {
+        padding: 1.1rem 0.95rem;
+        border-radius: 14px;
+    }
+
+    .header-main-title {
+        font-size: 1.28rem;
+    }
+
+    .header-main-subtitle {
+        font-size: 0.8rem;
+    }
+}
+

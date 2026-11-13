@@ -1,0 +1,797 @@
+{% extends "base/base_panel.html" %}
+{% load static %}
+
+{% block title %}
+    {% if circuito.id %}Editar Circuito: {{ circuito.nombre }}{% else %}Nuevo Circuito{% endif %} | Panel Municipal
+{% endblock %}
+{% block page_title %}Editor de Circuitos{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/panel_circuitos.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="circuitos-wrapper">
+
+    <!-- Encabezado Superior -->
+    <section class="circuitos-header-section">
+        <div class="header-titles">
+            <h1 class="header-title-main">
+                {% if circuito.id %}
+                    Editor de Circuito: {{ circuito.nombre }}
+                {% else %}
+                    Crear y Trazar Nuevo Circuito
+                {% endif %}
+            </h1>
+            <p class="header-subtitle-main">
+                Dibuja etapas interactivas sobre el mapa de Malagueño y adhiere comercios de la red local.
+            </p>
+        </div>
+
+        <div class="header-actions-group">
+            <a href="{% url 'panel_circuitos_listado' %}" class="btn-action-pill" style="background:#f1f5f9; color:#475569; padding: 0.6rem 1rem;">
+                <i class="fa-solid fa-arrow-left"></i> Volver al Listado
+            </a>
+            <button type="button" class="btn-create-circuito" id="btnGuardarMaestroTop" onclick="guardarCircuitoCompleto()">
+                <i class="fa-solid fa-floppy-disk"></i>
+                <span>Guardar Circuito</span>
+            </button>
+        </div>
+    </section>
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- CONTENEDOR SPLIT: PANEL LATERAL + MAPA LEAFLET EN VIVO                  -->
+    <!-- ----------------------------------------------------------------------- -->
+    <div class="editor-circuito-container">
+
+        <!-- PANEL LATERAL IZQUIERDO -->
+        <aside class="editor-sidebar-panel">
+            <div class="editor-sidebar-header">
+                <h2>Herramientas del Circuito</h2>
+                <span style="font-size: 0.75rem; color: #16a34a; font-weight: 700;">
+                    <i class="fa-solid fa-location-dot"></i> Malagueño, Cba
+                </span>
+            </div>
+
+            <!-- Pestañas de Navegación -->
+            <nav class="editor-tabs-nav">
+                <button type="button" class="editor-tab-btn active" onclick="cambiarTabEditor('tabGeneral', this)">
+                    <i class="fa-solid fa-circle-info"></i> General
+                </button>
+                <button type="button" class="editor-tab-btn" onclick="cambiarTabEditor('tabEtapas', this)">
+                    <i class="fa-solid fa-layer-group"></i> Etapas (<span id="countEtapasBadge">0</span>)
+                </button>
+                <button type="button" class="editor-tab-btn" onclick="cambiarTabEditor('tabComercios', this)">
+                    <i class="fa-solid fa-store"></i> Comercios (<span id="countComerciosBadge">0</span>)
+                </button>
+            </nav>
+
+            <!-- TAB 1: INFORMACIÓN GENERAL -->
+            <div class="editor-tab-content active" id="tabGeneral">
+                <input type="hidden" id="circuitoId" value="{{ circuito.id|default:'' }}">
+
+                <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
+                    <label style="font-size: 0.85rem; font-weight: 700; color: #0f172a;" for="circuitoNombre">
+                        Nombre del Circuito General *
+                    </label>
+                    <input type="text" id="circuitoNombre" class="form-control-input" style="padding: 0.65rem; border-radius: 8px; border: 1px solid #cbd5e1;" value="{{ circuito.nombre|default:'' }}" placeholder="Ej: Reto Urbano Malagueño 2026" required>
+                </div>
+
+                <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
+                    <label style="font-size: 0.85rem; font-weight: 700; color: #0f172a;" for="circuitoDescripcion">
+                        Descripción / Reglamento del Evento
+                    </label>
+                    <textarea id="circuitoDescripcion" rows="3" style="padding: 0.65rem; border-radius: 8px; border: 1px solid #cbd5e1; font-family: inherit; font-size: 0.85rem;" placeholder="Detalles de la carrera, perfil altimétrico, recomendaciones...">{{ circuito.descripcion|default:'' }}</textarea>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem;">
+                    <div class="form-group" style="display: flex; flex-direction: column; gap: 0.35rem;">
+                        <label style="font-size: 0.8rem; font-weight: 700; color: #0f172a;" for="circuitoFechaEvento">
+                            <i class="fa-regular fa-calendar"></i> Fecha del Evento
+                        </label>
+                        <input type="date" id="circuitoFechaEvento" class="form-control-input" style="padding: 0.55rem; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.82rem;" value="{{ circuito.fecha_evento|date:'Y-m-d'|default:'' }}">
+                    </div>
+
+                    <div class="form-group" style="display: flex; flex-direction: column; gap: 0.35rem;">
+                        <label style="font-size: 0.8rem; font-weight: 700; color: #0f172a;" for="circuitoFechaLimite">
+                            <i class="fa-solid fa-hourglass-half"></i> Límite Inscripción
+                        </label>
+                        <input type="date" id="circuitoFechaLimite" class="form-control-input" style="padding: 0.55rem; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.82rem;" value="{{ circuito.fecha_limite_inscripcion|date:'Y-m-d'|default:'' }}">
+                    </div>
+                </div>
+
+                <div class="form-group" style="display: flex; flex-direction: column; gap: 0.35rem; margin-top: 0.2rem;">
+                    <label style="font-size: 0.8rem; font-weight: 700; color: #0f172a;" for="circuitoRadioLargada">
+                        <i class="fa-solid fa-bullseye"></i> Radio de Largada Oficial (metros)
+                    </label>
+                    <input type="number" id="circuitoRadioLargada" min="10" max="500" class="form-control-input" style="padding: 0.55rem; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.82rem;" value="{{ circuito.radio_largada_metros|default:80 }}" placeholder="80">
+                    <span style="font-size: 0.72rem; color: #64748b;">
+                        Tolerancia en metros respecto al Km 0 para autorizar el inicio del cronómetro.
+                    </span>
+                </div>
+
+                <div class="form-group" style="display: flex; align-items: center; gap: 0.65rem; margin-top: 0.5rem; background: #f8fafc; padding: 0.85rem; border-radius: 10px; border: 1px solid #e2e8f0;">
+                    <input type="checkbox" id="circuitoActivo" style="width: 18px; height: 18px; accent-color: #15803d; cursor: pointer;" {% if circuito.activo %}checked{% endif %}>
+                    <label for="circuitoActivo" style="font-size: 0.85rem; font-weight: 700; color: #0f172a; cursor: pointer;">
+                        Activar como Circuito Oficial en la App
+                        <span style="display: block; font-size: 0.75rem; font-weight: normal; color: #64748b;">
+                            Se mostrará automáticamente a los ciclistas en el mapa y progreso.
+                        </span>
+                    </label>
+                </div>
+
+                <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 0.85rem; margin-top: 0.5rem;">
+                    <span style="font-size: 0.8rem; color: #166534; font-weight: 600; display: block; margin-bottom: 0.25rem;">
+                        <i class="fa-solid fa-lightbulb"></i> Instrucciones de Diseño:
+                    </span>
+                    <p style="font-size: 0.75rem; color: #15803d; margin: 0; line-height: 1.4;">
+                        1. Pasa a la pestaña <strong>Etapas</strong> y pulsa "+ Agregar Etapa".<br>
+                        2. Pulsa <strong>Trazar en Mapa</strong> y haz clic en las calles de Malagueño para dibujar el recorrido.<br>
+                        3. En la pestaña <strong>Comercios</strong> marca los locales adheridos.
+                    </p>
+                </div>
+            </div>
+
+            <!-- TAB 2: ETAPAS / SUBCIRCUITOS -->
+            <div class="editor-tab-content" id="tabEtapas">
+                <div class="etapas-list-wrap" id="contenedorEtapasLista">
+                    <!-- Se inyectan dinámicamente con JS -->
+                </div>
+
+                <button type="button" class="btn-add-etapa" onclick="agregarNuevaEtapa()">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>+ Agregar Nueva Etapa</span>
+                </button>
+            </div>
+
+            <!-- TAB 3: COMERCIOS ADHERIDOS -->
+            <div class="editor-tab-content" id="tabComercios">
+                <span style="font-size: 0.8rem; color: #64748b;">
+                    Seleccione los comercios que formarán parte de este circuito y asígnelos opcionalmente a una etapa específica:
+                </span>
+
+                <div class="comercios-checklist-wrap" id="contenedorComerciosLista">
+                    <!-- Se inyectan dinámicamente con JS -->
+                </div>
+            </div>
+
+            <!-- FOOTER DEL SIDEBAR: BOTÓN GUARDAR MAESTRO -->
+            <div class="editor-sidebar-footer">
+                <button type="button" class="btn-save-circuito-all" onclick="guardarCircuitoCompleto()">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                    <span>Guardar Todo el Circuito</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- ÁREA PRINCIPAL DERECHA: MAPA LEAFLET -->
+        <main class="editor-map-area">
+            <!-- Barra de Herramientas Flotante sobre el Mapa -->
+            <div class="map-floating-toolbar" id="mapFloatingToolbar">
+                <div class="toolbar-status-badge" id="toolbarStatusBadge">
+                    <i class="fa-solid fa-hand-pointer"></i>
+                    <span id="toolbarStatusText">Modo Exploración</span>
+                </div>
+                <button type="button" class="toolbar-btn" id="btnDeshacerPunto" onclick="deshacerUltimoPunto()" style="display: none;">
+                    <i class="fa-solid fa-rotate-left"></i> Deshacer Punto
+                </button>
+                <button type="button" class="toolbar-btn toolbar-btn-danger" id="btnLimpiarTramoActivo" onclick="limpiarTramoActivo()" style="display: none;">
+                    <i class="fa-regular fa-trash-can"></i> Limpiar Tramo
+                </button>
+                <button type="button" class="toolbar-btn" id="btnFinalizarTrazado" onclick="finalizarTrazadoActivo()" style="display: none; background:#15803d; color:#ffffff; border-color:#15803d;">
+                    <i class="fa-solid fa-check"></i> Finalizar Trazo
+                </button>
+            </div>
+
+            <!-- Contenedor del Mapa -->
+            <div id="circuitoEditorMap"></div>
+        </main>
+
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ==============================================================================
+// ESTADO GLOBAL DEL EDITOR DE CIRCUITOS
+// ==============================================================================
+const MALAGUENO_LAT = -31.464500;
+const MALAGUENO_LNG = -64.362000;
+
+// Datos cargados desde el backend
+const circuitoExistente = {
+    id: "{{ circuito.id|default:'' }}",
+    nombre: "{{ circuito.nombre|escapejs|default:'' }}",
+    descripcion: "{{ circuito.descripcion|escapejs|default:'' }}",
+    activo: {% if circuito.activo %}true{% else %}false{% endif %}
+};
+
+// Etapas existentes en BD con sus puntos
+let etapas = {{ subcircuitos_json|safe|default:'[]' }};
+// Comercios disponibles en Malagueño
+let comerciosDisponibles = {{ comercios_json|safe|default:'[]' }};
+
+let etapaActivaId = null; // ID de la etapa que se está trazando actualmente
+let mapaEditor = null;
+let capasPolilineas = {}; // id_etapa -> L.polyline
+let capasMarcadoresEtapa = {}; // id_etapa -> [L.circleMarker]
+let capasComercios = {}; // id_comercio -> { marker, circle }
+
+const PALETA_COLORES = ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#ef4444', '#14b8a6'];
+
+// ==============================================================================
+// 1. INICIALIZACIÓN DEL MAPA LEAFLET
+// ==============================================================================
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof L === 'undefined') {
+        alert("Leaflet no está disponible. Verifique la carga de scripts.");
+        return;
+    }
+
+    // Inicializar mapa centrado en Malagueño, Córdoba
+    mapaEditor = L.map('circuitoEditorMap', {
+        zoomControl: true,
+        scrollWheelZoom: true
+    }).setView([MALAGUENO_LAT, MALAGUENO_LNG], 15);
+
+    // Capa oficial de la Municipalidad de Malagueño (OpenStreetMap HOT)
+    L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        minZoom: 10,
+        subdomains: 'abc',
+        attribution: '&copy; OpenStreetMap contributors, Tiles style by HOT | Municipalidad de Malagueño'
+    }).addTo(mapaEditor);
+
+    // Evento de clic en el mapa para trazar puntos
+    mapaEditor.on('click', function(e) {
+        if (etapaActivaId !== null) {
+            agregarPuntoAEtapa(etapaActivaId, e.latlng.lat, e.latlng.lng);
+        }
+    });
+
+    // Si no hay etapas en un circuito nuevo, sugerir la primera por defecto
+    if (etapas.length === 0) {
+        etapas.push({
+            id: 'temp_' + Date.now(),
+            nombre: 'Etapa 1: Casco Céntrico',
+            orden: 1,
+            color_capa: '#10b981',
+            coordenadas: []
+        });
+    }
+
+    renderizarEtapasSidebar();
+    renderizarComerciosSidebar();
+    dibujarTodasLasEtapasEnMapa();
+    dibujarComerciosEnMapa();
+
+    setTimeout(() => { mapaEditor.invalidateSize(); }, 300);
+});
+
+// ==============================================================================
+// 2. GESTIÓN DE TABS
+// ==============================================================================
+function cambiarTabEditor(tabId, btn) {
+    document.querySelectorAll('.editor-tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.editor-tab-btn').forEach(el => el.classList.remove('active'));
+
+    const targetTab = document.getElementById(tabId);
+    if (targetTab) targetTab.classList.add('active');
+    if (btn) btn.classList.add('active');
+}
+
+// ==============================================================================
+// 3. GESTIÓN DE ETAPAS / SUBCIRCUITOS
+// ==============================================================================
+function agregarNuevaEtapa() {
+    const nuevoOrden = etapas.length + 1;
+    const colorIndex = (nuevoOrden - 1) % PALETA_COLORES.length;
+    const nueva = {
+        id: 'temp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+        nombre: `Etapa ${nuevoOrden}: Tramo Malagueño`,
+        orden: nuevoOrden,
+        color_capa: PALETA_COLORES[colorIndex],
+        coordenadas: []
+    };
+    etapas.push(nueva);
+    renderizarEtapasSidebar();
+    activarModoTrazado(nueva.id);
+}
+
+function renderizarEtapasSidebar() {
+    const contenedor = document.getElementById('contenedorEtapasLista');
+    const badge = document.getElementById('countEtapasBadge');
+    if (badge) badge.innerText = etapas.length;
+
+    if (!contenedor) return;
+    contenedor.innerHTML = '';
+
+    etapas.forEach((etapa, idx) => {
+        etapa.orden = idx + 1; // mantener orden correlativo
+        const distKm = calcularDistanciaKm(etapa.coordenadas);
+        const isDrawing = (etapaActivaId === etapa.id);
+
+        const card = document.createElement('div');
+        card.className = `etapa-item-card ${isDrawing ? 'is-active-drawing' : ''}`;
+        card.id = `card_etapa_${etapa.id}`;
+
+        card.innerHTML = `
+            <div class="etapa-item-header">
+                <div class="etapa-title-group">
+                    <input type="color" class="color-picker-dot" value="${etapa.color_capa || '#10b981'}" onchange="cambiarColorEtapa('${etapa.id}', this.value)" title="Elegir color del tramo">
+                    <input type="text" class="etapa-name-input" value="${etapa.nombre}" onchange="cambiarNombreEtapa('${etapa.id}', this.value)" placeholder="Nombre de etapa">
+                </div>
+                <button type="button" class="btn-clear-stage" onclick="eliminarEtapa('${etapa.id}')" title="Eliminar Etapa">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="etapa-meta-badge">
+                <span><i class="fa-solid fa-map-pin"></i> ${etapa.coordenadas.length} puntos</span>
+                <span>•</span>
+                <span><i class="fa-solid fa-road"></i> <strong>${distKm} km</strong></span>
+            </div>
+
+            <div class="etapa-actions-bar">
+                <button type="button" class="btn-draw-stage ${isDrawing ? 'drawing' : ''}" onclick="toggleModoTrazado('${etapa.id}')">
+                    <i class="fa-solid ${isDrawing ? 'fa-stop' : 'fa-pen-ruler'}"></i>
+                    <span>${isDrawing ? 'Finalizar Trazo' : 'Trazar en Mapa'}</span>
+                </button>
+                ${etapa.coordenadas.length > 0 ? `
+                <button type="button" class="btn-clear-stage" onclick="limpiarPuntosEtapa('${etapa.id}')" title="Borrar puntos de esta etapa">
+                    <i class="fa-regular fa-trash-can"></i> Limpiar
+                </button>
+                ` : ''}
+            </div>
+        `;
+        contenedor.appendChild(card);
+    });
+
+    actualizarOpcionesEtapaEnComercios();
+}
+
+function cambiarNombreEtapa(id, nuevoNombre) {
+    const et = etapas.find(e => e.id == id);
+    if (et) {
+        et.nombre = nuevoNombre.trim() || 'Etapa sin nombre';
+        actualizarOpcionesEtapaEnComercios();
+    }
+}
+
+function cambiarColorEtapa(id, nuevoColor) {
+    const et = etapas.find(e => e.id == id);
+    if (et) {
+        et.color_capa = nuevoColor;
+        redibujarPolilineaEtapa(et);
+    }
+}
+
+function eliminarEtapa(id) {
+    if (etapas.length <= 1) {
+        alert("El circuito debe tener al menos una etapa.");
+        return;
+    }
+    if (confirm("¿Desea eliminar esta etapa y su trazado?")) {
+        if (etapaActivaId === id) finalizarTrazadoActivo();
+        if (capasPolilineas[id]) {
+            mapaEditor.removeLayer(capasPolilineas[id]);
+            delete capasPolilineas[id];
+        }
+        removerMarcadoresPuntos(id);
+        etapas = etapas.filter(e => e.id != id);
+        renderizarEtapasSidebar();
+    }
+}
+
+function limpiarPuntosEtapa(id) {
+    const et = etapas.find(e => e.id == id);
+    if (et) {
+        et.coordenadas = [];
+        redibujarPolilineaEtapa(et);
+        removerMarcadoresPuntos(id);
+        renderizarEtapasSidebar();
+    }
+}
+
+// ==============================================================================
+// 4. TRAZADO INTERACTIVO EN EL MAPA CON CLICS
+// ==============================================================================
+function toggleModoTrazado(etapaId) {
+    if (etapaActivaId === etapaId) {
+        finalizarTrazadoActivo();
+    } else {
+        activarModoTrazado(etapaId);
+    }
+}
+
+function activarModoTrazado(etapaId) {
+    etapaActivaId = etapaId;
+    const etapa = etapas.find(e => e.id == etapaId);
+    if (!etapa) return;
+
+    // Actualizar toolbar flotante
+    const toolbar = document.getElementById('mapFloatingToolbar');
+    const badge = document.getElementById('toolbarStatusBadge');
+    const text = document.getElementById('toolbarStatusText');
+    const btnDeshacer = document.getElementById('btnDeshacerPunto');
+    const btnLimpiar = document.getElementById('btnLimpiarTramoActivo');
+    const btnFinalizar = document.getElementById('btnFinalizarTrazado');
+
+    if (badge) {
+        badge.style.background = etapa.color_capa;
+        badge.style.color = '#ffffff';
+    }
+    if (text) text.innerText = `Trazando: ${etapa.nombre} (Haga clic en el mapa)`;
+    if (btnDeshacer) btnDeshacer.style.display = 'inline-flex';
+    if (btnLimpiar) btnLimpiar.style.display = 'inline-flex';
+    if (btnFinalizar) btnFinalizar.style.display = 'inline-flex';
+
+    renderizarEtapasSidebar();
+
+    // Centrar si ya tiene puntos
+    if (etapa.coordenadas.length > 0) {
+        const bounds = L.latLngBounds(etapa.coordenadas);
+        mapaEditor.fitBounds(bounds, { padding: [50, 50] });
+    }
+}
+
+function finalizarTrazadoActivo() {
+    etapaActivaId = null;
+
+    const badge = document.getElementById('toolbarStatusBadge');
+    const text = document.getElementById('toolbarStatusText');
+    const btnDeshacer = document.getElementById('btnDeshacerPunto');
+    const btnLimpiar = document.getElementById('btnLimpiarTramoActivo');
+    const btnFinalizar = document.getElementById('btnFinalizarTrazado');
+
+    if (badge) {
+        badge.style.background = '#dcfce7';
+        badge.style.color = '#15803d';
+    }
+    if (text) text.innerText = 'Modo Exploración';
+    if (btnDeshacer) btnDeshacer.style.display = 'none';
+    if (btnLimpiar) btnLimpiar.style.display = 'none';
+    if (btnFinalizar) btnFinalizar.style.display = 'none';
+
+    renderizarEtapasSidebar();
+}
+
+function agregarPuntoAEtapa(etapaId, lat, lng) {
+    const etapa = etapas.find(e => e.id == etapaId);
+    if (!etapa) return;
+
+    etapa.coordenadas.push([lat, lng]);
+    redibujarPolilineaEtapa(etapa);
+    renderizarEtapasSidebar();
+}
+
+function deshacerUltimoPunto() {
+    if (!etapaActivaId) return;
+    const etapa = etapas.find(e => e.id == etapaActivaId);
+    if (etapa && etapa.coordenadas.length > 0) {
+        etapa.coordenadas.pop();
+        redibujarPolilineaEtapa(etapa);
+        renderizarEtapasSidebar();
+    }
+}
+
+function limpiarTramoActivo() {
+    if (!etapaActivaId) return;
+    limpiarPuntosEtapa(etapaActivaId);
+}
+
+function redibujarPolilineaEtapa(etapa) {
+    const id = etapa.id;
+
+    if (capasPolilineas[id]) {
+        mapaEditor.removeLayer(capasPolilineas[id]);
+    }
+    removerMarcadoresPuntos(id);
+
+    if (etapa.coordenadas.length > 0) {
+        const poly = L.polyline(etapa.coordenadas, {
+            color: etapa.color_capa || '#10b981',
+            weight: 5,
+            opacity: 0.9,
+            lineJoin: 'round'
+        }).addTo(mapaEditor);
+
+        poly.bindTooltip(`<strong>Etapa ${etapa.orden}</strong>: ${etapa.nombre}`, { sticky: true });
+        capasPolilineas[id] = poly;
+
+        // Marcadores en los vértices
+        capasMarcadoresEtapa[id] = [];
+        etapa.coordenadas.forEach((coord, idx) => {
+            const isStart = (idx === 0);
+            const isEnd = (idx === etapa.coordenadas.length - 1 && etapa.coordenadas.length > 1);
+
+            const dot = L.circleMarker(coord, {
+                radius: (isStart || isEnd) ? 6 : 4,
+                color: '#ffffff',
+                fillColor: isStart ? '#15803d' : (isEnd ? '#dc2626' : etapa.color_capa),
+                fillOpacity: 1,
+                weight: 2
+            }).addTo(mapaEditor);
+
+            if (isStart) dot.bindTooltip(`Inicio Etapa ${etapa.orden}`);
+            if (isEnd) dot.bindTooltip(`Meta Etapa ${etapa.orden}`);
+
+            capasMarcadoresEtapa[id].push(dot);
+        });
+    }
+}
+
+function removerMarcadoresPuntos(id) {
+    if (capasMarcadoresEtapa[id]) {
+        capasMarcadoresEtapa[id].forEach(m => mapaEditor.removeLayer(m));
+        delete capasMarcadoresEtapa[id];
+    }
+}
+
+function dibujarTodasLasEtapasEnMapa() {
+    const todosLosPuntos = [];
+    etapas.forEach(etapa => {
+        redibujarPolilineaEtapa(etapa);
+        etapa.coordenadas.forEach(c => todosLosPuntos.push(c));
+    });
+
+    if (todosLosPuntos.length > 0) {
+        mapaEditor.fitBounds(L.latLngBounds(todosLosPuntos), { padding: [50, 50] });
+    }
+}
+
+function calcularDistanciaKm(coords) {
+    if (!coords || coords.length < 2) return '0.00';
+    let totalMetros = 0;
+    for (let i = 0; i < coords.length - 1; i++) {
+        const p1 = L.latLng(coords[i][0], coords[i][1]);
+        const p2 = L.latLng(coords[i+1][0], coords[i+1][1]);
+        totalMetros += p1.distanceTo(p2);
+    }
+    return (totalMetros / 1000).toFixed(2);
+}
+
+// ==============================================================================
+// 5. GESTIÓN DE COMERCIOS ADHERIDOS
+// ==============================================================================
+function renderizarComerciosSidebar() {
+    const contenedor = document.getElementById('contenedorComerciosLista');
+    const badge = document.getElementById('countComerciosBadge');
+    if (!contenedor) return;
+
+    contenedor.innerHTML = '';
+    let countAdheridos = 0;
+
+    comerciosDisponibles.forEach(com => {
+        if (com.adherido) countAdheridos++;
+
+        const card = document.createElement('div');
+        card.className = 'comercio-check-card';
+        card.innerHTML = `
+            <div class="comercio-check-top">
+                <label class="comercio-check-label" for="chk_com_${com.id}">
+                    <input type="checkbox" id="chk_com_${com.id}" ${com.adherido ? 'checked' : ''} onchange="toggleComercioAdherido(${com.id}, this.checked)">
+                    <span>${com.nombre}</span>
+                </label>
+                <button type="button" class="btn-clear-stage" onclick="centrarEnComercio(${com.lat}, ${com.lng})" title="Ver en mapa">
+                    <i class="fa-solid fa-location-crosshairs"></i>
+                </button>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-left: 1.6rem;">
+                <span style="font-size: 0.72rem; color: #64748b;">${com.categoria}</span>
+                <select class="comercio-stage-select" id="sel_stage_${com.id}" ${!com.adherido ? 'disabled' : ''} onchange="cambiarEtapaComercio(${com.id}, this.value)">
+                    <option value="">Todo el Circuito</option>
+                    ${etapas.map(e => `<option value="${e.id}" ${com.subcircuito_id == e.id ? 'selected' : ''}>${e.nombre}</option>`).join('')}
+                </select>
+            </div>
+        `;
+        contenedor.appendChild(card);
+    });
+
+    if (badge) badge.innerText = countAdheridos;
+}
+
+function actualizarOpcionesEtapaEnComercios() {
+    comerciosDisponibles.forEach(com => {
+        const select = document.getElementById(`sel_stage_${com.id}`);
+        if (select) {
+            const currentVal = select.value;
+            select.innerHTML = `
+                <option value="">Todo el Circuito</option>
+                ${etapas.map(e => `<option value="${e.id}" ${currentVal == e.id ? 'selected' : ''}>${e.nombre}</option>`).join('')}
+            `;
+        }
+    });
+}
+
+function toggleComercioAdherido(comercioId, adherido) {
+    const com = comerciosDisponibles.find(c => c.id === comercioId);
+    if (com) {
+        com.adherido = adherido;
+        const select = document.getElementById(`sel_stage_${com.id}`);
+        if (select) select.disabled = !adherido;
+        actualizarCirculoComercioEnMapa(com);
+        const count = comerciosDisponibles.filter(c => c.adherido).length;
+        const badge = document.getElementById('countComerciosBadge');
+        if (badge) badge.innerText = count;
+    }
+}
+
+function cambiarEtapaComercio(comercioId, subcircuitoId) {
+    const com = comerciosDisponibles.find(c => c.id === comercioId);
+    if (com) {
+        com.subcircuito_id = subcircuitoId || null;
+    }
+}
+
+function centrarEnComercio(lat, lng) {
+    mapaEditor.setView([lat, lng], 17);
+    if (capasComercios[lat + '_' + lng] && capasComercios[lat + '_' + lng].marker) {
+        capasComercios[lat + '_' + lng].marker.openPopup();
+    }
+}
+
+function dibujarComerciosEnMapa() {
+    comerciosDisponibles.forEach(com => {
+        // Ícono temático según categoría
+        let bg = '#16a34a';
+        let iconClass = 'fa-solid fa-store';
+        const cat = (com.categoria || '').toLowerCase();
+
+        if (cat.includes('hidratación') || cat.includes('hidratacion')) { iconClass = 'fa-solid fa-droplet'; bg = '#0284c7'; }
+        else if (cat.includes('taller')) { iconClass = 'fa-solid fa-wrench'; bg = '#f59e0b'; }
+        else if (cat.includes('restauración') || cat.includes('gastronomía')) { iconClass = 'fa-solid fa-utensils'; bg = '#e11d48'; }
+        else if (cat.includes('alojamiento')) { iconClass = 'fa-solid fa-bed'; bg = '#8b5cf6'; }
+
+        const icon = L.divIcon({
+            className: 'comercio-editor-pin',
+            html: `<div style="background:${bg}; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-size:13px; border:2px solid #fff; box-shadow:0 3px 8px rgba(0,0,0,0.3);"><i class="${iconClass}"></i></div>`,
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
+        });
+
+        const marker = L.marker([com.lat, com.lng], { icon: icon }).addTo(mapaEditor);
+
+        marker.bindPopup(`
+            <div style="font-family:'Outfit',sans-serif; min-width:180px;">
+                <strong style="font-size:0.95rem; color:#0f172a;">${com.nombre}</strong><br>
+                <span style="font-size:0.78rem; color:#64748b;">${com.categoria}</span><br>
+                <span style="font-size:0.75rem; color:#15803d; font-weight:700;"><i class="fa-solid fa-radar"></i> Radio: ${com.radio}m</span>
+                <div style="margin-top:0.6rem;">
+                    <button type="button" class="btn-action-pill btn-action-editor" style="width:100%; justify-content:center;" onclick="marcarComercioDesdeMapa(${com.id})">
+                        ${com.adherido ? '✓ Adherido al Circuito' : '+ Adherir a este Circuito'}
+                    </button>
+                </div>
+            </div>
+        `);
+
+        // Círculo de tolerancia
+        const circle = L.circle([com.lat, com.lng], {
+            radius: com.radio || 30,
+            color: '#16a34a',
+            fillColor: '#16a34a',
+            fillOpacity: com.adherido ? 0.2 : 0,
+            weight: com.adherido ? 2 : 0,
+            dashArray: '4, 4'
+        }).addTo(mapaEditor);
+
+        capasComercios[com.id] = { marker: marker, circle: circle };
+    });
+}
+
+function marcarComercioDesdeMapa(comercioId) {
+    const com = comerciosDisponibles.find(c => c.id === comercioId);
+    if (com) {
+        toggleComercioAdherido(com.id, !com.adherido);
+        const chk = document.getElementById(`chk_com_${com.id}`);
+        if (chk) chk.checked = com.adherido;
+        if (capasComercios[com.id] && capasComercios[com.id].marker) {
+            capasComercios[com.id].marker.closePopup();
+        }
+    }
+}
+
+function actualizarCirculoComercioEnMapa(com) {
+    if (capasComercios[com.id] && capasComercios[com.id].circle) {
+        capasComercios[com.id].circle.setStyle({
+            fillOpacity: com.adherido ? 0.2 : 0,
+            weight: com.adherido ? 2 : 0
+        });
+    }
+}
+
+// ==============================================================================
+// 6. GUARDAR CIRCUITO COMPLETO VÍA API
+// ==============================================================================
+function guardarCircuitoCompleto() {
+    const nombre = document.getElementById('circuitoNombre').value.trim();
+    const descripcion = document.getElementById('circuitoDescripcion').value.trim();
+    const activo = document.getElementById('circuitoActivo').checked;
+    const circuitoId = document.getElementById('circuitoId').value;
+
+    if (!nombre) {
+        alert("Por favor ingrese el nombre del Circuito General.");
+        cambiarTabEditor('tabGeneral');
+        document.getElementById('circuitoNombre').focus();
+        return;
+    }
+
+    if (etapas.length === 0) {
+        alert("El circuito debe tener al menos una etapa.");
+        cambiarTabEditor('tabEtapas');
+        return;
+    }
+
+    // Validar que al menos una etapa tenga coordenadas
+    const totalPuntos = etapas.reduce((acc, e) => acc + (e.coordenadas ? e.coordenadas.length : 0), 0);
+    if (totalPuntos === 0) {
+        if (!confirm("Ninguna de las etapas tiene puntos trazados en el mapa. ¿Desea guardar el circuito de todas formas?")) {
+            return;
+        }
+    }
+
+    const fechaEvento = document.getElementById('circuitoFechaEvento').value || null;
+    const fechaLimite = document.getElementById('circuitoFechaLimite').value || null;
+    const radioLargada = parseInt(document.getElementById('circuitoRadioLargada').value) || 80;
+
+    const payload = {
+        circuito_id: circuitoId || null,
+        nombre: nombre,
+        descripcion: descripcion,
+        activo: activo,
+        fecha_evento: fechaEvento,
+        fecha_limite_inscripcion: fechaLimite,
+        radio_largada_metros: radioLargada,
+        etapas: etapas.map((e, idx) => ({
+            id: String(e.id).startsWith('temp_') ? null : e.id,
+            nombre: e.nombre,
+            orden: idx + 1,
+            color_capa: e.color_capa,
+            coordenadas: e.coordenadas
+        })),
+        comercios_adheridos: comerciosDisponibles.filter(c => c.adherido).map(c => ({
+            id: c.id,
+            subcircuito_id: String(c.subcircuito_id).startsWith('temp_') ? null : (c.subcircuito_id || null)
+        }))
+    };
+
+    const btn = document.getElementById('btnGuardarMaestroTop');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
+    }
+
+    fetch("{% url 'panel_circuito_guardar_api' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.ok) {
+            window.location.href = "{% url 'panel_circuitos_listado' %}";
+        } else {
+            alert("Error al guardar circuito: " + (data.error || "Ocurrió un error inesperado"));
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Circuito';
+            }
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Error de conexión al guardar el circuito.");
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Circuito';
+        }
+    });
+}
+</script>
+{% endblock %}

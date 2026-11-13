@@ -1,0 +1,603 @@
+/* ==========================================================================
+   LANDING PAGE (home.css) - DISEÑO OFICIAL CICLISMO MALAGUEÑO
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   1. HERO SECTION
+   ------------------------------------------------------------------------- */
+.hero-section {
+  position: relative;
+  min-height: 82vh;
+  display: flex;
+  align-items: center;
+  padding: 8.5rem 0 5rem 0;
+  background-image: url('https://images.unsplash.com/photo-1541625602330-2277a4c46182?auto=format&fit=crop&w=1920&q=80');
+  background-size: cover;
+  background-position: center 30%;
+  background-repeat: no-repeat;
+  color: #ffffff;
+}
+
+.hero-bg-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, rgba(8, 28, 14, 0.92) 0%, rgba(8, 28, 14, 0.75) 45%, rgba(8, 28, 14, 0.25) 100%);
+  z-index: 1;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  max-width: 650px;
+}
+
+/* Pill Dorado: Próximo Evento */
+.badge-proximo-evento {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #f59e0b;
+  color: #1e293b;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0.35rem 0.95rem;
+  border-radius: 9999px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
+.hero-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(2.4rem, 4.8vw, 3.8rem);
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin-bottom: 1.25rem;
+  color: #ffffff;
+}
+
+.hero-title .highlight-yellow {
+  color: #fbbf24;
+  font-style: italic;
+  font-weight: 800;
+}
+
+.hero-description {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.08rem;
+  line-height: 1.6;
+  color: #e2e8f0;
+  margin-bottom: 2.25rem;
+  max-width: 580px;
+  opacity: 0.95;
+}
+
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  flex-wrap: wrap;
+}
+
+.btn-registrarme {
+  background-color: #2e7d32;
+  color: #ffffff;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 0.75rem 1.75rem;
+  border-radius: 9999px;
+  text-decoration: none;
+  box-shadow: 0 4px 14px rgba(46, 125, 50, 0.35);
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-registrarme:hover {
+  background-color: #256628;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(46, 125, 50, 0.45);
+}
+
+.btn-ver-circuitos {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 0.75rem 1.75rem;
+  border-radius: 9999px;
+  text-decoration: none;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.2s ease;
+}
+
+.btn-ver-circuitos:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+}
+
+/* -------------------------------------------------------------------------
+   2. FILA DE 4 TARJETAS DE MÉTRICAS (VERDE BOSQUE TRASLÚCIDO)
+   ------------------------------------------------------------------------- */
+.metrics-section {
+  background: #ffffff;
+  padding: 3rem 0;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+}
+
+.metric-card {
+  position: relative;
+  height: 145px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2.5px solid #2e7d32;
+  background: #0e381f;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.metric-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(46, 125, 50, 0.25);
+}
+
+.metric-bg-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+}
+
+.metric-green-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(30, 95, 50, 0.62);
+  z-index: 2;
+}
+
+.metric-icon-box {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 3;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: rgba(20, 70, 35, 0.85);
+  border: 1.5px solid #fbbf24;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fbbf24;
+}
+
+.metric-center-content {
+  position: relative;
+  z-index: 3;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0.5rem;
+}
+
+.metric-number {
+  font-family: 'Outfit', sans-serif;
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #fbbf24;
+  line-height: 1.1;
+  margin-bottom: 0.35rem;
+  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+}
+
+.metric-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #fbbf24;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+/* -------------------------------------------------------------------------
+   3. SECCIÓN DEL CIRCUITO (VERDE BOSQUE PROFUNDO CON MAPA Y CARD FLOTANTE)
+   ------------------------------------------------------------------------- */
+.circuit-map-section {
+  background: #0b321a;
+  color: #ffffff;
+  padding: 4.5rem 0 5rem 0;
+}
+
+.section-top-flex {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.circuit-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(250, 204, 21, 0.15);
+  color: #facc15;
+  border: 1px solid rgba(250, 204, 21, 0.4);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.3rem 0.85rem;
+  border-radius: 9999px;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+}
+
+.circuit-header-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+}
+
+.circuit-header-title .highlight-gold {
+  color: #facc15;
+}
+
+.circuit-header-desc {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.96rem;
+  color: #cbd5e1;
+  max-width: 620px;
+  line-height: 1.5;
+}
+
+.btn-fullscreen {
+  background: #ffffff;
+  color: #0f172a;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-size: 0.88rem;
+  padding: 0.6rem 1.4rem;
+  border-radius: 9999px;
+  border: 1px solid #e2e8f0;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+}
+
+.btn-fullscreen:hover {
+  background: #f8fafc;
+  transform: translateY(-2px);
+}
+
+/* Contenedor del Mapa con Card Flotante */
+.map-interactive-wrapper {
+  position: relative;
+  width: 100%;
+  height: 520px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#mapa-publico {
+  width: 100%;
+  height: 100%;
+  background: #e2e8f0;
+}
+
+/* Card Flotante de Estado del Circuito (Blanca en esquina inferior izquierda) */
+.floating-circuit-card {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  z-index: 1000;
+  background: #ffffff;
+  color: #1e293b;
+  border-radius: 12px;
+  padding: 1.25rem 1.4rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+  width: 260px;
+  font-family: 'Inter', sans-serif;
+}
+
+.floating-card-status {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #1e293b;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.status-dot-active {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #22c55e;
+  box-shadow: 0 0 6px #22c55e;
+}
+
+.floating-distance-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.floating-distance-val {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 900;
+  font-size: 1.15rem;
+  color: #16a34a;
+}
+
+.floating-card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-bottom: 1rem;
+}
+
+.floating-meta-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.floating-meta-item b {
+  color: #1e293b;
+}
+
+.btn-open-gps {
+  display: block;
+  width: 100%;
+  text-align: center;
+  background-color: #f59e0b;
+  color: #ffffff;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 0.88rem;
+  padding: 0.6rem 0;
+  border-radius: 8px;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.35);
+  transition: all 0.2s ease;
+}
+
+.btn-open-gps:hover {
+  background-color: #d97706;
+}
+
+/* -------------------------------------------------------------------------
+   4. SECCIÓN NOTICIAS Y NOVEDADES (FONDO BLANCO LIMPIO)
+   ------------------------------------------------------------------------- */
+.news-clean-section {
+  background: #ffffff;
+  color: #1e293b;
+  padding: 5rem 0 6rem 0;
+}
+
+.news-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.3rem 0.85rem;
+  border-radius: 9999px;
+  margin-bottom: 0.75rem;
+}
+
+.news-clean-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #114224;
+  margin-bottom: 0.5rem;
+}
+
+.news-clean-desc {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.96rem;
+  color: #64748b;
+  max-width: 600px;
+}
+
+.btn-ver-todas {
+  background: transparent;
+  color: #114224;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-size: 0.88rem;
+  padding: 0.55rem 1.35rem;
+  border-radius: 9999px;
+  border: 1.5px solid #2e7d32;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.btn-ver-todas:hover {
+  background: #2e7d32;
+  color: #ffffff;
+}
+
+.news-clean-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.85rem;
+  margin-top: 2.5rem;
+}
+
+.news-clean-card {
+  background: #ffffff;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.news-clean-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.09);
+}
+
+.news-clean-img-wrap {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  background: #f1f5f9;
+}
+
+.news-clean-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.35s ease;
+}
+
+.news-clean-card:hover .news-clean-img-wrap img {
+  transform: scale(1.05);
+}
+
+.news-clean-body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.news-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.category-tag {
+  background: #e8f5e9;
+  color: #2e7d32;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.65rem;
+  border-radius: 9999px;
+}
+
+.news-date-text {
+  font-size: 0.78rem;
+  color: #94a3b8;
+}
+
+.news-clean-headline {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 0.65rem;
+  line-height: 1.35;
+}
+
+.news-clean-summary {
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: #64748b;
+  margin-bottom: 1.5rem;
+  flex: 1;
+}
+
+.news-read-more {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: #2e7d32;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: gap 0.2s ease;
+}
+
+.news-read-more:hover {
+  gap: 0.65rem;
+}
+
+/* -------------------------------------------------------------------------
+   RESPONSIVE DESIGN
+   ------------------------------------------------------------------------- */
+@media (max-width: 1024px) {
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .news-clean-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 7rem 0 4rem 0;
+  }
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+  .news-clean-grid {
+    grid-template-columns: 1fr;
+  }
+  .section-top-flex {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .floating-circuit-card {
+    position: static;
+    width: 100%;
+    margin-top: 1rem;
+    box-shadow: none;
+    border: 1px solid #e2e8f0;
+  }
+  .map-interactive-wrapper {
+    height: 400px;
+  }
+}

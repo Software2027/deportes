@@ -1,0 +1,597 @@
+/* ==============================================================================
+   ESTILOS DE LA PANTALLA DE LOGIN - CICLISMO MALAGUEÑO
+   Diseño centrado, estilizado y con generoso espaciado superior e inferior.
+   ============================================================================== */
+
+.login-page-section {
+    min-height: calc(100vh - 72px);
+    background-color: #f8fafc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Margen generoso para compensar el header fixed (72px) y dar aire al footer */
+    padding-top: 8.5rem;
+    padding-bottom: 7rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    box-sizing: border-box;
+}
+
+.login-card-container {
+    width: 100%;
+    max-width: 425px;
+    margin: 0 auto;
+}
+
+.login-card {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 2.35rem 2.2rem 2.1rem 2.2rem;
+    box-shadow: 0 12px 35px -6px rgba(15, 23, 42, 0.06), 0 4px 12px -2px rgba(15, 23, 42, 0.02);
+    border: 1px solid #edf2f7;
+    text-align: center;
+}
+
+/* Círculo con Escudo / Logo de la Municipalidad */
+.login-logo-circle {
+    width: 56px;
+    height: 56px;
+    background: #1f6f3a;
+    border-radius: 50%;
+    margin: 0 auto 1.15rem auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(31, 111, 58, 0.22);
+    transition: transform 0.2s ease;
+}
+
+.login-logo-circle:hover {
+    transform: scale(1.05);
+}
+
+.login-logo-circle img {
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+}
+
+/* Títulos y Descripciones */
+.login-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.55rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 0.35rem;
+    letter-spacing: -0.02em;
+}
+
+.login-subtitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    color: #64748b;
+    line-height: 1.45;
+    margin-bottom: 1.45rem;
+}
+
+/* Formulario y Campos */
+.login-form {
+    text-align: left;
+}
+
+.login-form-group {
+    margin-bottom: 1.1rem;
+}
+
+.login-label {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 0.45rem;
+}
+
+.login-label i {
+    color: #64748b;
+    font-size: 0.88rem;
+}
+
+.login-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.45rem;
+}
+
+.login-label-row .login-label {
+    margin-bottom: 0;
+}
+
+.forgot-password-link {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: #16a34a;
+    text-decoration: none;
+    transition: color 0.15s ease, text-decoration 0.15s ease;
+}
+
+.forgot-password-link:hover {
+    color: #15803d;
+    text-decoration: underline;
+}
+
+/* Inputs */
+.login-input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.login-input {
+    width: 100%;
+    padding: 0.75rem 0.95rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    color: #1e293b;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.login-input::placeholder {
+    color: #94a3b8;
+    font-weight: 400;
+}
+
+.login-input:focus {
+    outline: none;
+    background-color: #ffffff;
+    border-color: #16a34a;
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.12);
+}
+
+.login-input.has-eye {
+    padding-right: 2.75rem;
+}
+
+/* Botón Revelar Contraseña */
+.btn-toggle-eye {
+    position: absolute;
+    right: 0.85rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #94a3b8;
+    font-size: 0.92rem;
+    padding: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s ease;
+}
+
+.btn-toggle-eye:hover {
+    color: #475569;
+}
+
+/* Botón Ingresar (Dorado / Amarillo Cálido) */
+.btn-login-submit {
+    width: 100%;
+    margin-top: 0.35rem;
+    padding: 0.82rem 1.25rem;
+    background-color: #eab308;
+    border: none;
+    border-radius: 8px;
+    color: #1e293b;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.98rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    box-shadow: 0 4px 14px rgba(234, 179, 8, 0.32);
+    transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease;
+}
+
+.btn-login-submit:hover {
+    background-color: #ca8a04;
+    box-shadow: 0 6px 18px rgba(234, 179, 8, 0.42);
+    transform: translateY(-1px);
+}
+
+.btn-login-submit:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(234, 179, 8, 0.25);
+}
+
+/* Divisor O */
+.login-divider {
+    position: relative;
+    text-align: center;
+    margin: 1.35rem 0 1.15rem 0;
+}
+
+.login-divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background-color: #e2e8f0;
+}
+
+.login-divider span {
+    position: relative;
+    display: inline-block;
+    padding: 0 0.85rem;
+    background-color: #ffffff;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #475569;
+}
+
+/* Registro Inferior */
+.login-footer-actions {
+    text-align: center;
+}
+
+.register-prompt {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.82rem;
+    color: #64748b;
+    margin-bottom: 0.45rem;
+}
+
+.btn-register-link {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #16a34a;
+    text-decoration: none;
+    transition: color 0.15s ease, text-decoration 0.15s ease;
+}
+
+.btn-register-link:hover {
+    color: #15803d;
+    text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .login-page-section {
+        padding-top: 6.5rem;
+        padding-bottom: 4.5rem;
+    }
+
+    .login-card {
+        padding: 2rem 1.4rem 1.6rem 1.4rem;
+    }
+    
+    .login-title {
+        font-size: 1.4rem;
+    }
+}
+
+/* ==============================================================================
+   POPUP / MODAL DE RECUPERACIÓN DE CLAVE - CICLISMO MALAGUEÑO
+   ============================================================================== */
+.modal-recovery-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    z-index: 99999;
+    align-items: center;
+    justify-content: center;
+    padding: 1.25rem;
+    box-sizing: border-box;
+    animation: fadeInModal 0.2s ease-out;
+}
+
+@keyframes fadeInModal {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal-recovery-card {
+    background: #ffffff;
+    border-radius: 20px;
+    max-width: 480px;
+    width: 100%;
+    box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(15, 23, 42, 0.05);
+    overflow: hidden;
+    animation: slideUpModal 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUpModal {
+    from {
+        opacity: 0;
+        transform: translateY(16px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.modal-recovery-header {
+    background: linear-gradient(135deg, #0b381e 0%, #15803d 100%);
+    color: #ffffff;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 2px solid #ca8a04;
+}
+
+.modal-header-info {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+}
+
+.modal-icon-badge {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    color: #eab308;
+    flex-shrink: 0;
+}
+
+.modal-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.modal-subtitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.78rem;
+    color: #86efac;
+    display: block;
+    margin-top: 0.15rem;
+}
+
+.btn-close-modal {
+    background: rgba(255, 255, 255, 0.12);
+    border: none;
+    color: #ffffff;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.btn-close-modal:hover {
+    background: rgba(239, 68, 68, 0.85);
+    transform: rotate(90deg);
+}
+
+.modal-recovery-body {
+    padding: 1.5rem 1.5rem 1.25rem 1.5rem;
+    text-align: left;
+}
+
+.recovery-intro-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #16a34a;
+    border-radius: 10px;
+    padding: 0.85rem 1rem;
+    margin-bottom: 1.15rem;
+}
+
+.recovery-shield-icon {
+    color: #16a34a;
+    font-size: 1.2rem;
+    margin-top: 0.15rem;
+    flex-shrink: 0;
+}
+
+.recovery-intro-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.84rem;
+    color: #334155;
+    margin: 0;
+    line-height: 1.45;
+}
+
+.recovery-email-box {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 12px;
+    padding: 0.85rem 1rem;
+    margin-bottom: 1.15rem;
+}
+
+.recovery-label {
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #166534;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 0.35rem;
+}
+
+.recovery-email-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.recovery-email-address {
+    font-family: monospace;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #0b381e;
+    word-break: break-all;
+}
+
+.btn-copy-email {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: #ffffff;
+    border: 1px solid #86efac;
+    color: #15803d;
+    padding: 0.35rem 0.7rem;
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+.btn-copy-email:hover {
+    background: #15803d;
+    color: #ffffff;
+    border-color: #15803d;
+}
+
+.recovery-requirements-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0.95rem 1.15rem;
+    margin-bottom: 1rem;
+}
+
+.requirements-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 0.65rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.requirements-title i {
+    color: #ca8a04;
+    font-size: 0.95rem;
+}
+
+.requirements-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.requirements-list li {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.82rem;
+    color: #475569;
+}
+
+.requirements-list li i {
+    color: #16a34a;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+}
+
+.recovery-note-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.78rem;
+    color: #64748b;
+    margin: 0;
+    line-height: 1.4;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.45rem;
+}
+
+.recovery-note-text i {
+    color: #0284c7;
+    margin-top: 0.15rem;
+    flex-shrink: 0;
+}
+
+.modal-recovery-footer {
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    padding: 0.95rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+.btn-modal-cancel {
+    padding: 0.6rem 1.1rem;
+    border-radius: 10px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #475569;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn-modal-cancel:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+.btn-modal-sendmail {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.25rem;
+    border-radius: 10px;
+    background: #15803d;
+    color: #ffffff !important;
+    text-decoration: none;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 700;
+    transition: background 0.15s ease, transform 0.15s ease;
+    box-shadow: 0 4px 12px rgba(21, 128, 61, 0.25);
+}
+
+.btn-modal-sendmail:hover {
+    background: #0b381e;
+    transform: translateY(-1px);
+}

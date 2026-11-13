@@ -1,0 +1,192 @@
+{% extends "base/base_ciudadano.html" %}
+{% load static %}
+
+{% block title %}Comercios y Puntos Adheridos | Ciclismo Malagueño{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/comercios_publicos.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- --------------------------------------------------------------------------- -->
+<!-- 1. HERO INSTITUCIONAL DE COMERCIOS                                          -->
+<!-- --------------------------------------------------------------------------- -->
+<section class="commerce-hero-section">
+    <div class="commerce-hero-overlay"></div>
+    <div class="container" style="position: relative; z-index: 2;">
+        <div class="commerce-hero-content">
+            <!-- Badge dorado institucional -->
+            <div class="commerce-hero-badge">
+                <i class="fa-solid fa-shop"></i>
+                <span>Red Comercial de Malagueño</span>
+            </div>
+
+            <h1 class="commerce-hero-title">
+                Comercios y Puntos <br>
+                <span class="highlight-yellow">Adheridos al Circuito</span>
+            </h1>
+
+            <p class="commerce-hero-desc">
+                Conoce los locales gastronómicos, talleres mecánicos, puestos de hidratación y tiendas que apoyan a nuestra comunidad de ciclistas con atención preferencial y beneficios exclusivos en la ciudad.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- --------------------------------------------------------------------------- -->
+<!-- 2. SECCIÓN PRINCIPAL: FONDO BLANCO LIMPIO                                   -->
+<!-- --------------------------------------------------------------------------- -->
+<section class="commerce-page-content">
+    <div class="container">
+
+        <!-- Barra de Filtros y Búsqueda -->
+        <div class="commerce-toolbar-row">
+            <!-- Filtros por categoría tipo pastilla -->
+            <div class="commerce-filter-pills">
+                <a href="{% url 'comercios_listado' %}{% if query_q %}?q={{ query_q }}{% endif %}"
+                   class="pill-filter-item {% if not categoria_filtro %}active{% endif %}">
+                    <span>Todos los comercios</span>
+                </a>
+                {% for cat_val, cat_label in categorias %}
+                <a href="{% url 'comercios_listado' %}?categoria={{ cat_val }}{% if query_q %}&q={{ query_q }}{% endif %}"
+                   class="pill-filter-item {% if categoria_filtro == cat_val %}active{% endif %}">
+                    <span>{{ cat_label }}</span>
+                </a>
+                {% endfor %}
+            </div>
+
+            <!-- Buscador redondeado -->
+            <form method="GET" action="{% url 'comercios_listado' %}" style="margin: 0;">
+                {% if categoria_filtro %}
+                <input type="hidden" name="categoria" value="{{ categoria_filtro }}">
+                {% endif %}
+                <div class="commerce-search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text"
+                           name="q"
+                           value="{{ query_q }}"
+                           placeholder="Buscar por nombre o calle..."
+                           class="commerce-search-input">
+                    {% if query_q %}
+                    <a href="{% url 'comercios_listado' %}{% if categoria_filtro %}?categoria={{ categoria_filtro }}{% endif %}"
+                       style="color: #94a3b8; font-size: 0.8rem; text-decoration: none;" title="Limpiar búsqueda">
+                        <i class="fa-solid fa-xmark"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+
+        <!-- Grilla de Tarjetas de Comercios -->
+        <div class="commerce-clean-grid">
+            {% for c in comercios %}
+            <article class="commerce-clean-card">
+                <!-- Imagen o Cabecera Ilustrativa -->
+                <a href="{% url 'comercio_detalle' c.pk %}" class="commerce-clean-img-wrap" title="Ver: {{ c.nombre }}">
+                    {% if c.imagen %}
+                        <img src="{{ c.imagen.url }}" alt="{{ c.nombre }}" loading="lazy">
+                    {% else %}
+                        <div class="commerce-clean-placeholder">
+                            {% if c.categoria == 'Restauración' %}
+                                <i class="fa-solid fa-utensils"></i>
+                            {% elif c.categoria == 'Taller de Bicicletas' %}
+                                <i class="fa-solid fa-wrench"></i>
+                            {% elif c.categoria == 'Tienda Deportiva' %}
+                                <i class="fa-solid fa-bicycle"></i>
+                            {% elif c.categoria == 'Punto de Hidratación' %}
+                                <i class="fa-solid fa-bottle-water"></i>
+                            {% elif c.categoria == 'Alojamiento' %}
+                                <i class="fa-solid fa-bed"></i>
+                            {% elif c.categoria == 'Punto de Control' %}
+                                <i class="fa-solid fa-shield-halved"></i>
+                            {% else %}
+                                <i class="fa-solid fa-store"></i>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                    <span class="commerce-cat-badge-float">
+                        <i class="fa-solid fa-tag"></i> {{ c.get_categoria_display }}
+                    </span>
+                </a>
+
+                <!-- Cuerpo de la Tarjeta -->
+                <div class="commerce-clean-body">
+                    <a href="{% url 'comercio_detalle' c.pk %}" style="text-decoration: none;">
+                        <h2 class="commerce-clean-title">{{ c.nombre }}</h2>
+                    </a>
+
+                    <div class="commerce-location-row">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span>{{ c.direccion|default:"Malagueño, Córdoba" }}</span>
+                    </div>
+
+                    <p class="commerce-clean-desc">
+                        {{ c.descripcion|default:"Establecimiento adherido al programa municipal de ciclismo con atención y servicios preferenciales."|truncatewords:20 }}
+                    </p>
+
+                    <div class="commerce-card-bottom">
+                        <a href="{% url 'comercio_detalle' c.pk %}" class="commerce-view-btn">
+                            <span>Ver detalles y mapa</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+
+                        {% if c.telefono %}
+                        <span class="commerce-tel-link">
+                            <i class="fa-solid fa-phone"></i> {{ c.telefono|truncatechars:15 }}
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </article>
+            {% empty %}
+            <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 1.5rem; background-color: #f8fafc; border-radius: 16px; border: 1px dashed #cbd5e1;">
+                <div style="font-size: 3rem; color: #94a3b8; margin-bottom: 0.85rem;">
+                    <i class="fa-solid fa-store-slash"></i>
+                </div>
+                <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.35rem; color: #114224; margin-bottom: 0.5rem;">
+                    No se encontraron comercios
+                </h3>
+                <p style="color: #64748b; font-size: 0.95rem; margin-bottom: 1.5rem;">
+                    {% if query_q or categoria_filtro %}
+                    No hay locales registrados que coincidan con los filtros de búsqueda actuales.
+                    {% else %}
+                    Aún no hay comercios activos registrados en el padrón municipal.
+                    {% endif %}
+                </p>
+                {% if query_q or categoria_filtro %}
+                <a href="{% url 'comercios_listado' %}" class="pill-filter-item active" style="display: inline-flex;">
+                    Ver todos los comercios
+                </a>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Paginación -->
+        {% if page_obj.has_other_pages %}
+        <div style="display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-top: 3.5rem;">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if categoria_filtro %}&categoria={{ categoria_filtro }}{% endif %}{% if query_q %}&q={{ query_q }}{% endif %}"
+               class="pill-filter-item">
+                <i class="fa-solid fa-arrow-left"></i>
+                <span>Anterior</span>
+            </a>
+            {% endif %}
+
+            <span style="font-family: 'Outfit', sans-serif; font-size: 0.92rem; font-weight: 700; color: #114224; padding: 0 0.75rem;">
+                Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+            </span>
+
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if categoria_filtro %}&categoria={{ categoria_filtro }}{% endif %}{% if query_q %}&q={{ query_q }}{% endif %}"
+               class="pill-filter-item">
+                <span>Siguiente</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+    </div>
+</section>
+{% endblock %}

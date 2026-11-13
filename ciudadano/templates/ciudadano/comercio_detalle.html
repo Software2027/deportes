@@ -1,0 +1,331 @@
+{% extends "base/base_ciudadano.html" %}
+{% load static %}
+
+{% block title %}{{ comercio.nombre }} | Comercios Adheridos Malagueño{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/comercios_publicos.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- --------------------------------------------------------------------------- -->
+<!-- 1. HERO INSTITUCIONAL OSCURO: TÍTULO, CATEGORÍA Y DESCRIPCIÓN               -->
+<!-- --------------------------------------------------------------------------- -->
+<section class="comercio-hero-section">
+    <div class="comercio-hero-overlay"></div>
+    <div class="container" style="position: relative; z-index: 2;">
+
+        <!-- Botón Volver a Comercios -->
+        <div class="comercio-hero-nav">
+            <a href="{% url 'comercios_listado' %}" class="btn-volver-hero">
+                <i class="fa-solid fa-arrow-left"></i>
+                <span>Volver a Comercios</span>
+            </a>
+        </div>
+
+        <div class="comercio-hero-content">
+            <!-- Logo Oficial del Comercio / Isotipo -->
+            <div class="comercio-logo-badge-container">
+                {% if comercio.imagen %}
+                    <div class="comercio-logo-badge" title="Logo de {{ comercio.nombre }}">
+                        <img src="{{ comercio.imagen.url }}" alt="Logo de {{ comercio.nombre }}">
+                    </div>
+                {% else %}
+                    <div class="comercio-logo-badge comercio-logo-placeholder" title="{{ comercio.get_categoria_display }}">
+                        {% if comercio.categoria == 'Restauración' %}
+                            <i class="fa-solid fa-utensils"></i>
+                        {% elif comercio.categoria == 'Taller de Bicicletas' %}
+                            <i class="fa-solid fa-wrench"></i>
+                        {% elif comercio.categoria == 'Tienda Deportiva' %}
+                            <i class="fa-solid fa-bicycle"></i>
+                        {% elif comercio.categoria == 'Punto de Hidratación' %}
+                            <i class="fa-solid fa-bottle-water"></i>
+                        {% elif comercio.categoria == 'Alojamiento' %}
+                            <i class="fa-solid fa-bed"></i>
+                        {% elif comercio.categoria == 'Punto de Control' %}
+                            <i class="fa-solid fa-shield-halved"></i>
+                        {% else %}
+                            <i class="fa-solid fa-store"></i>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Metadatos de Cabecera -->
+            <div class="comercio-hero-meta">
+                <span class="comercio-badge-cat">
+                    <i class="fa-solid fa-tag"></i> {{ comercio.get_categoria_display }}
+                </span>
+                <span class="meta-item-hero">
+                    <i class="fa-solid fa-circle-check" style="color: #4ade80;"></i>
+                    <span>Estado: {{ comercio.estado|default:"Activo" }}</span>
+                </span>
+                {% if comercio.circuito_general %}
+                <span class="meta-item-hero">
+                    <i class="fa-solid fa-route"></i>
+                    <span>{{ comercio.circuito_general.nombre }}</span>
+                </span>
+                {% endif %}
+            </div>
+
+            <!-- Nombre Principal del Comercio -->
+            <h1 class="comercio-hero-title">{{ comercio.nombre }}</h1>
+
+            <!-- Domicilio / Ubicación Rápida -->
+            <div class="comercio-hero-address">
+                <i class="fa-solid fa-location-dot"></i>
+                <span>{{ comercio.direccion|default:"Malagueño, Córdoba" }}</span>
+            </div>
+
+            <!-- Resumen o Beneficio Destacado -->
+            <div class="comercio-hero-desc">
+                <p>
+                    {{ comercio.descripcion|default:"Comercio aliado al circuito municipal de ciclismo de Malagueño con servicios especiales para participantes." }}
+                </p>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- --------------------------------------------------------------------------- -->
+<!-- 2. SECCIÓN PRINCIPAL: FICHA TÉCNICA Y MAPA DE GOOGLE MAPS                  -->
+<!-- --------------------------------------------------------------------------- -->
+<section class="comercio-detail-wrap">
+    <div class="container">
+
+        <div class="comercio-detail-grid">
+
+            <!-- COLUMNA 1: FICHA TÉCNICA Y BENEFICIOS -->
+            <div class="comercio-info-column">
+                <div class="comercio-info-card">
+                    <!-- Cabecera de Marca con Logo -->
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; padding-bottom: 1.25rem; border-bottom: 1px solid #f1f5f9;">
+                        {% if comercio.imagen %}
+                        <div style="width: 58px; height: 58px; border-radius: 14px; border: 1.5px solid #e2e8f0; overflow: hidden; background: #ffffff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.04); padding: 4px;">
+                            <img src="{{ comercio.imagen.url }}" alt="Logo de {{ comercio.nombre }}" style="width: 100%; height: 100%; object-fit: contain;">
+                        </div>
+                        {% else %}
+                        <div style="width: 58px; height: 58px; border-radius: 14px; border: 1.5px solid #bbf7d0; background: #e8f5e9; color: #15803d; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.5rem;">
+                            {% if comercio.categoria == 'Restauración' %}
+                                <i class="fa-solid fa-utensils"></i>
+                            {% elif comercio.categoria == 'Taller de Bicicletas' %}
+                                <i class="fa-solid fa-wrench"></i>
+                            {% elif comercio.categoria == 'Tienda Deportiva' %}
+                                <i class="fa-solid fa-bicycle"></i>
+                            {% elif comercio.categoria == 'Punto de Hidratación' %}
+                                <i class="fa-solid fa-bottle-water"></i>
+                            {% elif comercio.categoria == 'Alojamiento' %}
+                                <i class="fa-solid fa-bed"></i>
+                            {% elif comercio.categoria == 'Punto de Control' %}
+                                <i class="fa-solid fa-shield-halved"></i>
+                            {% else %}
+                                <i class="fa-solid fa-store"></i>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        <div>
+                            <h3 style="margin: 0 0 2px 0; font-size: 1.18rem; font-weight: 800; color: #114224; font-family: 'Outfit', sans-serif;">{{ comercio.nombre }}</h3>
+                            <span style="font-size: 0.8rem; color: #15803d; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;">
+                                <i class="fa-solid fa-circle-check"></i> Comercio Adherido Verificado
+                            </span>
+                        </div>
+                    </div>
+
+                    <h2 class="comercio-section-title">
+                        <i class="fa-solid fa-circle-info" style="color: #2e7d32;"></i>
+                        <span>Datos del Establecimiento</span>
+                    </h2>
+
+                    <ul class="comercio-data-list">
+                        <!-- Dirección -->
+                        <li class="comercio-data-item">
+                            <div class="data-item-icon">
+                                <i class="fa-solid fa-location-dot"></i>
+                            </div>
+                            <div class="data-item-content">
+                                <span class="data-item-label">Dirección / Ubicación</span>
+                                <span class="data-item-value">{{ comercio.direccion|default:"Malagueño, Córdoba" }}</span>
+                            </div>
+                        </li>
+
+                        <!-- Rubro / Categoría -->
+                        <li class="comercio-data-item">
+                            <div class="data-item-icon">
+                                <i class="fa-solid fa-tag"></i>
+                            </div>
+                            <div class="data-item-content">
+                                <span class="data-item-label">Categoría Comercial</span>
+                                <span class="data-item-value">{{ comercio.get_categoria_display }}</span>
+                            </div>
+                        </li>
+
+                        <!-- Teléfono de Contacto -->
+                        {% if comercio.telefono %}
+                        <li class="comercio-data-item">
+                            <div class="data-item-icon">
+                                <i class="fa-solid fa-phone"></i>
+                            </div>
+                            <div class="data-item-content">
+                                <span class="data-item-label">Teléfono de Atención</span>
+                                <a href="tel:{{ comercio.telefono }}" class="data-item-value" style="color: #114224; text-decoration: none;">
+                                    {{ comercio.telefono }}
+                                </a>
+                            </div>
+                        </li>
+                        {% endif %}
+
+                        <!-- Radio de Tolerancia GPS para Ciclistas -->
+                        <li class="comercio-data-item">
+                            <div class="data-item-icon">
+                                <i class="fa-solid fa-bullseye"></i>
+                            </div>
+                            <div class="data-item-content">
+                                <span class="data-item-label">Radio de Detección GPS</span>
+                                <span class="data-item-value">Hasta {{ comercio.radio_tolerancia_metros }} metros del local</span>
+                            </div>
+                        </li>
+
+                        <!-- Etapa / Subcircuito si existe -->
+                        {% if comercio.subcircuito %}
+                        <li class="comercio-data-item">
+                            <div class="data-item-icon">
+                                <i class="fa-solid fa-layer-group"></i>
+                            </div>
+                            <div class="data-item-content">
+                                <span class="data-item-label">Etapa Asociada</span>
+                                <span class="data-item-value">{{ comercio.subcircuito.nombre }}</span>
+                            </div>
+                        </li>
+                        {% endif %}
+                    </ul>
+
+                    <!-- Botón de Contacto por WhatsApp si hay teléfono -->
+                    {% if comercio.telefono %}
+                    <div style="margin-top: 1.5rem;">
+                        <a href="https://api.whatsapp.com/send?phone={{ comercio.telefono|slugify }}&text=Hola!%20Vi%20su%20comercio%20en%20la%20red%20de%20Ciclismo%20Malagueño."
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           style="display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; padding: 0.75rem 1rem; background-color: #25d366; color: white; border-radius: 12px; font-weight: 700; text-decoration: none; font-size: 0.92rem;">
+                            <i class="fa-brands fa-whatsapp" style="font-size: 1.2rem;"></i>
+                            <span>Contactar por WhatsApp</span>
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- COLUMNA 2: LOCALIZACIÓN EN GOOGLE MAPS -->
+            <div class="comercio-map-column">
+                <div class="comercio-map-card">
+                    <div class="map-card-header">
+                        <h3 class="map-card-title">
+                            <i class="fa-brands fa-google" style="color: #4285f4;"></i>
+                            <span>Localización en Google Maps</span>
+                        </h3>
+                        <span style="font-size: 0.8rem; color: #64748b; font-weight: 600;">
+                            Malagueño, Córdoba
+                        </span>
+                    </div>
+
+                    <!-- Contenedor del Iframe de Google Maps -->
+                    <div class="map-frame-wrapper">
+                        <iframe
+                            src="{{ google_maps_embed }}"
+                            title="Mapa de localización de {{ comercio.nombre }} en Google Maps"
+                            loading="lazy"
+                            allowfullscreen=""
+                            referrerpolicy="no-referrer-when-downgrade">
+                        </iframe>
+                    </div>
+
+                    <!-- Botón Destacado para Navegación Paso a Paso en Google Maps -->
+                    <a href="{{ google_maps_url }}"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="btn-google-maps-direct"
+                       title="Abrir ubicación en Google Maps">
+                        <i class="fa-solid fa-diamond-turn-right"></i>
+                        <span>Cómo llegar en Google Maps</span>
+                    </a>
+
+                    <!-- Coordenadas Geográficas Oficiales -->
+                    <div class="gps-coords-badge">
+                        <i class="fa-solid fa-compass" style="color: #2e7d32;"></i>
+                        <span>Coordenadas: {{ comercio.latitud }}, {{ comercio.longitud }}</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ------------------------------------------------------------------- -->
+        <!-- 3. OTROS COMERCIOS RECOMENDADOS DEL CIRCUITO                        -->
+        <!-- ------------------------------------------------------------------- -->
+        {% if otros_comercios %}
+        <div style="border-top: 1px solid #e2e8f0; padding-top: 3.5rem; margin-top: 2rem;">
+            <div style="text-align: center; margin-bottom: 2.5rem;">
+                <span class="category-tag-hero" style="margin-bottom: 0.5rem; display: inline-flex;">Puntos Cercanos</span>
+                <h2 style="font-family: 'Outfit', sans-serif; font-size: 2rem; font-weight: 800; color: #114224; margin: 0.25rem 0 0 0;">
+                    Otros Comercios Adheridos
+                </h2>
+            </div>
+
+            <div class="commerce-clean-grid">
+                {% for otro in otros_comercios %}
+                <article class="commerce-clean-card">
+                    <a href="{% url 'comercio_detalle' otro.pk %}" class="commerce-clean-img-wrap" title="Ver: {{ otro.nombre }}">
+                        {% if otro.imagen %}
+                            <img src="{{ otro.imagen.url }}" alt="{{ otro.nombre }}" loading="lazy">
+                        {% else %}
+                            <div class="commerce-clean-placeholder">
+                                {% if otro.categoria == 'Restauración' %}
+                                    <i class="fa-solid fa-utensils"></i>
+                                {% elif otro.categoria == 'Taller de Bicicletas' %}
+                                    <i class="fa-solid fa-wrench"></i>
+                                {% elif otro.categoria == 'Tienda Deportiva' %}
+                                    <i class="fa-solid fa-bicycle"></i>
+                                {% elif otro.categoria == 'Punto de Hidratación' %}
+                                    <i class="fa-solid fa-bottle-water"></i>
+                                {% elif otro.categoria == 'Alojamiento' %}
+                                    <i class="fa-solid fa-bed"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-store"></i>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                        <span class="commerce-cat-badge-float">
+                            <i class="fa-solid fa-tag"></i> {{ otro.get_categoria_display }}
+                        </span>
+                    </a>
+
+                    <div class="commerce-clean-body">
+                        <a href="{% url 'comercio_detalle' otro.pk %}" style="text-decoration: none;">
+                            <h3 class="commerce-clean-title">{{ otro.nombre }}</h3>
+                        </a>
+
+                        <div class="commerce-location-row">
+                            <i class="fa-solid fa-location-dot"></i>
+                            <span>{{ otro.direccion|default:"Malagueño, Córdoba" }}</span>
+                        </div>
+
+                        <p class="commerce-clean-desc">
+                            {{ otro.descripcion|default:"Establecimiento aliado al circuito ciclista municipal."|truncatewords:16 }}
+                        </p>
+
+                        <div class="commerce-card-bottom">
+                            <a href="{% url 'comercio_detalle' otro.pk %}" class="commerce-view-btn">
+                                <span>Ver comercio</span>
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</section>
+{% endblock %}

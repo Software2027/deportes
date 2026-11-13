@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Ciclismo Municipal | Portal Ciudadano y Deportivo{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}Plataforma oficial de movilidad, eventos y circuitos ciclistas del municipio. Conoce los recorridos, comercios adheridos y participa activamente.{% endblock %}">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    {% load static %}
+    <!-- Leaflet CSS (Local para alta disponibilidad sin timeouts) -->
+    <link rel="stylesheet" href="{% static 'vendor/leaflet/leaflet.css' %}">
+
+    <!-- Favicon Oficial -->
+    <link rel="icon" type="image/png" href="{% static 'IMG/logo_iso_municipalidad.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'IMG/logo_iso_municipalidad.png' %}">
+
+    <!-- Font Awesome 6 Free -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <link rel="stylesheet" href="{% static 'css/pages/styles.css' %}">
+    <link rel="stylesheet" href="{% static 'css/headers/header_ciudadano.css' %}">
+    <link rel="stylesheet" href="{% static 'css/footers/footer_ciudadano.css' %}">
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- Header y Navegación Pública -->
+    {% include "headers/header_ciudadano.html" %}
+
+    <!-- Contenido Principal -->
+    <main id="main-content">
+        {% if messages %}
+        <div class="container" style="padding-top: 6rem; margin-bottom: -4rem; position: relative; z-index: 100;">
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-error{% endif %}">
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer Institucional -->
+    {% include "footers/footer_ciudadano.html" %}
+
+    <!-- Leaflet JS (Local para alta disponibilidad sin timeouts) -->
+    <script src="{% static 'vendor/leaflet/leaflet.js' %}"></script>
+
+    <!-- Script de Navbar Móvil -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggle = document.querySelector('.mobile-toggle');
+            const menu = document.querySelector('.nav-menu');
+            if (toggle && menu) {
+                toggle.addEventListener('click', () => {
+                    menu.classList.toggle('open');
+                });
+            }
+
+            // Efecto scroll en Header
+            const header = document.querySelector('.site-header');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 40) {
+                    header.classList.add('scrolled');
+                } else {
+                    header.classList.remove('scrolled');
+                }
+            });
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

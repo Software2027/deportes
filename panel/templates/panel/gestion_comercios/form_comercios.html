@@ -1,0 +1,507 @@
+{% extends "base/base_panel.html" %}
+{% load static l10n %}
+
+{% block title %}
+    {% if modo == 'ver' %}
+        Ficha: {{ comercio.nombre }} | Panel Municipal
+    {% elif comercio.id %}
+        Editar Comercio: {{ comercio.nombre }} | Panel Municipal
+    {% else %}
+        Nuevo Comercio | Panel Municipal
+    {% endif %}
+{% endblock %}
+
+{% block page_title %}Comercios{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/panel_comercios.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="comercios-wrapper">
+
+    <!-- Tarjeta del Formulario / Ficha Técnica -->
+    <div class="form-comercio-card">
+        <!-- Cabecera del Formulario -->
+        <div class="form-header-bar">
+            <div class="form-header-left">
+                <a href="{% url 'panel_comercios_listado' %}" class="btn-back-link" title="Volver al Listado">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </a>
+                <div>
+                    <h2 class="form-title-h2">
+                        {% if modo == 'ver' %}
+                            Ficha de Establecimiento: {{ comercio.nombre }}
+                        {% elif comercio.id %}
+                            Editar Comercio: {{ comercio.nombre }}
+                        {% else %}
+                            Registrar Nuevo Comercio
+                        {% endif %}
+                    </h2>
+                    <span style="font-size: 0.8rem; color: #64748b;">
+                        {% if comercio.id %}Punto geográfico adherido a la red ciclista municipal{% else %}Asigne coordenadas y radio de tolerancia para detección automática{% endif %}
+                    </span>
+                </div>
+            </div>
+
+            {% if comercio.id and modo == 'ver' %}
+            <div>
+                <a href="{% url 'panel_comercio_editar' comercio.id %}" class="btn-primary-save" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+                    <i class="fa-regular fa-pen-to-square"></i>
+                    <span>Editar Establecimiento</span>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Formulario Principal -->
+        <form method="POST" action="" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="form-grid-fields">
+                <!-- Nombre del Establecimiento -->
+                <div class="form-group">
+                    <label class="form-label" for="id_nombre">Nombre del Establecimiento *</label>
+                    <input type="text" id="id_nombre" name="nombre" value="{{ comercio.nombre|default:'' }}" class="form-control-input" required {% if modo == 'ver' %}disabled{% endif %} placeholder="Ej: BiciCafé El Retiro">
+                </div>
+
+                <!-- Dirección / Domicilio -->
+                <div class="form-group">
+                    <label class="form-label" for="id_direccion">Dirección / Domicilio *</label>
+                    <input type="text" id="id_direccion" name="direccion" value="{{ comercio.direccion|default:'' }}" class="form-control-input" required {% if modo == 'ver' %}disabled{% endif %} placeholder="Ej: Av. San Martín 450, Malagueño, Córdoba">
+                </div>
+
+                <!-- Categoría -->
+                <div class="form-group">
+                    <label class="form-label" for="id_categoria">Categoría del Establecimiento *</label>
+                    <select id="id_categoria" name="categoria" class="form-control-select" {% if modo == 'ver' %}disabled{% endif %}>
+                        {% if categorias_disponibles %}
+                            {% for cat in categorias_disponibles %}
+                                <option value="{{ cat }}" {% if comercio.categoria == cat %}selected{% endif %}>{{ cat }}</option>
+                            {% endfor %}
+                        {% else %}
+                            <option value="Restauración" {% if comercio.categoria == 'Restauración' %}selected{% endif %}>Restauración</option>
+                            <option value="Taller de Bicicletas" {% if comercio.categoria == 'Taller de Bicicletas' %}selected{% endif %}>Taller de Bicicletas</option>
+                            <option value="Tienda Deportiva" {% if comercio.categoria == 'Tienda Deportiva' %}selected{% endif %}>Tienda Deportiva</option>
+                            <option value="Alojamiento" {% if comercio.categoria == 'Alojamiento' %}selected{% endif %}>Alojamiento</option>
+                            <option value="Punto de Hidratación" {% if comercio.categoria == 'Punto de Hidratación' %}selected{% endif %}>Punto de Hidratación</option>
+                            <option value="Punto de Control" {% if comercio.categoria == 'Punto de Control' %}selected{% endif %}>Punto de Control</option>
+                            <option value="Otro" {% if comercio.categoria == 'Otro' %}selected{% endif %}>Otro</option>
+                        {% endif %}
+                    </select>
+                </div>
+
+                <!-- Estado -->
+                <div class="form-group">
+                    <label class="form-label" for="id_estado">Estado Operativo *</label>
+                    <select id="id_estado" name="estado" class="form-control-select" {% if modo == 'ver' %}disabled{% endif %}>
+                        <option value="Activo" {% if comercio.estado == 'Activo' %}selected{% endif %}>Activo</option>
+                        <option value="En Revision" {% if comercio.estado == 'En Revision' or comercio.estado == 'En Revisión' %}selected{% endif %}>En Revisión</option>
+                        <option value="Inactivo" {% if comercio.estado == 'Inactivo' %}selected{% endif %}>Inactivo</option>
+                    </select>
+                </div>
+
+                <!-- Radio de Tolerancia -->
+                <div class="form-group">
+                    <label class="form-label" for="id_radio">Radio de Detección / Tolerancia (Metros) *</label>
+                    <input type="number" id="id_radio" name="radio_tolerancia_metros" value="{{ comercio.radio_tolerancia_metros|default:30 }}" min="5" max="500" class="form-control-input" required {% if modo == 'ver' %}disabled{% endif %}>
+                </div>
+
+                <!-- Teléfono de Contacto -->
+                <div class="form-group">
+                    <label class="form-label" for="id_telefono">Teléfono de Contacto</label>
+                    <input type="text" id="id_telefono" name="telefono" value="{{ comercio.telefono|default:'' }}" class="form-control-input" {% if modo == 'ver' %}disabled{% endif %} placeholder="Ej: +54 9 351 9876543">
+                </div>
+
+                <!-- Latitud -->
+                <div class="form-group">
+                    <label class="form-label" for="id_latitud">Latitud *</label>
+                    <input type="number" step="0.000001" id="id_latitud" name="latitud" value="{% localize off %}{{ comercio.latitud|default:'-31.464500' }}{% endlocalize %}" class="form-control-input" required {% if modo == 'ver' %}disabled{% endif %}>
+                </div>
+
+                <!-- Longitud -->
+                <div class="form-group">
+                    <label class="form-label" for="id_longitud">Longitud *</label>
+                    <input type="number" step="0.000001" id="id_longitud" name="longitud" value="{% localize off %}{{ comercio.longitud|default:'-64.362000' }}{% endlocalize %}" class="form-control-input" required {% if modo == 'ver' %}disabled{% endif %}>
+                </div>
+
+                <!-- Logo / Imagen del Comercio -->
+                <div class="form-group form-group-full">
+                    <label class="form-label" for="imagenInput">Logo / Imagen del Establecimiento</label>
+                    {% if modo == 'ver' %}
+                        {% if comercio.imagen %}
+                            <div style="display: flex; align-items: center; gap: 1rem; padding: 0.85rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;">
+                                <img src="{{ comercio.imagen.url }}" alt="{{ comercio.nombre }}" style="max-height: 90px; max-width: 140px; object-fit: contain; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; padding: 4px;">
+                                <div>
+                                    <span class="badge-status badge-validado" style="display: inline-flex; margin-bottom: 0.35rem;">
+                                        <i class="fa-solid fa-circle-check"></i> Logo Registrado
+                                    </span>
+                                    <div style="font-size: 0.8rem; color: #64748b; font-family: monospace;">{{ comercio.imagen.name }}</div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <p style="font-size: 0.85rem; color: #94a3b8; font-style: italic; margin: 0.25rem 0;">No se ha cargado ningún logo para este comercio.</p>
+                        {% endif %}
+                    {% else %}
+                        <!-- Dropzone Interactivo de Carga -->
+                        <div class="image-upload-dropzone" id="dropzoneWrap" onclick="document.getElementById('imagenInput').click();">
+                            <input type="file"
+                                   name="imagen"
+                                   id="imagenInput"
+                                   accept="image/*"
+                                   style="display: none;"
+                                   onchange="handleImagePreview(this)">
+
+                            <div id="dropzoneEmpty" class="dropzone-empty-state" {% if comercio.imagen %}style="display: none;"{% endif %}>
+                                <i class="fa-solid fa-cloud-arrow-up"></i>
+                                <p class="dropzone-title">Haz clic o arrastra el logo del comercio aquí</p>
+                                <p class="dropzone-help">Formatos: PNG, JPG, WEBP. Se guardará en <strong>media/comercios/</strong> con nombre normalizado (minúsculas, sin espacios ni caracteres especiales).</p>
+                            </div>
+
+                            <div id="dropzonePreviewWrap" class="dropzone-preview-wrap" {% if not comercio.imagen %}style="display: none;"{% endif %}>
+                                <img src="{% if comercio.imagen %}{{ comercio.imagen.url }}{% endif %}"
+                                     alt="Logo del Comercio"
+                                     id="previewImg"
+                                     class="dropzone-preview-img">
+                                <button type="button"
+                                        class="btn-remove-preview"
+                                        id="btnRemoveImage"
+                                        onclick="event.stopPropagation(); removeSelectedImage();"
+                                        title="Quitar / Reemplazar logo">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <input type="hidden" name="eliminar_imagen" id="eliminarImagenInput" value="0">
+                        <small style="display: block; color: #64748b; font-size: 0.76rem; margin-top: 0.4rem;">
+                            <i class="fa-solid fa-circle-info" style="color: #15803d;"></i>
+                            Al subir un nuevo archivo, se normaliza su nombre automáticamente y si ya existía una imagen previa, será eliminada de <code>media/comercios</code>.
+                        </small>
+                    {% endif %}
+                </div>
+
+                <!-- Mapa Interactivo de Georreferenciación -->
+                <div class="form-group form-group-full">
+                    <label class="form-label">Ubicación Geográfica y Radio de Detección en el Mapa</label>
+                    <div id="comercioMapPicker" class="map-picker-container"></div>
+                    <span class="map-picker-hint">
+                        <i class="fa-solid fa-location-crosshairs"></i>
+                        Haga clic sobre el mapa para fijar las coordenadas exactas del establecimiento. El círculo verde representa el radio de detección.
+                    </span>
+                </div>
+
+                <!-- Descripción y Beneficios -->
+                <div class="form-group form-group-full">
+                    <label class="form-label" for="id_descripcion">Descripción / Beneficios para el Ciclista</label>
+                    <textarea id="id_descripcion" name="descripcion" rows="3" class="form-control-textarea" {% if modo == 'ver' %}disabled{% endif %} placeholder="Descuentos, servicios especiales, recarga de agua, estacionamiento seguro...">{{ comercio.descripcion|default:'' }}</textarea>
+                </div>
+            </div>
+
+            <!-- Footer de Acciones -->
+            <div class="form-actions-footer">
+                <div style="display: flex; gap: 0.75rem; align-items: center;">
+                    <a href="{% url 'panel_comercios_listado' %}" class="btn-secondary-cancel">
+                        <i class="fa-solid fa-arrow-left"></i> Volver
+                    </a>
+
+                    {% if comercio.id %}
+                        <!-- Botón para Eliminar Comercio -->
+                        <button type="button" class="btn-danger-delete" onclick="document.getElementById('modalEliminarComercio').style.display='flex'">
+                            <i class="fa-regular fa-trash-can"></i> Eliminar Comercio
+                        </button>
+                    {% endif %}
+                </div>
+
+                {% if modo != 'ver' %}
+                <div>
+                    <button type="submit" class="btn-primary-save">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        <span>{% if comercio.id %}Guardar Cambios{% else %}Registrar Establecimiento{% endif %}</span>
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+</div>
+
+<!-- --------------------------------------------------------------------------- -->
+<!-- MODAL DE CONFIRMACIÓN DE ELIMINACIÓN                                        -->
+<!-- --------------------------------------------------------------------------- -->
+{% if comercio.id %}
+<div id="modalEliminarComercio" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div style="background: #ffffff; border-radius: 18px; max-width: 460px; width: 90%; padding: 1.75rem; box-shadow: 0 20px 40px rgba(0,0,0,0.25);">
+        <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 1rem;">
+            <div style="width: 44px; height: 44px; border-radius: 12px; background: #fee2e2; color: #dc2626; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div>
+                <h3 style="margin: 0; font-family: 'Outfit', sans-serif; font-size: 1.15rem; font-weight: 800; color: #0f172a;">¿Eliminar Establecimiento?</h3>
+                <span style="font-size: 0.78rem; color: #64748b;">Acción irreversible</span>
+            </div>
+        </div>
+
+        <p style="font-size: 0.88rem; color: #475569; margin: 0 0 1.5rem 0; line-height: 1.45;">
+            ¿Está seguro de que desea eliminar <strong>{{ comercio.nombre }}</strong> de la red municipal? El punto dejará de estar visible para los ciclistas en la aplicación.
+        </p>
+
+        <form method="POST" action="{% url 'panel_comercio_eliminar' comercio.id %}" style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+            {% csrf_token %}
+            <button type="button" class="btn-secondary-cancel" onclick="document.getElementById('modalEliminarComercio').style.display='none'">
+                Cancelar
+            </button>
+            <button type="submit" class="btn-danger-delete">
+                Sí, Eliminar Definitivamente
+            </button>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- Script para el selector interactivo de coordenadas y radio con Leaflet (Malagueño, Córdoba, Argentina) -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof L === 'undefined') {
+        console.warn("Leaflet no está disponible en este momento.");
+        return;
+    }
+
+    const latInput = document.getElementById('id_latitud');
+    const lngInput = document.getElementById('id_longitud');
+    const radioInput = document.getElementById('id_radio');
+    const catSelect = document.getElementById('id_categoria');
+
+    // 1. Coordenadas oficiales de Malagueño, Córdoba, Argentina (Centro Urbano)
+    const MALAGUENO_LAT = -31.464500;
+    const MALAGUENO_LNG = -64.362000;
+
+    let initialLat = parseFloat(latInput ? latInput.value : MALAGUENO_LAT);
+    let initialLng = parseFloat(lngInput ? lngInput.value : MALAGUENO_LNG);
+
+    // Si viene NaN o coordenadas positivas (España / hemisferio norte), reubicar en Malagueño
+    if (isNaN(initialLat) || initialLat > 0) {
+        initialLat = MALAGUENO_LAT;
+        if (latInput) latInput.value = initialLat.toFixed(6);
+    }
+    if (isNaN(initialLng) || initialLng > 0) {
+        initialLng = MALAGUENO_LNG;
+        if (lngInput) lngInput.value = initialLng.toFixed(6);
+    }
+
+    let initialRadio = parseInt(radioInput ? radioInput.value : '30', 10) || 30;
+
+    // 2. Inicialización del Mapa centrado en Malagueño, Córdoba
+    const map = L.map('comercioMapPicker', {
+        zoomControl: true,
+        scrollWheelZoom: true
+    }).setView([initialLat, initialLng], 15);
+
+    // 3. Capa oficial de la Municipalidad de Malagueño (OpenStreetMap HOT - Idéntica a mapa_carrera.html)
+    L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        minZoom: 10,
+        subdomains: 'abc',
+        attribution: '&copy; OpenStreetMap contributors, Tiles style by HOT | Municipalidad de Malagueño'
+    }).addTo(map);
+
+    // 4. Dibujar circuitos activos de Malagueño de fondo (igual que en mapa_carrera.html)
+    const trazados = {{ trazado_json|safe|default:'[]' }};
+    if (Array.isArray(trazados) && trazados.length > 0) {
+        trazados.forEach(function(tr) {
+            if (tr.coordenadas && tr.coordenadas.length > 0) {
+                L.polyline(tr.coordenadas, {
+                    color: tr.color || '#16a34a',
+                    weight: 4,
+                    opacity: 0.7,
+                    lineJoin: 'round',
+                    dashArray: '3, 6'
+                }).addTo(map).bindTooltip(`Etapa ${tr.orden}: ${tr.nombre} (Malagueño)`);
+            }
+        });
+    }
+
+    // 5. Generador de Íconos Temáticos según Categoría
+    function getComercioIcon(categoria) {
+        let iconClass = 'fa-solid fa-store';
+        let bg = '#16a34a';
+
+        if (!categoria) categoria = '';
+        categoria = categoria.toLowerCase();
+
+        if (categoria.includes('hidratación') || categoria.includes('hidratacion')) {
+            iconClass = 'fa-solid fa-droplet';
+            bg = '#0284c7';
+        } else if (categoria.includes('taller')) {
+            iconClass = 'fa-solid fa-wrench';
+            bg = '#f59e0b';
+        } else if (categoria.includes('restauración') || categoria.includes('gastronomía') || categoria.includes('restauracion') || categoria.includes('café') || categoria.includes('cafe')) {
+            iconClass = 'fa-solid fa-utensils';
+            bg = '#e11d48';
+        } else if (categoria.includes('control')) {
+            iconClass = 'fa-solid fa-flag-checkered';
+            bg = '#7c3aed';
+        } else if (categoria.includes('alojamiento') || categoria.includes('hotel') || categoria.includes('hostal')) {
+            iconClass = 'fa-solid fa-bed';
+            bg = '#8b5cf6';
+        } else if (categoria.includes('tienda') || categoria.includes('deport')) {
+            iconClass = 'fa-solid fa-shirt';
+            bg = '#059669';
+        }
+
+        return L.divIcon({
+            className: 'custom-pin',
+            html: `<div style="background:${bg}; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-size:15px; border:2.5px solid #fff; box-shadow:0 3px 10px rgba(0,0,0,0.3); transition: transform 0.2s;"><i class="${iconClass}"></i></div>`,
+            iconSize: [34, 34],
+            iconAnchor: [17, 17]
+        });
+    }
+
+    // 6. Marcador y Círculo de Detección
+    let currentCat = catSelect ? catSelect.value : 'Restauración';
+    let marker = L.marker([initialLat, initialLng], {
+        icon: getComercioIcon(currentCat),
+        draggable: {% if modo == 'ver' %}false{% else %}true{% endif %}
+    }).addTo(map);
+
+    marker.bindPopup(`
+        <div style="font-family:'Outfit',sans-serif; text-align:center; padding: 2px;">
+            <strong style="color:#0f172a; font-size:0.95rem;">{{ comercio.nombre|default:"Comercio Adherido" }}</strong><br>
+            <span style="color:#16a34a; font-weight:700; font-size:0.8rem;">
+                <i class="fa-solid fa-location-dot"></i> Malagueño, Córdoba, Argentina
+            </span>
+        </div>
+    `).openPopup();
+
+    let circle = L.circle([initialLat, initialLng], {
+        radius: initialRadio,
+        color: '#16a34a',
+        fillColor: '#16a34a',
+        fillOpacity: 0.15,
+        weight: 2,
+        dashArray: '5, 5'
+    }).addTo(map);
+
+    function updatePosition(lat, lng) {
+        if (latInput) latInput.value = lat.toFixed(6);
+        if (lngInput) lngInput.value = lng.toFixed(6);
+        marker.setLatLng([lat, lng]);
+        circle.setLatLng([lat, lng]);
+    }
+
+    // Actualizar icono al cambiar la categoría seleccionada
+    if (catSelect && marker) {
+        catSelect.addEventListener('change', function() {
+            marker.setIcon(getComercioIcon(this.value));
+        });
+    }
+
+    {% if modo != 'ver' %}
+    // Al hacer clic en el mapa, fijar nuevas coordenadas
+    map.on('click', function(e) {
+        updatePosition(e.latlng.lat, e.latlng.lng);
+    });
+
+    // Al arrastrar el marcador
+    marker.on('dragend', function(e) {
+        const pos = marker.getLatLng();
+        updatePosition(pos.lat, pos.lng);
+    });
+
+    // Al modificar los inputs de texto de latitud o longitud
+    if (latInput && lngInput) {
+        latInput.addEventListener('change', function() {
+            const lat = parseFloat(this.value);
+            const lng = parseFloat(lngInput.value);
+            if (!isNaN(lat) && !isNaN(lng)) {
+                updatePosition(lat, lng);
+                map.panTo([lat, lng]);
+            }
+        });
+        lngInput.addEventListener('change', function() {
+            const lat = parseFloat(latInput.value);
+            const lng = parseFloat(this.value);
+            if (!isNaN(lat) && !isNaN(lng)) {
+                updatePosition(lat, lng);
+                map.panTo([lat, lng]);
+            }
+        });
+    }
+
+    // Al modificar el radio de detección
+    if (radioInput) {
+        radioInput.addEventListener('input', function() {
+            const rad = parseInt(this.value, 10);
+            if (!isNaN(rad)) circle.setRadius(rad);
+        });
+    }
+    {% endif %}
+
+    setTimeout(function() {
+        map.invalidateSize();
+    }, 250);
+
+    // --------------------------------------------------------------------------
+    // Control de Imagen / Logo del Comercio (Preview & Drag and Drop)
+    // --------------------------------------------------------------------------
+    const dropzoneWrap = document.getElementById('dropzoneWrap');
+    const imagenInput = document.getElementById('imagenInput');
+    const dropzoneEmpty = document.getElementById('dropzoneEmpty');
+    const dropzonePreviewWrap = document.getElementById('dropzonePreviewWrap');
+    const previewImg = document.getElementById('previewImg');
+    const eliminarImagenInput = document.getElementById('eliminarImagenInput');
+
+    window.handleImagePreview = function(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                if (previewImg) previewImg.src = e.target.result;
+                if (dropzonePreviewWrap) dropzonePreviewWrap.style.display = 'inline-block';
+                if (dropzoneEmpty) dropzoneEmpty.style.display = 'none';
+                if (eliminarImagenInput) eliminarImagenInput.value = '0';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    };
+
+    window.removeSelectedImage = function() {
+        if (imagenInput) imagenInput.value = '';
+        if (previewImg) previewImg.src = '';
+        if (dropzonePreviewWrap) dropzonePreviewWrap.style.display = 'none';
+        if (dropzoneEmpty) dropzoneEmpty.style.display = 'flex';
+        if (eliminarImagenInput) eliminarImagenInput.value = '1';
+    };
+
+    if (dropzoneWrap) {
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropzoneWrap.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropzoneWrap.classList.add('dragover');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropzoneWrap.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropzoneWrap.classList.remove('dragover');
+            }, false);
+        });
+
+        dropzoneWrap.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files && files.length > 0 && imagenInput) {
+                imagenInput.files = files;
+                window.handleImagePreview(imagenInput);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+

@@ -1,0 +1,258 @@
+{% extends "base/base_ciudadano.html" %}
+{% load static %}
+
+{% block title %}Iniciar Sesión | Ciclismo Malagueño{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/login.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="login-page-section">
+    <div class="login-card-container">
+        <div class="login-card">
+            <!-- Isotipo Municipal en círculo verde -->
+            <div class="login-logo-circle">
+                <img src="{% static 'IMG/logo_iso_municipalidad.png' %}" alt="Municipalidad de Malagueño">
+            </div>
+
+            <!-- Título y Subtítulo -->
+            <h1 class="login-title">Bienvenido</h1>
+            <p class="login-subtitle">Ingresa tus credenciales para acceder a tu panel de ciclista.</p>
+
+            <!-- Mensajes Flash de Django -->
+            {% if messages %}
+                <div class="login-messages-container" style="margin-bottom: 1.25rem;">
+                    {% for message in messages %}
+                        <div class="alert-box {% if message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% else %}success{% endif %}" style="display: flex; align-items: center; gap: 0.65rem; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.88rem; margin-bottom: 0.5rem; text-align: left; {% if message.tags == 'error' %}background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b;{% elif message.tags == 'warning' %}background-color: #fffbeb; border: 1px solid #fef3c7; color: #92400e;{% else %}background-color: #f0fdf4; border: 1px solid #bbf7d0; color: #166534;{% endif %}">
+                            <i class="fa-solid {% if message.tags == 'error' %}fa-circle-xmark{% elif message.tags == 'warning' %}fa-triangle-exclamation{% else %}fa-circle-check{% endif %}"></i>
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Formulario de Inicio de Sesión -->
+            <form method="POST" action="{% url 'login' %}" class="login-form">
+                {% csrf_token %}
+
+                <!-- Campo DNI o Correo -->
+                <div class="login-form-group">
+                    <label for="login-username" class="login-label">
+                        <i class="fa-regular fa-envelope"></i>
+                        <span>DNI o Correo Electrónico</span>
+                    </label>
+                    <div class="login-input-wrapper">
+                        <input 
+                            type="text" 
+                            id="login-username" 
+                            name="username" 
+                            class="login-input" 
+                            placeholder="Ej: 12345678X o usuario@mail.com" 
+                            autocomplete="username"
+                            value="{{ initial_username|default:'' }}"
+                        >
+                    </div>
+                </div>
+
+                <!-- Campo Contraseña -->
+                <div class="login-form-group">
+                    <div class="login-label-row">
+                        <label for="login-password" class="login-label">
+                            <i class="fa-solid fa-lock"></i>
+                            <span>Contraseña</span>
+                        </label>
+                        <a href="javascript:void(0)" class="forgot-password-link" id="linkForgotPassword" onclick="abrirModalRecuperarPass(event)">¿Olvidaste tu contraseña?</a>
+                    </div>
+                    <div class="login-input-wrapper">
+                        <input 
+                            type="password" 
+                            id="login-password" 
+                            name="password" 
+                            class="login-input has-eye" 
+                            placeholder="••••••••" 
+                            autocomplete="current-password"
+                        >
+                        <button 
+                            type="button" 
+                            class="btn-toggle-eye" 
+                            id="togglePasswordBtn" 
+                            aria-label="Mostrar u ocultar contraseña"
+                        >
+                            <i class="fa-regular fa-eye" id="togglePasswordIcon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Botón Ingresar -->
+                <button type="submit" class="btn-login-submit">
+                    <span>Ingresar</span>
+                    <i class="fa-solid fa-chevron-right" style="font-size: 0.85rem;"></i>
+                </button>
+            </form>
+
+            <!-- Divisor 'O' -->
+            <div class="login-divider">
+                <span>O</span>
+            </div>
+
+            <!-- Registro en el evento -->
+            <div class="login-footer-actions">
+                <p class="register-prompt">¿Aún no tienes una cuenta de ciclista?</p>
+                <a href="{% url 'contacto' %}" class="btn-register-link">Registrarme en el evento</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- --------------------------------------------------------------------------- -->
+<!-- POPUP / MODAL DE RECUPERACIÓN DE CLAVE                                      -->
+<!-- --------------------------------------------------------------------------- -->
+<div id="modalRecuperarPassword" class="modal-recovery-backdrop" style="display: none;" onclick="cerrarModalClickFondo(event)">
+    <div class="modal-recovery-card" role="dialog" aria-modal="true" aria-labelledby="modalRecoveryTitle">
+        <!-- Header del Modal -->
+        <div class="modal-recovery-header">
+            <div class="modal-header-info">
+                <div class="modal-icon-badge">
+                    <i class="fa-solid fa-key"></i>
+                </div>
+                <div>
+                    <h2 id="modalRecoveryTitle" class="modal-title">Recuperación de Clave</h2>
+                    <span class="modal-subtitle">Asistencia oficial a ciclistas</span>
+                </div>
+            </div>
+            <button type="button" class="btn-close-modal" onclick="cerrarModalRecuperarPass()" aria-label="Cerrar ventana">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Contenido del Modal -->
+        <div class="modal-recovery-body">
+            <div class="recovery-intro-box">
+                <i class="fa-solid fa-shield-halved recovery-shield-icon"></i>
+                <p class="recovery-intro-text">
+                    Por motivos de seguridad, para obtener o recuperar tu clave de acceso debes enviar un correo electrónico <strong>desde la misma casilla de correo que registraste</strong> al inscribirte.
+                </p>
+            </div>
+
+            <div class="recovery-email-box">
+                <span class="recovery-label">Enviar correo a la casilla oficial municipal:</span>
+                <div class="recovery-email-row">
+                    <span class="recovery-email-address" id="emailSoporteText">ciclismo@malagueno.gob.ar</span>
+                    <button type="button" class="btn-copy-email" id="btnCopiarEmailSoporte" onclick="copiarEmailSoporte()" title="Copiar correo al portapapeles">
+                        <i class="fa-regular fa-copy"></i>
+                        <span id="txtCopiarEmail">Copiar</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="recovery-requirements-card">
+                <h3 class="requirements-title">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span>Datos obligatorios que debes incluir en tu correo:</span>
+                </h3>
+                <ul class="requirements-list">
+                    <li>
+                        <i class="fa-solid fa-circle-check"></i>
+                        <span><strong>Nombre y Apellido</strong> (completo tal como te inscribiste)</span>
+                    </li>
+                    <li>
+                        <i class="fa-solid fa-circle-check"></i>
+                        <span><strong>Edad</strong></span>
+                    </li>
+                    <li>
+                        <i class="fa-solid fa-circle-check"></i>
+                        <span><strong>DNI / Número de Documento</strong></span>
+                    </li>
+                </ul>
+            </div>
+
+            <p class="recovery-note-text">
+                <i class="fa-solid fa-circle-info"></i>
+                <span>El administrador municipal validará tu identidad contra el padrón de ciclistas y te responderá a la brevedad con tu clave de acceso.</span>
+            </p>
+        </div>
+
+        <!-- Footer de Acciones del Modal -->
+        <div class="modal-recovery-footer">
+            <button type="button" class="btn-modal-cancel" onclick="cerrarModalRecuperarPass()">
+                Cerrar
+            </button>
+            <a href="mailto:ciclismo@malagueno.gob.ar?subject=Recuperaci%C3%B3n%20de%20Clave%20-%20Ciclismo%20Malague%C3%B1o&body=Hola%20Equipo%20de%20Ciclismo%20Municipal%2C%0A%0ASolicito%20la%20recuperaci%C3%B3n%20de%20mi%20clave%20de%20acceso%20para%20la%20App%20Ciclista.%0A%0AMis%20datos%20registrados%20son%3A%0A-%20Nombre%20y%20Apellido%3A%20%0A-%20Edad%3A%20%0A-%20DNI%3A%20%0A%0AGracias." class="btn-modal-sendmail">
+                <i class="fa-solid fa-envelope-open-text"></i>
+                <span>Redactar Correo</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function abrirModalRecuperarPass(e) {
+        if (e) e.preventDefault();
+        const modal = document.getElementById('modalRecuperarPassword');
+        if (modal) {
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function cerrarModalRecuperarPass() {
+        const modal = document.getElementById('modalRecuperarPassword');
+        if (modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+    }
+
+    function cerrarModalClickFondo(e) {
+        if (e.target && e.target.id === 'modalRecuperarPassword') {
+            cerrarModalRecuperarPass();
+        }
+    }
+
+    function copiarEmailSoporte() {
+        const email = 'ciclismo@malagueno.gob.ar';
+        const txtBtn = document.getElementById('txtCopiarEmail');
+        navigator.clipboard.writeText(email).then(() => {
+            if (txtBtn) {
+                txtBtn.textContent = '¡Copiado!';
+                setTimeout(() => { txtBtn.textContent = 'Copiar'; }, 2000);
+            }
+        }).catch(() => {
+            if (txtBtn) {
+                txtBtn.textContent = '¡Copiado!';
+                setTimeout(() => { txtBtn.textContent = 'Copiar'; }, 2000);
+            }
+        });
+    }
+
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            cerrarModalRecuperarPass();
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const toggleBtn = document.getElementById('togglePasswordBtn');
+        const passwordInput = document.getElementById('login-password');
+        const passwordIcon = document.getElementById('togglePasswordIcon');
+
+        if (toggleBtn && passwordInput && passwordIcon) {
+            toggleBtn.addEventListener('click', () => {
+                const isPassword = passwordInput.getAttribute('type') === 'password';
+                passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+                
+                if (isPassword) {
+                    passwordIcon.classList.remove('fa-eye');
+                    passwordIcon.classList.add('fa-eye-slash');
+                } else {
+                    passwordIcon.classList.remove('fa-eye-slash');
+                    passwordIcon.classList.add('fa-eye');
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

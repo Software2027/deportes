@@ -1,0 +1,177 @@
+{% extends "base/base_ciudadano.html" %}
+{% load static %}
+
+{% block title %}Noticias y Novedades | Ciclismo Malagueño{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/noticias.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- --------------------------------------------------------------------------- -->
+<!-- 1. HERO INSTITUCIONAL: IDÉNTICO A LA IDENTIDAD DE LA WEB                    -->
+<!-- --------------------------------------------------------------------------- -->
+<section class="news-hero-section">
+    <div class="news-hero-overlay"></div>
+    <div class="container" style="position: relative; z-index: 2;">
+        <div class="news-hero-content">
+            <!-- Badge dorado institucional -->
+            <div class="news-hero-badge">
+                <i class="fa-solid fa-newspaper"></i>
+                <span>Blog y Comunicados Oficiales</span>
+            </div>
+
+            <h1 class="news-hero-title">
+                Noticias y <br>
+                <span class="highlight-yellow">Novedades del Circuito</span>
+            </h1>
+
+            <p class="news-hero-desc">
+                Mantente informado sobre los próximos eventos, avisos de seguridad vial, cronogramas de mantenimiento en ciclovías y beneficios exclusivos en los comercios locales de Malagueño.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- --------------------------------------------------------------------------- -->
+<!-- 2. SECCIÓN PRINCIPAL: FONDO BLANCO LIMPIO                                   -->
+<!-- --------------------------------------------------------------------------- -->
+<section class="news-page-content">
+    <div class="container">
+
+        <!-- Barra de Filtros y Búsqueda -->
+        <div class="news-toolbar-row">
+            <!-- Categorías en píldoras institucionales -->
+            <div class="news-filter-pills">
+                <a href="{% url 'noticias_listado' %}{% if query_q %}?q={{ query_q }}{% endif %}"
+                   class="pill-filter-item {% if not categoria_filtro %}active{% endif %}">
+                    <span>Todas las noticias</span>
+                </a>
+                {% for cat_val, cat_label in categorias %}
+                <a href="{% url 'noticias_listado' %}?categoria={{ cat_val }}{% if query_q %}&q={{ query_q }}{% endif %}"
+                   class="pill-filter-item {% if categoria_filtro == cat_val %}active{% endif %}">
+                    <span>{{ cat_label }}</span>
+                </a>
+                {% endfor %}
+            </div>
+
+            <!-- Buscador redondeado -->
+            <form method="GET" action="{% url 'noticias_listado' %}" style="margin: 0;">
+                {% if categoria_filtro %}
+                <input type="hidden" name="categoria" value="{{ categoria_filtro }}">
+                {% endif %}
+                <div class="news-search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text"
+                           name="q"
+                           value="{{ query_q }}"
+                           placeholder="Buscar noticia..."
+                           class="news-search-input">
+                    {% if query_q %}
+                    <a href="{% url 'noticias_listado' %}{% if categoria_filtro %}?categoria={{ categoria_filtro }}{% endif %}"
+                       style="color: #94a3b8; font-size: 0.8rem; text-decoration: none;" title="Limpiar búsqueda">
+                        <i class="fa-solid fa-xmark"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+
+        <!-- Grilla de Tarjetas (Idénticas a las cards de la Home) -->
+        <div class="news-clean-grid">
+            {% for noticia in noticias %}
+            <article class="news-clean-card">
+                <a href="{% url 'noticia_detalle' noticia.pk %}" class="news-clean-img-wrap" title="Ver: {{ noticia.titulo }}">
+                    {% if noticia.imagen %}
+                        <img src="{{ noticia.imagen.url }}" alt="{{ noticia.titulo }}">
+                    {% else %}
+                        <div class="news-clean-placeholder">
+                            <i class="fa-solid fa-bicycle"></i>
+                        </div>
+                    {% endif %}
+                </a>
+
+                <div class="news-clean-body">
+                    <div class="news-meta-row">
+                        <span class="category-tag">{{ noticia.categoria|default:"Comunidad" }}</span>
+                        <span class="news-date-text">{{ noticia.fecha_publicacion|date:"d M, Y" }}</span>
+                    </div>
+
+                    <a href="{% url 'noticia_detalle' noticia.pk %}" style="text-decoration: none;">
+                        <h2 class="news-clean-headline">{{ noticia.titulo }}</h2>
+                    </a>
+
+                    <p class="news-clean-summary">
+                        {{ noticia.contenido|truncatewords:20 }}
+                    </p>
+
+                    <div class="news-card-bottom">
+                        <a href="{% url 'noticia_detalle' noticia.pk %}" class="news-read-more">
+                            <span>Leer más</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </article>
+            {% empty %}
+            <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 1.5rem; background-color: #f8fafc; border-radius: 16px; border: 1px dashed #cbd5e1;">
+                <div style="font-size: 3rem; color: #94a3b8; margin-bottom: 0.85rem;">
+                    <i class="fa-regular fa-newspaper"></i>
+                </div>
+                <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.35rem; color: #114224; margin-bottom: 0.5rem;">
+                    No se encontraron noticias
+                </h3>
+                <p style="color: #64748b; font-size: 0.95rem; margin-bottom: 1.5rem;">
+                    {% if query_q or categoria_filtro %}
+                    No hay publicaciones que coincidan con la búsqueda actual.
+                    {% else %}
+                    Aún no hay publicaciones disponibles en esta sección.
+                    {% endif %}
+                </p>
+                {% if query_q or categoria_filtro %}
+                <a href="{% url 'noticias_listado' %}" class="pill-filter-item active" style="display: inline-flex;">
+                    Ver todas las noticias
+                </a>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Paginación -->
+        {% if page_obj.has_other_pages %}
+        <div class="news-pagination-footer">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if categoria_filtro %}&categoria={{ categoria_filtro }}{% endif %}{% if query_q %}&q={{ query_q }}{% endif %}"
+               class="btn-page-muni">
+                <i class="fa-solid fa-arrow-left"></i>
+                <span>Anterior</span>
+            </a>
+            {% else %}
+            <span class="btn-page-muni disabled">
+                <i class="fa-solid fa-arrow-left"></i>
+                <span>Anterior</span>
+            </span>
+            {% endif %}
+
+            <span style="font-family: 'Outfit', sans-serif; font-size: 0.92rem; font-weight: 700; color: #114224; padding: 0 0.75rem;">
+                Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+            </span>
+
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if categoria_filtro %}&categoria={{ categoria_filtro }}{% endif %}{% if query_q %}&q={{ query_q }}{% endif %}"
+               class="btn-page-muni">
+                <span>Siguiente</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </a>
+            {% else %}
+            <span class="btn-page-muni disabled">
+                <span>Siguiente</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </span>
+            {% endif %}
+        </div>
+        {% endif %}
+
+    </div>
+</section>
+{% endblock %}

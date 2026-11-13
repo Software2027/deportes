@@ -1,0 +1,231 @@
+{% extends "base/base_panel.html" %}
+{% load static %}
+
+{% block title %}Gestión de Circuitos | Municipalidad de Malagueño{% endblock %}
+{% block page_title %}Circuitos{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/panel_circuitos.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="circuitos-wrapper">
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 1. ENCABEZADO DE PÁGINA Y BOTONES DE ACCIÓN PRINCIPAL                   -->
+    <!-- ----------------------------------------------------------------------- -->
+    <section class="circuitos-header-section">
+        <div class="header-titles">
+            <h1 class="header-title-main">Gestión de Circuitos</h1>
+            <p class="header-subtitle-main">
+                Diseña y administra los circuitos oficiales de Malagueño, sus etapas y trazados interactivos.
+            </p>
+        </div>
+
+        <div class="header-actions-group">
+            <a href="{% url 'panel_circuito_nuevo' %}" class="btn-create-circuito" title="Crear y trazar nuevo circuito">
+                <i class="fa-solid fa-plus"></i>
+                <span>Nuevo Circuito</span>
+            </a>
+        </div>
+    </section>
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 2. FILA DE 4 TARJETAS DE KPIS                                            -->
+    <!-- ----------------------------------------------------------------------- -->
+    <section class="circuitos-kpis-grid">
+        <!-- KPI 1: Total Circuitos -->
+        <div class="circuito-metric-card">
+            <div class="metric-icon-square icon-box-green">
+                <i class="fa-solid fa-route"></i>
+            </div>
+            <div class="metric-texts">
+                <span class="metric-title-small">Total Circuitos</span>
+                <h2 class="metric-value-huge">{{ total_circuitos|default:"1" }}</h2>
+            </div>
+        </div>
+
+        <!-- KPI 2: Circuito Activo -->
+        <div class="circuito-metric-card">
+            <div class="metric-icon-square icon-box-blue">
+                <i class="fa-solid fa-flag-checkered"></i>
+            </div>
+            <div class="metric-texts">
+                <span class="metric-title-small">Circuito Activo</span>
+                <h2 class="metric-value-huge" style="font-size: 1.1rem; margin-top: 0.3rem;">
+                    {{ circuito_activo.nombre|default:"Ninguno" }}
+                </h2>
+            </div>
+        </div>
+
+        <!-- KPI 3: Total Subcircuitos / Etapas -->
+        <div class="circuito-metric-card">
+            <div class="metric-icon-square icon-box-amber">
+                <i class="fa-solid fa-layer-group"></i>
+            </div>
+            <div class="metric-texts">
+                <span class="metric-title-small">Total Etapas</span>
+                <h2 class="metric-value-huge">{{ total_subcircuitos|default:"3" }}</h2>
+            </div>
+        </div>
+
+        <!-- KPI 4: Comercios Adheridos a Circuitos -->
+        <div class="circuito-metric-card">
+            <div class="metric-icon-square icon-box-purple">
+                <i class="fa-solid fa-store"></i>
+            </div>
+            <div class="metric-texts">
+                <span class="metric-title-small">Comercios en Red</span>
+                <h2 class="metric-value-huge">{{ total_comercios_en_circuito|default:"5" }}</h2>
+            </div>
+        </div>
+    </section>
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 3. TABLA DE CIRCUITOS MUNICIPALES                                       -->
+    <!-- ----------------------------------------------------------------------- -->
+    <section class="circuitos-table-card">
+        <div class="table-card-header">
+            <div class="table-title-group">
+                <i class="fa-solid fa-map-location-dot table-title-icon"></i>
+                <h2 class="table-title-text">Circuitos y Rutas de la Ciudad</h2>
+            </div>
+        </div>
+
+        <div class="table-responsive-container">
+            <table class="circuitos-data-table">
+                <thead>
+                    <tr>
+                        <th>Circuito</th>
+                        <th>Etapas / Subcircuitos</th>
+                        <th>Comercios</th>
+                        <th>Estado</th>
+                        <th style="text-align: right;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in circuitos %}
+                    <tr>
+                        <!-- Nombre y Descripción -->
+                        <td class="col-circuito-info">
+                            <span class="circuito-name-bold">{{ c.nombre }}</span>
+                            <span class="circuito-desc-sub">{{ c.descripcion|default:"Sin descripción detallada" }}</span>
+                        </td>
+
+                        <!-- Etapas / Subcircuitos con color identificatorio -->
+                        <td>
+                            <div class="subcircuitos-pills-wrap">
+                                {% for sub in c.subcircuitos.all %}
+                                <span class="subcircuito-badge-pill" title="Etapa {{ sub.orden }}: {{ sub.nombre }}">
+                                    <span class="subcircuito-color-dot" style="background-color: {{ sub.color_capa|default:'#16a34a' }};"></span>
+                                    <span>E{{ sub.orden }}: {{ sub.nombre }}</span>
+                                </span>
+                                {% empty %}
+                                <span style="font-size: 0.78rem; color: #94a3b8; font-style: italic;">Sin etapas creadas</span>
+                                {% endfor %}
+                            </div>
+                        </td>
+
+                        <!-- Comercios adheridos -->
+                        <td>
+                            <span style="font-weight: 700; color: #0f172a;">
+                                <i class="fa-solid fa-store" style="color: #15803d; margin-right: 0.25rem;"></i>
+                                {{ c.comercios.count }} locales
+                            </span>
+                        </td>
+
+                        <!-- Estado Activo / Inactivo -->
+                        <td>
+                            {% if c.activo %}
+                                <span class="badge-status-circuito status-circuito-activo">
+                                    <span class="pulse-dot-active"></span>
+                                    <span>Activo en App</span>
+                                </span>
+                            {% else %}
+                                <span class="badge-status-circuito status-circuito-inactivo">
+                                    <span>Inactivo</span>
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Acciones Rápidas -->
+                        <td>
+                            <div class="actions-cell-wrap">
+                                <a href="{% url 'panel_circuito_editar' c.id %}" class="btn-action-pill btn-action-editor" title="Abrir Editor y Trazador">
+                                    <i class="fa-solid fa-pen-ruler"></i>
+                                    <span>Editor y Trazador</span>
+                                </a>
+
+                                {% if not c.activo %}
+                                <form method="POST" action="{% url 'panel_circuito_activar' c.id %}" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-action-pill btn-action-activate" title="Fijar como circuito activo en toda la app">
+                                        <i class="fa-solid fa-circle-check"></i>
+                                        <span>Activar</span>
+                                    </button>
+                                </form>
+                                {% endif %}
+
+                                <button type="button" class="btn-action-pill btn-action-delete" onclick="abrirModalEliminarCircuito('{{ c.id }}', '{{ c.nombre }}')" title="Eliminar Circuito">
+                                    <i class="fa-regular fa-trash-can"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 2.5rem; color: #64748b;">
+                            <i class="fa-solid fa-route" style="font-size: 2rem; margin-bottom: 0.5rem; display: block; color: #cbd5e1;"></i>
+                            No hay circuitos registrados en el sistema. Presione "+ Nuevo Circuito" para comenzar.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</div>
+
+<!-- Modal de Eliminación -->
+<div id="modalEliminarCircuito" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div style="background: #ffffff; border-radius: 18px; max-width: 460px; width: 90%; padding: 1.75rem; box-shadow: 0 20px 40px rgba(0,0,0,0.25);">
+        <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 1rem;">
+            <div style="width: 44px; height: 44px; border-radius: 12px; background: #fee2e2; color: #dc2626; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div>
+                <h3 style="margin: 0; font-family: 'Outfit', sans-serif; font-size: 1.15rem; font-weight: 800; color: #0f172a;">¿Eliminar Circuito?</h3>
+                <span style="font-size: 0.78rem; color: #64748b;">Se eliminarán sus etapas y trazados</span>
+            </div>
+        </div>
+
+        <p style="font-size: 0.88rem; color: #475569; margin: 0 0 1.5rem 0; line-height: 1.45;" id="deleteCircuitoModalText">
+            ¿Está seguro de que desea eliminar este circuito? Esta acción es irreversible.
+        </p>
+
+        <form method="POST" id="formDeleteCircuitoAction" action="" style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+            {% csrf_token %}
+            <button type="button" class="btn-action-pill" style="background:#f1f5f9; color:#475569;" onclick="document.getElementById('modalEliminarCircuito').style.display='none'">
+                Cancelar
+            </button>
+            <button type="submit" class="btn-action-pill btn-action-delete">
+                Sí, Eliminar Definitivamente
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function abrirModalEliminarCircuito(id, nombre) {
+    const modal = document.getElementById('modalEliminarCircuito');
+    const form = document.getElementById('formDeleteCircuitoAction');
+    const text = document.getElementById('deleteCircuitoModalText');
+    text.innerHTML = `¿Está seguro de que desea eliminar <strong>${nombre}</strong> y todos sus subcircuitos asociados?`;
+    form.action = `/panel/circuitos/${id}/eliminar/`;
+    modal.style.display = 'flex';
+}
+</script>
+{% endblock %}

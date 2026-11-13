@@ -1,0 +1,298 @@
+{% extends "base/base_ciudadano.html" %}
+{% load static %}
+
+{% block title %}Ciclismo Malagueño | Pedalea por una ciudad más sostenible{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/home.css' %}">
+<link rel="stylesheet" href="{% static 'css/pages/circuito.css' %}">
+<link rel="stylesheet" href="{% static 'css/pages/contacto.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<!-- ----------------------------------------------------------------------- -->
+<!-- 1. SECCIÓN HERO                                                         -->
+<!-- ----------------------------------------------------------------------- -->
+<section id="inicio" class="hero-section">
+    <div class="hero-bg-overlay"></div>
+    <div class="container" style="position: relative; z-index: 2;">
+        <div class="hero-content">
+            <!-- Badge dorado: Próximo Evento -->
+            <div class="badge-proximo-evento">
+                <i class="fa-solid fa-calendar-days"></i>
+                <span>Próximo Evento: 15 de Mayo</span>
+            </div>
+
+            <h1 class="hero-title">
+                Pedalea por una ciudad <br>
+                <span class="highlight-yellow">más sostenible</span>
+            </h1>
+
+            <p class="hero-description">
+                Únete a la comunidad de Ciclismo Malagueño. Participa en circuitos municipales, apoya al comercio local y sigue tu progreso en tiempo real.
+            </p>
+
+            <div class="hero-actions">
+                <a href="{% url 'contacto' %}" class="btn-registrarme">
+                    <i class="fa-solid fa-user-plus" style="margin-right: 6px;"></i>
+                    <span>Registrarme ahora</span>
+                </a>
+                <a href="#circuito" class="btn-ver-circuitos">
+                    <i class="fa-solid fa-route" style="margin-right: 6px;"></i>
+                    <span>Ver Circuitos</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ----------------------------------------------------------------------- -->
+<!-- 2. FILA DE 4 TARJETAS DE MÉTRICAS (VERDE BOSQUE TRASLÚCIDO)             -->
+<!-- ----------------------------------------------------------------------- -->
+<section class="metrics-section">
+    <div class="container">
+        <div class="metrics-grid">
+            <!-- Card 1: Ciclistas Activos -->
+            <div class="metric-card">
+                <img src="{% static 'IMG/ciclistas.jpg' %}" alt="Ciclistas Activos" class="metric-bg-img">
+                <div class="metric-green-overlay"></div>
+                <div class="metric-icon-box">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+                <div class="metric-center-content">
+                    <span class="metric-number">+2.5k</span>
+                    <span class="metric-label">CICLISTAS ACTIVOS</span>
+                </div>
+            </div>
+
+            <!-- Card 2: Rutas Definidas -->
+            <div class="metric-card">
+                <img src="{% static 'IMG/distancia.jpg' %}" alt="Rutas Definidas" class="metric-bg-img">
+                <div class="metric-green-overlay"></div>
+                <div class="metric-icon-box">
+                    <i class="fa-solid fa-location-arrow"></i>
+                </div>
+                <div class="metric-center-content">
+                    <span class="metric-number">120 km</span>
+                    <span class="metric-label">RUTAS DEFINIDAS</span>
+                </div>
+            </div>
+
+            <!-- Card 3: Negocios Adheridos -->
+            <div class="metric-card">
+                <img src="{% static 'IMG/afiliados.jpg' %}" alt="Negocios Adheridos" class="metric-bg-img">
+                <div class="metric-green-overlay"></div>
+                <div class="metric-icon-box">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div class="metric-center-content">
+                    <span class="metric-number">12</span>
+                    <span class="metric-label">NEGOCIOS ADHERIDOS</span>
+                </div>
+            </div>
+
+            <!-- Card 4: Retos Mensuales -->
+            <div class="metric-card">
+                <img src="{% static 'IMG/retos.jpg' %}" alt="Retos Mensuales" class="metric-bg-img">
+                <div class="metric-green-overlay"></div>
+                <div class="metric-icon-box">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+                <div class="metric-center-content">
+                    <span class="metric-number">15</span>
+                    <span class="metric-label">RETOS MENSUALES</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ----------------------------------------------------------------------- -->
+<!-- 3. SECCIÓN: EXPLORA EL CIRCUITO MUNICIPAL                               -->
+<!-- ----------------------------------------------------------------------- -->
+<section id="circuito" class="circuit-map-section">
+    <div class="container">
+        <div class="section-top-flex">
+            <div>
+                <div class="circuit-badge">
+                    <i class="fa-solid fa-map-location-dot" style="margin-right: 4px;"></i>
+                    <span>Mapa del Circuito</span>
+                </div>
+                <h2 class="circuit-header-title">
+                    Explora el <span class="highlight-gold">{{ circuito.nombre|default:"Circuito Municipal" }}</span>
+                </h2>
+                <p class="circuit-header-desc">
+                    Visualiza los puntos de control, zonas de hidratación y comercios afiliados en tiempo real. Nuestra red de ciclovías está diseñada para tu seguridad y comodidad.
+                </p>
+            </div>
+            <div>
+                <a href="{% url 'mapa_carrera' %}" class="btn-fullscreen">
+                    <span>Ver en pantalla completa</span>
+                    <i class="fa-solid fa-expand" style="margin-left: 5px;"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Contenedor del Mapa con Card Flotante -->
+        <div class="map-interactive-wrapper">
+            <div id="mapa-publico"></div>
+
+            <!-- Card Flotante en la esquina inferior izquierda del Mapa -->
+            <div class="floating-circuit-card">
+                <div class="floating-card-status">
+                    <span class="status-dot-active"></span>
+                    <span>Estado del Circuito ACTIVO</span>
+                </div>
+
+                <div class="floating-distance-row">
+                    <span style="font-size: 0.82rem; color: #64748b; font-weight: 600;">Distancia</span>
+                    <span class="floating-distance-val" id="floating-distancia">14.5 KM</span>
+                </div>
+
+                <div class="floating-card-meta">
+                    <div class="floating-meta-item">
+                        <span>Puntos de Control</span>
+                        <b id="floating-controles">12 / 12</b>
+                    </div>
+                    <div class="floating-meta-item">
+                        <span>Comercios Adheridos</span>
+                        <b id="floating-comercios">{{ total_comercios|default:"9" }}</b>
+                    </div>
+                </div>
+
+                <a href="{% url 'login' %}" class="btn-open-gps">
+                    <i class="fa-solid fa-location-crosshairs" style="margin-right: 5px;"></i>
+                    <span>Abrir Navegador GPS</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ----------------------------------------------------------------------- -->
+<!-- 4. SECCIÓN: NOTICIAS Y NOVEDADES (FONDO BLANCO LIMPIO)                  -->
+<!-- ----------------------------------------------------------------------- -->
+<section id="noticias" class="news-clean-section">
+    <div class="container">
+        <div class="section-top-flex">
+            <div>
+                <div class="news-badge">
+                    <i class="fa-solid fa-newspaper" style="margin-right: 4px;"></i>
+                    <span>Blog del Circuito</span>
+                </div>
+                <h2 class="news-clean-title">Noticias y Novedades</h2>
+                <p class="news-clean-desc">
+                    Mantente informado sobre los próximos eventos, mejoras en la infraestructura municipal y testimonios de nuestra comunidad.
+                </p>
+            </div>
+            <div>
+                <a href="{% url 'noticias_listado' %}" class="btn-ver-todas">
+                    <span>Ver todas las noticias</span>
+                    <i class="fa-solid fa-arrow-right" style="margin-left: 5px;"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="news-clean-grid">
+            {% if noticias %}
+                {% for noticia in noticias|slice:":3" %}
+                <article class="news-clean-card">
+                    <div class="news-clean-img-wrap">
+                        {% if noticia.imagen %}
+                            <img src="{{ noticia.imagen.url }}" alt="{{ noticia.titulo }}">
+                        {% else %}
+                            <img src="https://images.unsplash.com/photo-1517649763962-0c623266ddc0?auto=format&fit=crop&w=600&q=80" alt="{{ noticia.titulo }}">
+                        {% endif %}
+                    </div>
+                    <div class="news-clean-body">
+                        <div class="news-meta-row">
+                            <span class="category-tag">Comunidad</span>
+                            <span class="news-date-text">{{ noticia.fecha_publicacion|date:"d M, Y" }}</span>
+                        </div>
+                        <h3 class="news-clean-headline">{{ noticia.titulo }}</h3>
+                        <p class="news-clean-summary">{{ noticia.contenido|truncatewords:18 }}</p>
+                        <a href="{% url 'noticia_detalle' noticia.pk %}" class="news-read-more">
+                            <span>Leer más</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </article>
+                {% endfor %}
+            {% else %}
+                <!-- Cards oficiales de muestra idénticas al Mockup -->
+                <!-- Card 1: Preparación -->
+                <article class="news-clean-card">
+                    <div class="news-clean-img-wrap">
+                        <img src="https://images.unsplash.com/photo-1517649763962-0c623266ddc0?auto=format&fit=crop&w=600&q=80" alt="Ciclista preparándose">
+                    </div>
+                    <div class="news-clean-body">
+                        <div class="news-meta-row">
+                            <span class="category-tag">Preparación</span>
+                            <span class="news-date-text">12 Mayo, 2026</span>
+                        </div>
+                        <h3 class="news-clean-headline">Cómo prepararte para el Gran Reto CicloVilla</h3>
+                        <p class="news-clean-summary">
+                            Consejos expertos sobre equipamiento, nutrición y entrenamiento para que disfrutes al máximo de nuestra próxima jornada deportiva.
+                        </p>
+                        <a href="#inicio" class="news-read-more">
+                            <span>Leer más</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </article>
+
+                <!-- Card 2: Comunidad -->
+                <article class="news-clean-card">
+                    <div class="news-clean-img-wrap">
+                        <img src="https://images.unsplash.com/photo-1533900298318-6b8da08a523e?auto=format&fit=crop&w=600&q=80" alt="Mercados locales">
+                    </div>
+                    <div class="news-clean-body">
+                        <div class="news-meta-row">
+                            <span class="category-tag">Comunidad</span>
+                            <span class="news-date-text">09 Mayo, 2026</span>
+                        </div>
+                        <h3 class="news-clean-headline">Los mercados locales se unen a la ruta</h3>
+                        <p class="news-clean-summary">
+                            Conoce los nuevos comercios que ofrecerán descuentos exclusivos y puntos de hidratación para los participantes registrados.
+                        </p>
+                        <a href="#inicio" class="news-read-more">
+                            <span>Leer más</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </article>
+
+                <!-- Card 3: Infraestructura -->
+                <article class="news-clean-card">
+                    <div class="news-clean-img-wrap">
+                        <img src="https://images.unsplash.com/photo-1471506480208-91b3a4cc78be?auto=format&fit=crop&w=600&q=80" alt="Ciclovía y señalización">
+                    </div>
+                    <div class="news-clean-body">
+                        <div class="news-meta-row">
+                            <span class="category-tag">Infraestructura</span>
+                            <span class="news-date-text">05 Mayo, 2026</span>
+                        </div>
+                        <h3 class="news-clean-headline">Nuevas señalizaciones en el Circuito Norte</h3>
+                        <p class="news-clean-summary">
+                            Hemos completado la instalación de marcadores inteligentes y señales reflectantes para mejorar la seguridad en los trayectos nocturnos.
+                        </p>
+                        <a href="#inicio" class="news-read-more">
+                            <span>Leer más</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </article>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- Formulario de Contacto (Ancla #contacto) -->
+<section id="contacto" style="display: none;"></section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/ciudadano/mapa_publico.js' %}"></script>
+{% endblock %}

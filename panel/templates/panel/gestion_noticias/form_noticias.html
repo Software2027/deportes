@@ -1,0 +1,331 @@
+{% extends "base/base_panel.html" %}
+{% load static %}
+
+{% block title %}
+    {% if noticia %}Editar Noticia: {{ noticia.titulo }}{% else %}Nueva Noticia{% endif %} | Panel de Administración
+{% endblock %}
+{% block page_title %}Noticias{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/panel_noticias.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="noticias-wrapper">
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 1. ENCABEZADO Y VOLVER                                                  -->
+    <!-- ----------------------------------------------------------------------- -->
+    <section class="noticias-header-section">
+        <div class="header-titles">
+            <h1 class="header-title-main">
+                {% if noticia %}Editar Noticia #{{ noticia.id }}{% else %}Nueva Noticia Institucional{% endif %}
+            </h1>
+            <p class="header-subtitle-main">
+                {% if noticia %}
+                Actualiza el contenido, imagen destacada o estado de este comunicado.
+                {% else %}
+                Redacta un comunicado, novedad vial o informe para todos los ciclistas de la ciudad.
+                {% endif %}
+            </p>
+        </div>
+
+        <div class="header-actions-group">
+            <a href="{% url 'panel_noticias_listado' %}" class="btn-btn-secondary">
+                <i class="fa-solid fa-arrow-left"></i>
+                <span>Volver al Listado</span>
+            </a>
+            {% if noticia %}
+            <a href="{% url 'noticia_detalle' noticia.id %}" target="_blank" class="btn-btn-secondary" title="Ver en portal de ciudadanos">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                <span>Ver en Portal</span>
+            </a>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 2. FORMULARIO PRINCIPAL                                                 -->
+    <!-- ----------------------------------------------------------------------- -->
+    <form method="POST" enctype="multipart/form-data" id="noticiaForm" class="noticias-form-card">
+        {% csrf_token %}
+
+        <div class="form-layout-grid">
+            <!-- COLUMNA PRINCIPAL (2fr): TÍTULO Y CONTENIDO -->
+            <div class="form-column-main">
+                <!-- Título -->
+                <div class="form-field-group">
+                    <label for="tituloInput" class="form-label-custom">
+                        Título de la Noticia <span style="color: #dc2626;">*</span>
+                    </label>
+                    <input type="text"
+                           id="tituloInput"
+                           name="titulo"
+                           required
+                           value="{{ noticia.titulo|default:'' }}"
+                           placeholder="Ej: Nueva ruta ciclista conectará el norte con el centro urbano"
+                           class="form-control-custom"
+                           style="font-size: 1.05rem; font-weight: 700;">
+                </div>
+
+                <!-- Categoría y Autor en 2 columnas -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <!-- Categoría -->
+                    <div class="form-field-group">
+                        <label for="categoriaSelect" class="form-label-custom">
+                            Categoría Temática <span style="color: #dc2626;">*</span>
+                        </label>
+                        <select name="categoria" id="categoriaSelect" class="form-control-custom" required>
+                            <option value="Urbanismo" {% if noticia.categoria == 'Urbanismo' %}selected{% endif %}>Urbanismo</option>
+                            <option value="Seguridad" {% if noticia.categoria == 'Seguridad' %}selected{% endif %}>Seguridad</option>
+                            <option value="Comunidad" {% if noticia.categoria == 'Comunidad' or not noticia %}selected{% endif %}>Comunidad</option>
+                            <option value="Eventos" {% if noticia.categoria == 'Eventos' %}selected{% endif %}>Eventos</option>
+                            <option value="Oficial" {% if noticia.categoria == 'Oficial' %}selected{% endif %}>Oficial</option>
+                        </select>
+                    </div>
+
+                    <!-- Autor -->
+                    <div class="form-field-group">
+                        <label for="autorInput" class="form-label-custom">
+                            Nombre del Autor / Redactor
+                        </label>
+                        <input type="text"
+                               id="autorInput"
+                               name="autor_nombre"
+                               value="{{ noticia.autor_nombre|default:request.user.get_full_name|default:request.user.username }}"
+                               placeholder="Ej: Elena Gómez o Prensa Municipal"
+                               class="form-control-custom">
+                    </div>
+                </div>
+
+                <!-- Contenido -->
+                <div class="form-field-group">
+                    <label for="contenidoTextarea" class="form-label-custom">
+                        Cuerpo del Comunicado / Noticia <span style="color: #dc2626;">*</span>
+                    </label>
+                    <textarea id="contenidoTextarea"
+                              name="contenido"
+                              required
+                              placeholder="Escribe el artículo detallado, puntos de control, recomendaciones viales para los ciclistas o cronograma del evento..."
+                              class="form-control-custom form-textarea-custom">{{ noticia.contenido|default:'' }}</textarea>
+                    
+                    <div class="content-counter-row">
+                        <span id="charCounter">0 caracteres</span>
+                        <span id="wordCounter">0 palabras</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COLUMNA SIDEBAR (1fr): ESTADO, IMAGEN DESTACADA Y METADATOS -->
+            <div class="form-column-sidebar">
+                <!-- Card: Estado de Publicación -->
+                <div class="sidebar-box-card">
+                    <h3 class="sidebar-box-title">
+                        <i class="fa-solid fa-sliders"></i>
+                        <span>Publicación</span>
+                    </h3>
+
+                    <div class="form-field-group">
+                        <label for="estadoSelect" class="form-label-custom">Estado Actual</label>
+                        <select name="estado" id="estadoSelect" class="form-control-custom">
+                            <option value="Publicado" {% if noticia.estado == 'Publicado' or not noticia %}selected{% endif %}>Publicado (Visible)</option>
+                            <option value="Borrador" {% if noticia.estado == 'Borrador' %}selected{% endif %}>Borrador (Oculto)</option>
+                            <option value="Archivado" {% if noticia.estado == 'Archivado' %}selected{% endif %}>Archivado (Histórico)</option>
+                        </select>
+                    </div>
+
+                    {% if noticia %}
+                    <div style="font-size: 0.8rem; color: #64748b; display: flex; flex-direction: column; gap: 0.4rem; border-top: 1px solid #e2e8f0; padding-top: 0.75rem;">
+                        <div><strong>Creado:</strong> {{ noticia.fecha_publicacion|date:"d M Y, H:i" }}</div>
+                        <div><strong>Lecturas acumuladas:</strong> {{ noticia.vistas }} vistas</div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Card: Imagen Destacada -->
+                <div class="sidebar-box-card">
+                    <h3 class="sidebar-box-title">
+                        <i class="fa-regular fa-image"></i>
+                        <span>Imagen Destacada</span>
+                    </h3>
+
+                    <!-- Dropzone -->
+                    <div class="image-upload-dropzone" id="dropzoneWrap" onclick="document.getElementById('imagenInput').click();">
+                        <input type="file"
+                               name="imagen"
+                               id="imagenInput"
+                               accept="image/*"
+                               style="display: none;"
+                               onchange="handleImagePreview(this)">
+
+                        <div id="dropzoneEmpty" class="dropzone-empty-state" {% if noticia.imagen %}style="display: none;"{% endif %}>
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                            <p class="dropzone-title">Haz clic o arrastra una imagen</p>
+                            <p class="dropzone-help">PNG, JPG, WEBP hasta 5MB</p>
+                        </div>
+
+                        <div id="dropzonePreviewWrap" class="dropzone-preview-wrap" {% if not noticia.imagen %}style="display: none;"{% endif %}>
+                            <img src="{% if noticia.imagen %}{{ noticia.imagen.url }}{% endif %}"
+                                 alt="Previsualización"
+                                 id="previewImg"
+                                 class="dropzone-preview-img">
+                            <button type="button"
+                                    class="btn-remove-preview"
+                                    id="btnRemoveImage"
+                                    onclick="event.stopPropagation(); removeSelectedImage();"
+                                    title="Quitar imagen">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <input type="hidden" name="eliminar_imagen" id="eliminarImagenInput" value="0">
+                </div>
+            </div>
+        </div>
+
+        <!-- PIE DE ACCIONES DEL FORMULARIO -->
+        <div class="form-footer-actions">
+            <div class="form-footer-left">
+                {% if noticia %}
+                <button type="button"
+                        class="btn-btn-danger"
+                        onclick="abrirModalEliminar('{{ noticia.id }}', '{{ noticia.titulo|escapejs }}')">
+                    <i class="fa-regular fa-trash-can"></i>
+                    <span>Eliminar Noticia</span>
+                </button>
+                {% endif %}
+            </div>
+
+            <div class="form-footer-right">
+                <a href="{% url 'panel_noticias_listado' %}" class="btn-btn-secondary">Cancelar</a>
+                <button type="button" class="btn-btn-borrador" onclick="guardarComoBorrador()">
+                    <i class="fa-regular fa-bookmark"></i>
+                    <span>Guardar Borrador</span>
+                </button>
+                <button type="submit" class="btn-btn-primary">
+                    <i class="fa-solid fa-check"></i>
+                    <span>{% if noticia %}Guardar Cambios{% else %}Publicar Noticia{% endif %}</span>
+                </button>
+            </div>
+        </div>
+    </form>
+
+</div>
+
+<!-- --------------------------------------------------------------------------- -->
+<!-- MODAL DE CONFIRMACIÓN DE ELIMINACIÓN                                         -->
+<!-- --------------------------------------------------------------------------- -->
+{% if noticia %}
+<div class="modal-overlay" id="modalEliminarNoticia">
+    <div class="modal-dialog-box">
+        <div class="modal-icon-danger">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <h3 class="modal-title-custom">¿Eliminar Noticia?</h3>
+        <p class="modal-text-custom">
+            Estás a punto de eliminar la publicación <strong id="modalNoticiaTitulo">"{{ noticia.titulo }}"</strong>. Esta acción es irreversible.
+        </p>
+        <div class="modal-actions-custom">
+            <button type="button" class="btn-modal-cancel" onclick="cerrarModalEliminar()">Cancelar</button>
+            <form method="POST" action="{% url 'panel_noticia_eliminar' noticia.id %}" style="flex: 1; display: flex;">
+                {% csrf_token %}
+                <button type="submit" class="btn-modal-confirm-delete">Sí, Eliminar</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Contador en vivo de caracteres y palabras
+    const contenidoTextarea = document.getElementById('contenidoTextarea');
+    const charCounter = document.getElementById('charCounter');
+    const wordCounter = document.getElementById('wordCounter');
+
+    function actualizarContadores() {
+        const texto = contenidoTextarea.value.trim();
+        const chars = contenidoTextarea.value.length;
+        const words = texto.length > 0 ? texto.split(/\s+/).length : 0;
+        charCounter.textContent = chars + ' caracteres';
+        wordCounter.textContent = words + ' palabras';
+    }
+
+    if (contenidoTextarea) {
+        contenidoTextarea.addEventListener('input', actualizarContadores);
+        actualizarContadores();
+    }
+
+    // Previsualización y Drag and drop de imagen
+    const dropzoneWrap = document.getElementById('dropzoneWrap');
+    const imagenInput = document.getElementById('imagenInput');
+    const dropzoneEmpty = document.getElementById('dropzoneEmpty');
+    const dropzonePreviewWrap = document.getElementById('dropzonePreviewWrap');
+    const previewImg = document.getElementById('previewImg');
+    const eliminarImagenInput = document.getElementById('eliminarImagenInput');
+
+    function handleImagePreview(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                dropzonePreviewWrap.style.display = 'block';
+                dropzoneEmpty.style.display = 'none';
+                eliminarImagenInput.value = '0';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function removeSelectedImage() {
+        imagenInput.value = '';
+        previewImg.src = '';
+        dropzonePreviewWrap.style.display = 'none';
+        dropzoneEmpty.style.display = 'flex';
+        eliminarImagenInput.value = '1';
+    }
+
+    if (dropzoneWrap) {
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropzoneWrap.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropzoneWrap.classList.add('dragover');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropzoneWrap.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropzoneWrap.classList.remove('dragover');
+            }, false);
+        });
+
+        dropzoneWrap.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files && files.length > 0) {
+                imagenInput.files = files;
+                handleImagePreview(imagenInput);
+            }
+        });
+    }
+
+    // Guardar como Borrador
+    function guardarComoBorrador() {
+        document.getElementById('estadoSelect').value = 'Borrador';
+        document.getElementById('noticiaForm').submit();
+    }
+
+    // Modal de Eliminación
+    function abrirModalEliminar(id, titulo) {
+        document.getElementById('modalEliminarNoticia').classList.add('active');
+    }
+
+    function cerrarModalEliminar() {
+        document.getElementById('modalEliminarNoticia').classList.remove('active');
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,65 @@
+/* Estilos específicos de Circuitos y Mapas */
+
+.circuito-legend-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: var(--radius-sm);
+  margin-top: 1rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.88rem;
+}
+
+.legend-color-bar {
+  width: 24px;
+  height: 6px;
+  border-radius: 3px;
+}
+
+.leaflet-popup-content-wrapper {
+  background: #1e293b !important;
+  color: #f8fafc !important;
+  border-radius: 12px !important;
+  padding: 6px !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+}
+
+.leaflet-popup-tip {
+  background: #1e293b !important;
+}
+
+.comercio-popup {
+  padding: 0.5rem;
+  max-width: 240px;
+}
+
+.comercio-popup h4 {
+  font-size: 1rem;
+  color: #ffffff;
+  margin-bottom: 0.35rem;
+}
+
+.comercio-popup .badge {
+  margin-bottom: 0.5rem;
+}
+
+.comercio-popup p {
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+.comercio-popup img {
+  width: 100%;
+  height: 110px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-top: 0.5rem;
+}

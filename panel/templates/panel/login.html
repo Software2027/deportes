@@ -1,0 +1,139 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso Interno | Municipalidad de Malagueño</title>
+
+    <!-- Tipografías Oficiales Google Fonts: Outfit (Titulares) e Inter (Cuerpo) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome 6.4 Free -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Hoja de estilos del Login Administrativo -->
+    <link rel="stylesheet" href="{% static 'css/pages/panel_login.css' %}">
+</head>
+<body class="panel-login-body">
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 1. HEADER SUPERIOR INSTITUCIONAL                                        -->
+    <!-- ----------------------------------------------------------------------- -->
+    <header class="panel-login-header">
+        <div class="header-container">
+            <!-- Marca y Escudo Oficial -->
+            <a href="{% url 'index' %}" class="header-brand-wrap" title="Portal Municipal">
+                <img src="{% static 'IMG/logo_iso_municipalidad.png' %}" alt="Escudo de Malagueño" class="header-logo-img">
+                <div class="header-brand-titles">
+                    <span class="muni-sub">MUNICIPALIDAD DE</span>
+                    <span class="muni-main">MALAGUEÑO</span>
+                </div>
+            </a>
+
+            <!-- Botón Volver al Inicio -->
+            <a href="{% url 'index' %}" class="btn-back-home" title="Volver al portal público">
+                <i class="fa-solid fa-house"></i>
+                <span>Volver al Inicio</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 2. CONTENIDO PRINCIPAL: CARD DE ACCESO INTERNO                          -->
+    <!-- ----------------------------------------------------------------------- -->
+    <main class="panel-login-main">
+        <div class="panel-login-card">
+
+            <!-- Ícono Superior: Usuario con Escudo de Seguridad -->
+            <div class="card-icon-badge">
+                <i class="fa-solid fa-user-shield"></i>
+            </div>
+
+            <!-- Título y Subtítulo -->
+            <h1 class="card-title">Acceso Interno</h1>
+            <p class="card-subtitle">
+                Portal de Gestión Administrativa de la Municipalidad de Malagueño
+            </p>
+
+            <!-- Mensajes de Alerta / Feedback de Django -->
+            {% if messages %}
+                <div class="login-messages-container">
+                    {% for message in messages %}
+                        <div class="login-alert alert-{{ message.tags }}">
+                            <i class="fa-solid fa-circle-info"></i>
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Formulario de Acceso Administrativo -->
+            <form method="POST" action="{% url 'panel_login' %}" class="panel-login-form" novalidate>
+                {% csrf_token %}
+
+                <!-- Campo Correo Electrónico -->
+                <div class="form-group">
+                    <label for="admin-email" class="form-label">Correo Electrónico</label>
+                    <div class="input-wrapper">
+                        <i class="fa-regular fa-envelope input-icon"></i>
+                        <input 
+                            type="text" 
+                            id="admin-email" 
+                            name="email" 
+                            class="form-control" 
+                            placeholder="ejemplo@malagueno.gob.ar"
+                            value="{{ request.POST.email|default:'' }}"
+                            autocomplete="username"
+                        >
+                    </div>
+                </div>
+
+                <!-- Campo Contraseña -->
+                <div class="form-group">
+                    <label for="admin-password" class="form-label">Contraseña</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-lock input-icon"></i>
+                        <input 
+                            type="password" 
+                            id="admin-password" 
+                            name="password" 
+                            class="form-control" 
+                            placeholder="••••••••"
+                            autocomplete="current-password"
+                        >
+                    </div>
+                </div>
+
+                <!-- Botón Confirmar -->
+                <button type="submit" class="btn-panel-confirm" id="btn-login-confirm">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <span>Confirmar</span>
+                </button>
+            </form>
+
+        </div>
+    </main>
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 3. FOOTER INFERIOR INSTITUCIONAL                                        -->
+    <!-- ----------------------------------------------------------------------- -->
+    <footer class="panel-login-footer">
+        <div class="footer-container">
+            <!-- Lado Izquierdo: Institución y Sistema -->
+            <div class="footer-left">
+                <i class="fa-solid fa-building-columns"></i>
+                <span><strong>Municipalidad de Malagueño</strong> — Sistema Interno de Gestión</span>
+            </div>
+
+            <!-- Lado Derecho: Copyright -->
+            <div class="footer-right">
+                <span>&copy; 2026 Municipalidad de Malagueño. Todos los derechos reservados.</span>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

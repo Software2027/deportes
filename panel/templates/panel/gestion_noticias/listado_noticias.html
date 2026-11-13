@@ -1,0 +1,409 @@
+{% extends "base/base_panel.html" %}
+{% load static %}
+
+{% block title %}Gestión de Noticias | Panel de Administración{% endblock %}
+{% block page_title %}Noticias{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/panel_noticias.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="noticias-wrapper">
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 1. ENCABEZADO DE PÁGINA Y BOTÓN DE NUEVA NOTICIA                         -->
+    <!-- ----------------------------------------------------------------------- -->
+    <section class="noticias-header-section">
+        <div class="header-titles">
+            <h1 class="header-title-main">Gestión de Noticias</h1>
+            <p class="header-subtitle-main">
+                Administra el portal de noticias y comunicados oficiales de CicloVilla.
+            </p>
+        </div>
+
+        <div class="header-actions-group">
+            <a href="{% url 'panel_noticia_nueva' %}" class="btn-nueva-noticia" title="Redactar y publicar una nueva noticia">
+                <i class="fa-solid fa-plus"></i>
+                <span>Nueva Noticia</span>
+            </a>
+        </div>
+    </section>
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 2. FILA DE 4 TARJETAS DE KPIS HORIZONTALES (ESTILO VISILY)              -->
+    <!-- ----------------------------------------------------------------------- -->
+    <section class="noticias-kpis-grid">
+        <!-- KPI 1: Publicadas -->
+        <div class="kpi-card">
+            <div class="kpi-icon-circle icon-circle-publicadas">
+                <i class="fa-solid fa-check"></i>
+            </div>
+            <div class="kpi-data">
+                <span class="kpi-label">Publicadas</span>
+                <h2 class="kpi-number">{{ total_publicadas }}</h2>
+            </div>
+        </div>
+
+        <!-- KPI 2: Borradores -->
+        <div class="kpi-card">
+            <div class="kpi-icon-circle icon-circle-borradores">
+                <i class="fa-regular fa-clock"></i>
+            </div>
+            <div class="kpi-data">
+                <span class="kpi-label">Borradores</span>
+                <h2 class="kpi-number">{{ total_borradores }}</h2>
+            </div>
+        </div>
+
+        <!-- KPI 3: Lecturas Hoy -->
+        <div class="kpi-card">
+            <div class="kpi-icon-circle icon-circle-lecturas">
+                <i class="fa-regular fa-eye"></i>
+            </div>
+            <div class="kpi-data">
+                <span class="kpi-label">Lecturas Hoy</span>
+                <h2 class="kpi-number">{{ lecturas_hoy }}</h2>
+            </div>
+        </div>
+
+        <!-- KPI 4: Archivadas -->
+        <div class="kpi-card">
+            <div class="kpi-icon-circle icon-circle-archivadas">
+                <i class="fa-regular fa-trash-can"></i>
+            </div>
+            <div class="kpi-data">
+                <span class="kpi-label">Archivadas</span>
+                <h2 class="kpi-number">{{ total_archivadas }}</h2>
+            </div>
+        </div>
+    </section>
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 3. TARJETA PRINCIPAL: TABLA DE NOTICIAS, PESTAÑAS Y BUSCADOR            -->
+    <!-- ----------------------------------------------------------------------- -->
+    <section class="noticias-card-box">
+        <!-- Barra Superior: Pestañas + Búsqueda y Filtro -->
+        <div class="table-toolbar">
+            <!-- Pestañas (Tabs) de Estado -->
+            <div class="pills-tabs-wrap">
+                <a href="{% url 'panel_noticias_listado' %}{% if query_q %}?q={{ query_q }}{% endif %}"
+                   class="tab-pill {% if not estado_filtro %}active{% endif %}">
+                    Todas
+                </a>
+                <a href="{% url 'panel_noticias_listado' %}?estado=Publicado{% if query_q %}&q={{ query_q }}{% endif %}"
+                   class="tab-pill {% if estado_filtro == 'Publicado' %}active{% endif %}">
+                    Publicadas
+                </a>
+                <a href="{% url 'panel_noticias_listado' %}?estado=Borrador{% if query_q %}&q={{ query_q }}{% endif %}"
+                   class="tab-pill {% if estado_filtro == 'Borrador' %}active{% endif %}">
+                    Borradores
+                </a>
+                <a href="{% url 'panel_noticias_listado' %}?estado=Archivado{% if query_q %}&q={{ query_q }}{% endif %}"
+                   class="tab-pill {% if estado_filtro == 'Archivado' %}active{% endif %}">
+                    Archivadas
+                </a>
+            </div>
+
+            <!-- Controles a la derecha: Buscador y Botón Embudo -->
+            <form method="GET" action="{% url 'panel_noticias_listado' %}" class="toolbar-controls-right" id="filterForm">
+                {% if estado_filtro %}
+                <input type="hidden" name="estado" value="{{ estado_filtro }}">
+                {% endif %}
+
+                <div class="search-box-wrap">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text"
+                           name="q"
+                           value="{{ query_q }}"
+                           placeholder="Buscar por título..."
+                           class="search-box-input"
+                           id="searchInput">
+                    {% if query_q %}
+                    <a href="{% url 'panel_noticias_listado' %}{% if estado_filtro %}?estado={{ estado_filtro }}{% endif %}"
+                       style="color: #94a3b8; font-size: 0.8rem; text-decoration: none;" title="Limpiar búsqueda">
+                        <i class="fa-solid fa-xmark"></i>
+                    </a>
+                    {% endif %}
+                </div>
+
+                <button type="button"
+                        class="btn-filter-trigger {% if categoria_filtro %}active{% endif %}"
+                        id="btnToggleFilter"
+                        title="Filtrar por categoría">
+                    <i class="fa-solid fa-filter"></i>
+                </button>
+            </form>
+        </div>
+
+        <!-- Panel de Filtro Avanzado por Categoría (Desplegable) -->
+        <div class="advanced-filter-panel {% if not categoria_filtro %}hidden{% endif %}" id="advancedFilterPanel">
+            <div class="filter-group-item">
+                <label for="selectCategoria" style="font-weight: 600;">Categoría:</label>
+                <select name="categoria" id="selectCategoria" class="filter-select" onchange="aplicarFiltroCategoria(this.value)">
+                    <option value="">Todas las categorías</option>
+                    {% for cat_val, cat_label in categorias_disponibles %}
+                    <option value="{{ cat_val }}" {% if categoria_filtro == cat_val %}selected{% endif %}>{{ cat_label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% if categoria_filtro %}
+            <a href="{% url 'panel_noticias_listado' %}{% if estado_filtro %}?estado={{ estado_filtro }}{% endif %}"
+               class="btn-btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;">
+                <i class="fa-solid fa-xmark"></i> Quitar filtro categoría
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Tabla de Noticias -->
+        <div class="table-responsive">
+            <table class="noticias-table">
+                <thead>
+                    <tr>
+                        <th style="width: 70px;">Imagen</th>
+                        <th>Título</th>
+                        <th>Categoría</th>
+                        <th>Autor</th>
+                        <th>Fecha</th>
+                        <th>Estado</th>
+                        <th class="th-acciones">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for noticia in noticias %}
+                    <tr>
+                        <!-- 1. Imagen Thumbnail -->
+                        <td class="td-imagen">
+                            <div class="news-thumb-wrap">
+                                {% if noticia.imagen %}
+                                <img src="{{ noticia.imagen.url }}" alt="{{ noticia.titulo }}" class="news-thumb-img">
+                                {% else %}
+                                <div class="news-thumb-placeholder">
+                                    <i class="fa-solid fa-newspaper"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </td>
+
+                        <!-- 2. Título e ID -->
+                        <td class="td-titulo">
+                            <a href="{% url 'panel_noticia_editar' noticia.id %}" class="news-title-link" title="{{ noticia.titulo }}">
+                                {{ noticia.titulo }}
+                            </a>
+                            <div class="news-id-meta">ID: {{ noticia.id }}</div>
+                        </td>
+
+                        <!-- 3. Categoría -->
+                        <td>
+                            <span class="badge-categoria">{{ noticia.categoria|default:"Comunidad" }}</span>
+                        </td>
+
+                        <!-- 4. Autor -->
+                        <td class="td-autor">
+                            {{ noticia.autor_display }}
+                        </td>
+
+                        <!-- 5. Fecha -->
+                        <td class="td-fecha">
+                            {{ noticia.fecha_publicacion|date:"d M Y" }}
+                        </td>
+
+                        <!-- 6. Estado -->
+                        <td>
+                            <span class="badge-estado {{ noticia.estado_badge_class }}">
+                                {{ noticia.estado }}
+                            </span>
+                        </td>
+
+                        <!-- 7. Acciones (Dropdown) -->
+                        <td class="td-acciones">
+                            <div class="dropdown-action-wrap">
+                                <button type="button"
+                                        class="btn-actions-toggle"
+                                        onclick="toggleDropdownMenu(event, 'dropdown-{{ noticia.id }}')"
+                                        title="Opciones de noticia">
+                                    <i class="fa-solid fa-ellipsis"></i>
+                                </button>
+                                <div class="action-dropdown-menu" id="dropdown-{{ noticia.id }}">
+                                    <a href="{% url 'panel_noticia_editar' noticia.id %}" class="dropdown-item">
+                                        <i class="fa-regular fa-pen-to-square"></i>
+                                        <span>Editar Noticia</span>
+                                    </a>
+                                    <a href="{% url 'noticia_detalle' noticia.id %}" target="_blank" class="dropdown-item">
+                                        <i class="fa-regular fa-eye"></i>
+                                        <span>Ver en Portal</span>
+                                    </a>
+                                    <div class="dropdown-divider"></div>
+                                    {% if noticia.estado != 'Publicado' %}
+                                    <a href="{% url 'panel_noticia_cambiar_estado' noticia.id 'Publicado' %}" class="dropdown-item">
+                                        <i class="fa-solid fa-check" style="color: #16a34a;"></i>
+                                        <span>Marcar Publicado</span>
+                                    </a>
+                                    {% endif %}
+                                    {% if noticia.estado != 'Borrador' %}
+                                    <a href="{% url 'panel_noticia_cambiar_estado' noticia.id 'Borrador' %}" class="dropdown-item">
+                                        <i class="fa-regular fa-clock" style="color: #d97706;"></i>
+                                        <span>Mover a Borrador</span>
+                                    </a>
+                                    {% endif %}
+                                    {% if noticia.estado != 'Archivado' %}
+                                    <a href="{% url 'panel_noticia_cambiar_estado' noticia.id 'Archivado' %}" class="dropdown-item">
+                                        <i class="fa-regular fa-box-archive" style="color: #64748b;"></i>
+                                        <span>Archivar</span>
+                                    </a>
+                                    {% endif %}
+                                    <div class="dropdown-divider"></div>
+                                    <button type="button"
+                                            class="dropdown-item item-delete"
+                                            onclick="abrirModalEliminar('{{ noticia.id }}', '{{ noticia.titulo|escapejs }}')">
+                                        <i class="fa-regular fa-trash-can"></i>
+                                        <span>Eliminar</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 3rem 1rem;">
+                            <div style="color: #94a3b8; font-size: 2.5rem; margin-bottom: 0.8rem;">
+                                <i class="fa-regular fa-newspaper"></i>
+                            </div>
+                            <h3 style="font-size: 1.1rem; color: #334155; margin: 0 0 0.35rem 0;">No se encontraron noticias</h3>
+                            <p style="font-size: 0.85rem; color: #64748b; margin: 0 0 1.25rem 0;">
+                                {% if query_q or estado_filtro or categoria_filtro %}
+                                No hay resultados que coincidan con los filtros aplicados.
+                                {% else %}
+                                Comienza publicando el primer comunicado o novedad oficial para los ciclistas.
+                                {% endif %}
+                            </p>
+                            <a href="{% url 'panel_noticia_nueva' %}" class="btn-nueva-noticia" style="display: inline-flex;">
+                                <i class="fa-solid fa-plus"></i>
+                                <span>Crear Noticia</span>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pie de Tabla: Paginador -->
+        <div class="table-pagination-footer">
+            <span class="pagination-counter-text">
+                Mostrando {{ page_obj.start_index|default:0 }} a {{ page_obj.end_index|default:0 }} de {{ total_resultados }} resultados
+            </span>
+
+            <div class="pagination-buttons-group">
+                {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}{% if query_q %}&q={{ query_q }}{% endif %}{% if categoria_filtro %}&categoria={{ categoria_filtro }}{% endif %}"
+                   class="btn-page-step">
+                    <i class="fa-solid fa-chevron-left"></i>
+                    <span>Anterior</span>
+                </a>
+                {% else %}
+                <span class="btn-page-step disabled">
+                    <i class="fa-solid fa-chevron-left"></i>
+                    <span>Anterior</span>
+                </span>
+                {% endif %}
+
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}{% if query_q %}&q={{ query_q }}{% endif %}{% if categoria_filtro %}&categoria={{ categoria_filtro }}{% endif %}"
+                   class="btn-page-step">
+                    <span>Siguiente</span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </a>
+                {% else %}
+                <span class="btn-page-step disabled">
+                    <span>Siguiente</span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </span>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<!-- --------------------------------------------------------------------------- -->
+<!-- MODAL DE CONFIRMACIÓN DE ELIMINACIÓN                                         -->
+<!-- --------------------------------------------------------------------------- -->
+<div class="modal-overlay" id="modalEliminarNoticia">
+    <div class="modal-dialog-box">
+        <div class="modal-icon-danger">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <h3 class="modal-title-custom">¿Eliminar Noticia?</h3>
+        <p class="modal-text-custom">
+            Estás a punto de eliminar la publicación <strong id="modalNoticiaTitulo"></strong>. Esta acción no se puede deshacer y desaparecerá del portal público.
+        </p>
+        <div class="modal-actions-custom">
+            <button type="button" class="btn-modal-cancel" onclick="cerrarModalEliminar()">Cancelar</button>
+            <form method="POST" id="formModalEliminar" style="flex: 1; display: flex;">
+                {% csrf_token %}
+                <button type="submit" class="btn-modal-confirm-delete">Sí, Eliminar</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Control de Dropdown de Acciones
+    function toggleDropdownMenu(event, menuId) {
+        event.stopPropagation();
+        const menu = document.getElementById(menuId);
+        const isOpen = menu.classList.contains('show');
+
+        // Cerrar todos los abiertos
+        document.querySelectorAll('.action-dropdown-menu').forEach(m => m.classList.remove('show'));
+
+        if (!isOpen) {
+            menu.classList.add('show');
+        }
+    }
+
+    // Cerrar dropdowns al hacer clic fuera
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.dropdown-action-wrap')) {
+            document.querySelectorAll('.action-dropdown-menu').forEach(m => m.classList.remove('show'));
+        }
+    });
+
+    // Toggle de Filtro Avanzado de Categoría
+    const btnToggleFilter = document.getElementById('btnToggleFilter');
+    const advancedFilterPanel = document.getElementById('advancedFilterPanel');
+    if (btnToggleFilter && advancedFilterPanel) {
+        btnToggleFilter.addEventListener('click', function() {
+            advancedFilterPanel.classList.toggle('hidden');
+        });
+    }
+
+    function aplicarFiltroCategoria(categoria) {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (categoria) {
+            urlParams.set('categoria', categoria);
+        } else {
+            urlParams.delete('categoria');
+        }
+        urlParams.delete('page'); // Reset a la página 1
+        window.location.search = urlParams.toString();
+    }
+
+    // Modal de Confirmación de Eliminación
+    function abrirModalEliminar(id, titulo) {
+        document.getElementById('modalNoticiaTitulo').textContent = '"' + titulo + '"';
+        const form = document.getElementById('formModalEliminar');
+        form.action = "{% url 'panel_noticia_eliminar' 0 %}".replace('/0/', '/' + id + '/');
+        document.getElementById('modalEliminarNoticia').classList.add('active');
+        // Cerrar menús dropdown abiertos
+        document.querySelectorAll('.action-dropdown-menu').forEach(m => m.classList.remove('show'));
+    }
+
+    function cerrarModalEliminar() {
+        document.getElementById('modalEliminarNoticia').classList.remove('active');
+    }
+</script>
+{% endblock %}

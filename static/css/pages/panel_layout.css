@@ -1,0 +1,570 @@
+/* ==============================================================================
+   LAYOUT GENERAL DEL PANEL ADMINISTRATIVO - MUNICIPALIDAD DE MALAGUEÑO
+   Estructura Dashboard, Sidebar colapsable y Topbar institucional.
+   ============================================================================== */
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+}
+
+.panel-body-layout {
+    background-color: #f8fafc;
+    font-family: 'Inter', sans-serif;
+    color: #0f172a;
+}
+
+.panel-app-wrapper {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+}
+
+/* ------------------------------------------------------------------------------
+   1. SIDEBAR DE NAVEGACIÓN
+   ------------------------------------------------------------------------------ */
+.panel-sidebar {
+    width: 270px;
+    background-color: #0b381e; /* Verde municipal profundo */
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    z-index: 1000;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-header {
+    padding: 1.25rem 1.2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
+    color: #ffffff;
+}
+
+.sidebar-logo {
+    height: 38px;
+    width: auto;
+    object-fit: contain;
+}
+
+.sidebar-brand-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-brand-sub {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.58rem;
+    font-weight: 700;
+    color: #86efac;
+    letter-spacing: 0.8px;
+    line-height: 1.1;
+}
+
+.sidebar-brand-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: 0.4px;
+    line-height: 1.1;
+}
+
+.sidebar-brand-badge {
+    display: inline-block;
+    font-size: 0.55rem;
+    font-weight: 800;
+    background-color: rgba(234, 179, 8, 0.25);
+    color: #fef08a;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    margin-top: 3px;
+    width: fit-content;
+}
+
+.btn-sidebar-close {
+    display: none;
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    font-size: 1.25rem;
+    cursor: pointer;
+}
+
+/* Menú de Navegación */
+.sidebar-nav {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.25rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.nav-section-label {
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.45);
+    letter-spacing: 0.8px;
+    padding: 0.75rem 0.65rem 0.35rem 0.65rem;
+    text-transform: uppercase;
+}
+
+.nav-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    color: rgba(255, 255, 255, 0.85);
+    text-decoration: none;
+    border-radius: 12px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 600;
+    transition: all 0.15s ease;
+}
+
+.nav-link-content {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+}
+
+.nav-link .nav-icon {
+    font-size: 1.05rem;
+    color: rgba(255, 255, 255, 0.75);
+    width: 22px;
+    text-align: center;
+    transition: color 0.15s ease;
+}
+
+.nav-arrow {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    opacity: 0;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+}
+
+.nav-link:hover .nav-icon {
+    color: #86efac;
+}
+
+/* Ítem Activo (Píldora blanca idéntica a la imagen) */
+.nav-link.active {
+    background-color: #ffffff;
+    color: #0b381e;
+    font-weight: 700;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+}
+
+.nav-link.active .nav-icon {
+    color: #15803d;
+}
+
+.nav-link.active .nav-arrow {
+    color: #64748b;
+    opacity: 1;
+}
+
+/* User Footer del Sidebar */
+.sidebar-user-footer {
+    padding: 1.25rem 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    background-color: rgba(0, 0, 0, 0.12);
+}
+
+.user-card-box {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 0.65rem 0.85rem;
+}
+
+.user-avatar-circle {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background-color: rgba(34, 197, 94, 0.15);
+    border: 1.5px solid #4ade80;
+    color: #4ade80;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+}
+
+.user-text-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.user-name {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
+
+.user-email {
+    font-size: 0.7rem;
+    color: #86efac;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
+
+.btn-logout-sidebar {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: #f87171;
+    text-decoration: none;
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 0.4rem 0.25rem;
+    transition: all 0.15s ease;
+}
+
+.btn-logout-sidebar i {
+    font-size: 0.95rem;
+    transform: rotate(180deg);
+}
+
+.btn-logout-sidebar:hover {
+    color: #fca5a5;
+    transform: translateX(-2px);
+}
+
+/* ------------------------------------------------------------------------------
+   2. CONTENIDO PRINCIPAL Y TOPBAR
+   ------------------------------------------------------------------------------ */
+.panel-main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow-x: hidden;
+}
+
+.panel-topbar {
+    height: 70px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.btn-sidebar-toggle {
+    display: none;
+    background: transparent;
+    border: none;
+    color: #0f172a;
+    font-size: 1.25rem;
+    cursor: pointer;
+    padding: 0.35rem;
+}
+
+.topbar-mobile-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.topbar-mobile-logo {
+    height: 28px;
+    width: auto;
+    object-fit: contain;
+}
+
+.topbar-mobile-name {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #0b381e;
+    letter-spacing: 0.3px;
+    line-height: 1.1;
+}
+
+.topbar-title-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.topbar-system-name {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #15803d;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
+.topbar-page-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.system-status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    background-color: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    padding: 0.35rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: #15803d;
+}
+
+.status-pulse-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #22c55e;
+    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.3);
+    animation: pulseDot 2s infinite;
+}
+
+@keyframes pulseDot {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6); }
+    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+.topbar-user-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 0.35rem 0.75rem 0.35rem 0.45rem;
+    border-radius: 9999px;
+}
+
+.user-avatar-mini {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background-color: #0b381e;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+}
+
+.user-display-name {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+/* Área de Páginas */
+.panel-page-container {
+    flex: 1;
+    padding: 1.75rem;
+}
+
+.panel-messages-box {
+    margin-bottom: 1.5rem;
+}
+
+.panel-alert {
+    padding: 0.85rem 1.1rem;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.panel-alert.alert-success {
+    background-color: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #15803d;
+}
+
+.panel-alert.alert-info {
+    background-color: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #1d4ed8;
+}
+
+/* En Desktop: ocultamos el topbar superior ya que el dashboard integra su propio título y acciones */
+@media (min-width: 993px) {
+    .panel-topbar {
+        display: none;
+    }
+
+    .panel-page-container {
+        padding: 2.25rem 2.5rem;
+    }
+}
+
+/* ------------------------------------------------------------------------------
+   3. RESPONSIVE QUERIES
+   ------------------------------------------------------------------------------ */
+@media (max-width: 992px) {
+    .panel-sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        transform: translateX(-100%);
+        box-shadow: 10px 0 30px rgba(0, 0, 0, 0.25);
+    }
+
+    .panel-sidebar.open {
+        transform: translateX(0);
+    }
+
+    .btn-sidebar-close {
+        display: block;
+    }
+
+    .btn-sidebar-toggle {
+        display: block;
+    }
+
+    .sidebar-backdrop {
+        position: fixed;
+        inset: 0;
+        background-color: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(4px);
+        z-index: 999;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .sidebar-backdrop.open {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .panel-topbar {
+        padding: 0 1rem;
+        height: 56px;
+        background-color: #ffffff;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    }
+
+    .topbar-left {
+        gap: 0.75rem;
+    }
+
+    .topbar-right {
+        gap: 0.65rem;
+    }
+
+    .system-status-indicator {
+        padding: 0.25rem 0.6rem;
+        font-size: 0.72rem;
+    }
+
+    .panel-page-container {
+        padding: 1rem 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .panel-topbar {
+        padding: 0 0.85rem;
+        height: 54px;
+    }
+
+    .system-status-indicator .status-text {
+        display: none;
+    }
+
+    .system-status-indicator {
+        padding: 0.4rem;
+        border-radius: 50%;
+    }
+
+    .topbar-user-badge .user-display-name {
+        display: none;
+    }
+
+    .topbar-user-badge {
+        padding: 0;
+        border: none;
+        background: transparent;
+    }
+
+    .topbar-mobile-name {
+        font-size: 0.82rem;
+    }
+
+    .panel-page-container {
+        padding: 0.85rem 0.75rem;
+    }
+}

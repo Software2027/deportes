@@ -1,0 +1,373 @@
+/* ==============================================================================
+   LOGIN ADMINISTRATIVO (ACCESO INTERNO) - MUNICIPALIDAD DE MALAGUEÑO
+   Diseño sobrio institucional según el estándar gráfico oficial municipal.
+   ============================================================================== */
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+}
+
+.panel-login-body {
+    background: linear-gradient(180deg, #edf7ee 0%, #e5f2e7 100%);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: #0f172a;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* ------------------------------------------------------------------------------
+   1. HEADER SUPERIOR
+   ------------------------------------------------------------------------------ */
+.panel-login-header {
+    background-color: #ffffff;
+    height: 70px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.panel-login-header .header-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.header-brand-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
+}
+
+.header-logo-img {
+    height: 38px;
+    width: auto;
+    object-fit: contain;
+}
+
+.header-brand-titles {
+    display: flex;
+    flex-direction: column;
+}
+
+.muni-sub {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.64rem;
+    font-weight: 700;
+    color: #15803d;
+    letter-spacing: 0.8px;
+    line-height: 1.1;
+}
+
+.muni-main {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.98rem;
+    font-weight: 800;
+    color: #14532d;
+    letter-spacing: 0.5px;
+    line-height: 1.1;
+}
+
+.btn-back-home {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background-color: #ffffff;
+    border: 1px solid #d1fae5;
+    padding: 0.45rem 1rem;
+    border-radius: 9999px;
+    color: #15803d;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.15s ease;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.btn-back-home i {
+    font-size: 0.85rem;
+}
+
+.btn-back-home:hover {
+    background-color: #f0fdf4;
+    border-color: #86efac;
+    color: #166534;
+    transform: translateY(-1px);
+}
+
+/* ------------------------------------------------------------------------------
+   2. CONTENIDO PRINCIPAL: CARD DE LOGIN
+   ------------------------------------------------------------------------------ */
+.panel-login-main {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2.5rem 1.25rem;
+}
+
+.panel-login-card {
+    width: 100%;
+    max-width: 440px;
+    background: #ffffff;
+    border-radius: 22px;
+    padding: 2.75rem 2.25rem 2.25rem 2.25rem;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.02);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 1px solid rgba(226, 232, 240, 0.6);
+}
+
+.card-icon-badge {
+    width: 62px;
+    height: 62px;
+    border-radius: 50%;
+    background-color: #dcfce7;
+    color: #15803d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.65rem;
+    margin-bottom: 0.85rem;
+}
+
+.card-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.7rem;
+    font-weight: 800;
+    color: #0b381e;
+    margin: 0.25rem 0 0.35rem 0;
+    text-align: center;
+    letter-spacing: -0.3px;
+}
+
+.card-subtitle {
+    font-size: 0.84rem;
+    color: #64748b;
+    text-align: center;
+    line-height: 1.45;
+    margin: 0 0 1.85rem 0;
+    max-width: 330px;
+}
+
+/* Mensajes Django */
+.login-messages-container {
+    width: 100%;
+    margin-bottom: 1.25rem;
+}
+
+.login-alert {
+    padding: 0.75rem 0.95rem;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #166534;
+}
+
+/* Formulario */
+.panel-login-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-label {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 0.45rem;
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-icon {
+    position: absolute;
+    left: 1rem;
+    color: #15803d;
+    font-size: 0.95rem;
+    pointer-events: none;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.8rem 1rem 0.8rem 2.7rem;
+    background-color: #ffffff;
+    border: 1.5px solid #d1fae5;
+    border-radius: 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.88rem;
+    color: #0f172a;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.form-control::placeholder {
+    color: #94a3b8;
+}
+
+.form-control:focus {
+    border-color: #15803d;
+    box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.15);
+}
+
+.btn-panel-confirm {
+    margin-top: 0.4rem;
+    width: 100%;
+    padding: 0.85rem 1.25rem;
+    background-color: #15803d;
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.98rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(21, 128, 61, 0.25);
+    transition: all 0.15s ease;
+}
+
+.btn-panel-confirm i {
+    font-size: 1rem;
+}
+
+.btn-panel-confirm:hover {
+    background-color: #14532d;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(21, 128, 61, 0.35);
+}
+
+.btn-panel-confirm:active {
+    transform: translateY(0);
+}
+
+/* ------------------------------------------------------------------------------
+   3. FOOTER INFERIOR
+   ------------------------------------------------------------------------------ */
+.panel-login-footer {
+    background-color: #0b381e;
+    padding: 0.95rem 1.5rem;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.78rem;
+}
+
+.panel-login-footer .footer-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.footer-left {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+}
+
+.footer-left i {
+    color: #4ade80;
+    font-size: 0.85rem;
+}
+
+.footer-right {
+    color: rgba(255, 255, 255, 0.75);
+}
+
+/* ------------------------------------------------------------------------------
+   4. RESPONSIVE QUERIES
+   ------------------------------------------------------------------------------ */
+@media (max-width: 640px) {
+    .panel-login-header {
+        height: 60px;
+    }
+
+    .panel-login-header .header-container {
+        padding: 0 1rem;
+    }
+
+    .header-logo-img {
+        height: 32px;
+    }
+
+    .muni-sub {
+        font-size: 0.58rem;
+    }
+
+    .muni-main {
+        font-size: 0.88rem;
+    }
+
+    .btn-back-home {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.76rem;
+    }
+
+    .btn-back-home span {
+        display: none;
+    }
+
+    .panel-login-main {
+        padding: 1.5rem 1rem;
+    }
+
+    .panel-login-card {
+        padding: 2rem 1.5rem 1.75rem 1.5rem;
+        border-radius: 18px;
+    }
+
+    .card-title {
+        font-size: 1.45rem;
+    }
+
+    .card-subtitle {
+        font-size: 0.8rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .panel-login-footer {
+        padding: 0.85rem 1rem;
+    }
+
+    .panel-login-footer .footer-container {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.35rem;
+    }
+}

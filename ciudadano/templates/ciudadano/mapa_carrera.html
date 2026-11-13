@@ -1,0 +1,358 @@
+{% extends "base/base_ciclista.html" %}
+{% load static %}
+
+{% block title %}En Carrera GPS | {{ circuito.nombre|default:"Ciclismo Malagueño" }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/mapa_carrera.css' %}">
+<script>
+    // Agregar clase al body para modo carrera
+    document.body.classList.add('carrera-mode');
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="carrera-wrapper">
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 1. MAPA LEAFLET A PANTALLA COMPLETA (OSM HOT OFICIAL DE MALAGUEÑO)      -->
+    <!-- ----------------------------------------------------------------------- -->
+    <div id="mapa-carrera-fs"></div>
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 2. CONTROLES SUPERIORES FLOTANTES DE CARRERA                             -->
+    <!-- ----------------------------------------------------------------------- -->
+    <div class="carrera-topbar-floating">
+        <!-- Botón para abrir el panel de Etapas / Subcircuitos -->
+        <button type="button" class="btn-toggle-etapas" id="btn-toggle-etapas" title="Ver Etapas del Circuito" aria-label="Ver Etapas">
+            <i class="fa-solid fa-layer-group"></i>
+            <span class="btn-etapas-text">Etapas ({{ total_subcircuitos|default:3 }})</span>
+        </button>
+
+        <!-- Indicador de Señal GPS y Fullscreen -->
+        <div class="topbar-right-controls">
+            <div class="gps-signal-badge" title="Precisión del GPS en tiempo real">
+                <span class="gps-dot-pulse"></span>
+                <span class="gps-text-label">GPS Activo</span>
+            </div>
+            <button type="button" class="btn-toggle-fullscreen" id="btn-toggle-fullscreen" title="Pantalla Completa" aria-label="Alternar Pantalla Completa">
+                <i class="fa-solid fa-expand"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 2.1. PÍLDORA FLOTANTE DE SUBCIRCUITO / ETAPA ACTUAL                     -->
+    <!-- ----------------------------------------------------------------------- -->
+    <div class="subcircuito-floating-pill" id="subcircuito-floating-pill">
+        <div class="subcircuito-pill-left">
+            <span class="subcircuito-step-badge" id="subcircuito-step-badge" style="background-color: {{ subcircuito_actual.color|default:'#10b981' }};">
+                Etapa <span id="current-etapa-num">1</span> de {{ total_subcircuitos|default:3 }}
+            </span>
+            <span class="subcircuito-name-text" id="current-etapa-name">{{ subcircuito_actual.nombre|default:"Circuito Histórico y Casco Céntrico" }}</span>
+        </div>
+        <div class="subcircuito-pill-right">
+            <span class="subcircuito-dist-text" id="current-etapa-dist">{{ subcircuito_actual.distancia_km|default:"2.8" }} km</span>
+            <button type="button" class="btn-subcircuito-drawer-open" id="btn-open-drawer-pill" title="Ver lista de etapas">
+                <span>Ver etapas</span>
+                <i class="fa-solid fa-chevron-down"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Stepper de Subcircuitos (Progreso visual de las etapas) -->
+    <div class="subcircuitos-stepper-bar" id="subcircuitos-stepper-bar">
+        {% for sub in subcircuitos %}
+        <div class="stepper-segment {% if forloop.first %}segment-active{% else %}segment-pending{% endif %}" id="stepper-seg-{{ sub.id }}" style="--seg-color: {{ sub.color }};" title="Etapa {{ sub.orden }}: {{ sub.nombre }}">
+            <div class="segment-fill"></div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 2.2. BANNER DE ALERTA DE AVANCE / CAMBIO DE ETAPA                       -->
+    <!-- ----------------------------------------------------------------------- -->
+    <div class="etapa-alert-banner" id="etapa-alert-banner" style="display: none;">
+        <div class="etapa-alert-content">
+            <div class="etapa-alert-icon">
+                <i class="fa-solid fa-flag-checkered"></i>
+            </div>
+            <div class="etapa-alert-text">
+                <span class="etapa-alert-tag">¡AVANCE DE ETAPA!</span>
+                <h4 class="etapa-alert-title" id="etapa-alert-title">¡Etapa 1 Completada!</h4>
+                <p class="etapa-alert-desc" id="etapa-alert-desc">Iniciando Etapa 2: Ruta de las Canteras y Ciclovía</p>
+            </div>
+            <button type="button" class="btn-close-etapa-alert" id="btn-close-etapa-alert" aria-label="Cerrar notificación">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 3. HUD DE TELEMETRÍA DEPORTIVA (ALTA VISIBILIDAD)                       -->
+    <!-- ----------------------------------------------------------------------- -->
+    <div class="carrera-hud-container">
+        <div class="carrera-hud-card">
+            <!-- Velocidad Actual -->
+            <div class="hud-item">
+                <span class="hud-label">Velocidad</span>
+                <div class="hud-value-group">
+                    <span class="hud-value" id="hud-velocidad">0.0</span>
+                    <span class="hud-unit">km/h</span>
+                </div>
+            </div>
+
+            <!-- Distancia Acumulada -->
+            <div class="hud-item">
+                <span class="hud-label">Distancia</span>
+                <div class="hud-value-group">
+                    <span class="hud-value" id="hud-distancia">0.00</span>
+                    <span class="hud-unit">km</span>
+                </div>
+            </div>
+
+            <!-- Cronómetro -->
+            <div class="hud-item">
+                <span class="hud-label">Tiempo</span>
+                <div class="hud-value-group">
+                    <span class="hud-value" id="hud-tiempo" style="font-size: 1.35rem;">00:00:00</span>
+                </div>
+            </div>
+
+            <!-- Ritmo Medio -->
+            <div class="hud-item">
+                <span class="hud-label">Ritmo</span>
+                <div class="hud-value-group">
+                    <span class="hud-value" id="hud-ritmo">0.0</span>
+                    <span class="hud-unit">km/h</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 4. BOTÓN FLOTANTE "CENTRAR GPS EN MÍ"                                   -->
+    <!-- ----------------------------------------------------------------------- -->
+    <button type="button" class="btn-recenter-gps" id="btn-recenter-gps" title="Centrar el mapa en mi posición GPS" aria-label="Centrar en mi ubicación">
+        <i class="fa-solid fa-location-crosshairs"></i>
+    </button>
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 5. BANNER EMERGENTE DE PROXIMIDAD A COMERCIO O PARADA                   -->
+    <!-- ----------------------------------------------------------------------- -->
+    <div class="proximity-banner" id="proximity-banner">
+        <div class="proximity-flex">
+            <div class="proximity-icon-wrap">
+                <i class="fa-solid fa-store"></i>
+            </div>
+            <div class="proximity-info">
+                <h4 class="proximity-title" id="proximity-title">¡Estás cerca de una parada!</h4>
+                <span class="proximity-benefit" id="proximity-benefit">Parada oficial de hidratación validada.</span>
+            </div>
+            <button type="button" class="btn-close-proximity" id="btn-close-proximity" aria-label="Cerrar aviso">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 6. BARRA INFERIOR DE CONTROLES TÁCTILES GIGANTES                        -->
+    <!-- ----------------------------------------------------------------------- -->
+    <div class="carrera-controls-bar">
+        <!-- Botón Iniciar Carrera -->
+        <button type="button" class="btn-carrera-action btn-action-start" id="btn-carrera-start">
+            <i class="fa-solid fa-play"></i>
+            <span>INICIAR CARRERA</span>
+        </button>
+
+        <!-- Botón Detener / Parada Táctica (Visible durante la marcha) -->
+        <button type="button" class="btn-carrera-action btn-action-pause" id="btn-carrera-pause" style="display: none; background: #e11d48; color: #fff;">
+            <i class="fa-solid fa-hand"></i>
+            <span>DETENER</span>
+        </button>
+
+        <!-- Botón Reanudar (Oculto al inicio) -->
+        <button type="button" class="btn-carrera-action btn-action-resume" id="btn-carrera-resume" style="display: none;">
+            <i class="fa-solid fa-play"></i>
+            <span>REANUDAR</span>
+        </button>
+
+        <!-- Botón Finalizar (Oculto al inicio) -->
+        <button type="button" class="btn-carrera-action btn-action-finish" id="btn-carrera-finish" style="display: none;">
+            <i class="fa-solid fa-flag-checkered"></i>
+            <span>FINALIZAR</span>
+        </button>
+    </div>
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 7. MODAL DE CONFIRMACIÓN PARA FINALIZAR                                 -->
+    <!-- ----------------------------------------------------------------------- -->
+    <div class="modal-confirm-backdrop" id="modal-confirm-finalizar">
+        <div class="modal-confirm-card">
+            <div class="modal-icon-warning">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 class="modal-confirm-title">¿Finalizar recorrido?</h3>
+            <p class="modal-confirm-desc">
+                Se detendrá la telemetría GPS y se registrará tu marca oficial de tiempo y distancia en el sistema municipal.
+            </p>
+            <div class="modal-actions-row">
+                <button type="button" class="btn-modal-cancel" id="btn-modal-cancel">
+                    Continuar Pedaleando
+                </button>
+                <button type="button" class="btn-modal-confirm" id="btn-modal-confirm">
+                    Sí, Finalizar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 7.1. MODAL FUERA DE RADIO DE LARGADA                                    -->
+    <!-- ----------------------------------------------------------------------- -->
+    <div class="modal-confirm-backdrop" id="modal-fuera-largada" style="display: none;">
+        <div class="modal-confirm-card" style="text-align: center; max-width: 420px;">
+            <div class="modal-icon-warning" style="background: #fef2f2; color: #dc2626; margin: 0 auto 1rem auto; width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem;">
+                <i class="fa-solid fa-location-crosshairs"></i>
+            </div>
+            <h3 class="modal-confirm-title" style="color: #991b1b; font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem;">
+                Punto de Largada Lejano
+            </h3>
+            <p class="modal-confirm-desc" id="modal-fuera-largada-desc" style="font-size: 0.9rem; color: #475569; line-height: 1.5; margin-bottom: 1.25rem;">
+                Para iniciar el recorrido debes ubicarte en el punto de partida oficial (Km 0).
+            </p>
+            <div style="background: #fff1f2; border: 1px solid #fecdd3; border-radius: 10px; padding: 0.85rem; margin-bottom: 1.25rem; text-align: left; font-size: 0.85rem; color: #9f1239; display: flex; flex-direction: column; gap: 0.4rem;">
+                <div><i class="fa-solid fa-ruler-horizontal"></i> Tu distancia a la largada: <strong id="largada-dist-actual">-- m</strong></div>
+                <div><i class="fa-solid fa-bullseye"></i> Radio máximo de tolerancia: <strong id="largada-radio-max">{{ radio_largada_metros|default:80 }} m</strong></div>
+            </div>
+            <div class="modal-actions-row">
+                <button type="button" class="btn-modal-cancel" id="btn-ver-largada-mapa" style="background: #f1f5f9; color: #334155;">
+                    <i class="fa-solid fa-map-location-dot"></i> Ver Largada
+                </button>
+                <button type="button" class="btn-modal-confirm" id="btn-entendido-largada" style="background: #dc2626;">
+                    Entendido
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 7.2. MODAL PARADA REGISTRADA (COMERCIO O TÉCNICA)                       -->
+    <!-- ----------------------------------------------------------------------- -->
+    <div class="modal-confirm-backdrop" id="modal-parada-registrada" style="display: none;">
+        <div class="modal-confirm-card" style="text-align: center; max-width: 430px;">
+            <div id="modal-parada-icon-wrap" style="background: #f0fdf4; color: #16a34a; margin: 0 auto 1rem auto; width: 68px; height: 68px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem;">
+                <i class="fa-solid fa-circle-check" id="modal-parada-icon"></i>
+            </div>
+            <span id="modal-parada-badge" style="display: inline-block; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; margin-bottom: 0.5rem; background: #dcfce7; color: #15803d;">
+                PARADA REGISTRADA
+            </span>
+            <h3 class="modal-confirm-title" id="modal-parada-title" style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem;">
+                ¡Parada Guardada con Éxito!
+            </h3>
+            <p class="modal-confirm-desc" id="modal-parada-desc" style="font-size: 0.9rem; color: #475569; line-height: 1.5; margin-bottom: 1.25rem;">
+                Se ha guardado la coordenada de frenado y el cronómetro quedó en pausa.
+            </p>
+            <div id="modal-parada-comercio-card" style="display: none; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 0.9rem; margin-bottom: 1.25rem; text-align: left;">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <div id="modal-comercio-logo" style="width: 48px; height: 48px; border-radius: 8px; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: #16a34a; overflow: hidden; flex-shrink: 0;">
+                        <i class="fa-solid fa-store"></i>
+                    </div>
+                    <div>
+                        <h4 id="modal-comercio-nombre" style="font-size: 1rem; font-weight: 700; margin: 0 0 2px 0; color: #0f172a;">--</h4>
+                        <span id="modal-comercio-cat" style="font-size: 0.75rem; color: #64748b; font-weight: 600;">--</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions-row">
+                <button type="button" class="btn-modal-confirm" id="btn-reanudar-desde-modal" style="background: #16a34a; width: 100%;">
+                    <i class="fa-solid fa-play"></i> Reanudar Marcha
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 8. DRAWER LATERAL / BOTTOM SHEET DE SUBCIRCUITOS                        -->
+    <!-- ----------------------------------------------------------------------- -->
+    <div class="drawer-subcircuitos-backdrop" id="drawer-subcircuitos-backdrop"></div>
+
+    <aside class="drawer-subcircuitos" id="drawer-subcircuitos" aria-label="Etapas del circuito">
+        <div class="drawer-header">
+            <div class="drawer-header-info">
+                <div class="drawer-badge-row">
+                    <span class="drawer-route-badge">
+                        <i class="fa-solid fa-route"></i> Circuito Oficial
+                    </span>
+                    <span class="drawer-total-kms">{{ distancia_total_km|default:"16.5" }} km</span>
+                </div>
+                <h3 class="drawer-title">Etapas y Subcircuitos</h3>
+                <p class="drawer-subtitle">Este circuito está conformado por <strong>{{ total_subcircuitos|default:3 }} etapas</strong> secuenciales.</p>
+            </div>
+            <button type="button" class="btn-close-drawer" id="btn-close-drawer-subcircuitos" aria-label="Cerrar panel de etapas">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="drawer-body">
+            <div class="drawer-tip-box">
+                <i class="fa-solid fa-circle-info"></i>
+                <span>Toca <strong>"Ver en Mapa"</strong> en cualquier etapa para centrar el trazado de ese subcircuito y revisar sus curvas.</span>
+            </div>
+
+            <div class="drawer-subcircuitos-list">
+                {% for sub in subcircuitos %}
+                <div class="subcircuito-card-item {% if forloop.first %}item-active{% endif %}" id="drawer-item-{{ sub.id }}" data-sub-id="{{ sub.id }}">
+                    <div class="subcircuito-card-header">
+                        <div class="subcircuito-number-badge" style="background-color: {{ sub.color }};">
+                            <span>{{ sub.orden }}</span>
+                        </div>
+                        <div class="subcircuito-card-title-group">
+                            <h4 class="subcircuito-item-name">{{ sub.nombre }}</h4>
+                            <div class="subcircuito-item-meta">
+                                <span><i class="fa-solid fa-road"></i> {{ sub.distancia_km }} km</span>
+                                <span>•</span>
+                                <span>{{ sub.puntos_count }} puntos de control</span>
+                            </div>
+                        </div>
+                        <div class="subcircuito-item-status-tag status-{{ sub.estado }}" id="status-tag-{{ sub.id }}">
+                            {% if forloop.first %}
+                                <i class="fa-solid fa-person-biking"></i> En Curso
+                            {% else %}
+                                <i class="fa-regular fa-clock"></i> Pendiente
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="subcircuito-card-actions">
+                        <button type="button" class="btn-enfocar-subcircuito" data-sub-id="{{ sub.id }}" data-sub-nombre="{{ sub.nombre }}" data-sub-orden="{{ sub.orden }}" data-sub-color="{{ sub.color }}">
+                            <i class="fa-solid fa-location-arrow"></i>
+                            <span>Ver Tramo en Mapa</span>
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </aside>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Inyección de Datos para el Script de Carrera -->
+<script>
+    window.carreraTrazado = {{ trazado_json|safe|default:'[]' }};
+    window.carreraSubcircuitos = {{ trazado_json|safe|default:'[]' }};
+    window.carreraComercios = {{ comercios_json|safe|default:'[]' }};
+    window.carreraRecorridoId = {{ recorrido_id|default:0 }};
+    window.carreraCircuitoId = {{ circuito.id|default:1 }};
+    window.carreraTotalSubcircuitos = {{ total_subcircuitos|default:3 }};
+    window.carreraEstado = '{{ estado_carrera|default:"LISTO" }}';
+    window.carreraModalidad = '{{ modalidad_recorrido|default:"LIBRE" }}';
+    window.carreraPuntoLargada = {% if punto_largada_json %}{{ punto_largada_json|safe }}{% else %}null{% endif %};
+    window.carreraPuntoMeta = {% if punto_meta_json %}{{ punto_meta_json|safe }}{% else %}null{% endif %};
+    window.carreraRadioLargadaMetros = {{ radio_largada_metros|default:80 }};
+</script>
+<script src="{% static 'js/ciudadano/mapa_carrera_gps.js' %}"></script>
+{% endblock %}

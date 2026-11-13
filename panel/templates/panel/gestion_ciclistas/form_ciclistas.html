@@ -1,0 +1,467 @@
+{% extends "base/base_panel.html" %}
+{% load static %}
+
+{% block title %}
+    {% if modo == 'ver' %}
+        Ficha Técnica: {{ ciclista.nombre }} | Panel Municipal
+    {% elif ciclista.id %}
+        Editar Ciclista: {{ ciclista.nombre }} | Panel Municipal
+    {% else %}
+        Nuevo Ciclista | Panel Municipal
+    {% endif %}
+{% endblock %}
+
+{% block page_title %}Ciclistas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/panel_ciclistas.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="ciclistas-wrapper">
+
+    <!-- Tarjeta del Formulario / Ficha Técnica -->
+    <div class="form-ciclista-card">
+        <!-- Cabecera del Formulario -->
+        <div class="form-header-bar">
+            <div class="form-header-left">
+                <a href="{% url 'panel_ciclistas_listado' %}" class="btn-back-link" title="Volver al Listado">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </a>
+                <div>
+                    <h2 class="form-title-h2">
+                        {% if modo == 'ver' %}
+                            Ficha de Ciclista: {{ ciclista.nombre }}
+                        {% elif ciclista.id %}
+                            Editar Ciclista: {{ ciclista.nombre }}
+                        {% else %}
+                            Registrar Nuevo Ciclista
+                        {% endif %}
+                    </h2>
+                    <span style="font-size: 0.8rem; color: #64748b;">
+                        {% if ciclista.id %}Código de Registro: <strong>{{ ciclista.codigo_id }}</strong>{% else %}Complete los datos del participante{% endif %}
+                    </span>
+                </div>
+            </div>
+
+            {% if ciclista.id and modo == 'ver' %}
+            <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                {% if ciclista.estado == 'Pendiente' %}
+                    <button type="button" onclick="abrirModalValidar('{{ ciclista.id }}', '{{ ciclista.nombre|escapejs }}', '{{ ciclista.dni|escapejs }}', '{{ ciclista.email|escapejs }}')" class="btn-primary-save" style="cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 0.5rem; background-color: #15803d; border-color: #15803d;">
+                        <i class="fa-solid fa-check"></i>
+                        <span>Aprobar / Validar</span>
+                    </button>
+                    <a href="{% url 'panel_ciclista_cambiar_estado' ciclista.id 'Rechazado' %}" class="btn-danger-delete" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <i class="fa-solid fa-xmark"></i>
+                        <span>Rechazar</span>
+                    </a>
+                {% elif ciclista.estado == 'Rechazado' %}
+                    <button type="button" onclick="abrirModalValidar('{{ ciclista.id }}', '{{ ciclista.nombre|escapejs }}', '{{ ciclista.dni|escapejs }}', '{{ ciclista.email|escapejs }}')" class="btn-primary-save" style="cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 0.5rem; background-color: #15803d; border-color: #15803d;">
+                        <i class="fa-solid fa-check"></i>
+                        <span>Validar Ciclista</span>
+                    </button>
+                {% elif ciclista.estado == 'Validado' %}
+                    <a href="{% url 'panel_ciclista_cambiar_estado' ciclista.id 'Pendiente' %}" class="btn-secondary-cancel" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.85rem;">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                        <span>Pasar a Pendiente</span>
+                    </a>
+                {% endif %}
+                <a href="{% url 'panel_ciclista_editar' ciclista.id %}" class="btn-primary-save" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+                    <i class="fa-regular fa-pen-to-square"></i>
+                    <span>Editar Datos</span>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if ciclista.id and ciclista.estado == 'Pendiente' %}
+        <!-- Banner de Notificación de Estado Pendiente -->
+        <div style="background-color: #fffbeb; border: 1px solid #fef3c7; border-left: 4px solid #f59e0b; padding: 0.9rem 1.25rem; border-radius: 12px; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <i class="fa-solid fa-shield-halved" style="color: #d97706; font-size: 1.4rem;"></i>
+                <div>
+                    <strong style="color: #92400e; font-size: 0.95rem; display: block;">Solicitud de Inscripción Pendiente de Decisión</strong>
+                    <span style="font-size: 0.82rem; color: #b45309;">
+                        El ciclista envió su ficha desde el portal público de Malagueño. Puedes verificar sus datos y decidir si aprobarlo o rechazarlo.
+                    </span>
+                </div>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+                <button type="button" onclick="abrirModalValidar('{{ ciclista.id }}', '{{ ciclista.nombre|escapejs }}', '{{ ciclista.dni|escapejs }}', '{{ ciclista.email|escapejs }}')" class="btn-primary-save" style="cursor: pointer; border: none; font-size: 0.82rem; padding: 0.5rem 0.9rem; background-color: #15803d; border-color: #15803d; display: inline-flex; align-items: center; gap: 0.4rem;">
+                    <i class="fa-solid fa-check"></i> Aprobar Solicitud
+                </button>
+                <a href="{% url 'panel_ciclista_cambiar_estado' ciclista.id 'Rechazado' %}" class="btn-danger-delete" style="text-decoration: none; font-size: 0.82rem; padding: 0.5rem 0.9rem;">
+                    <i class="fa-solid fa-xmark"></i> Rechazar
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Formulario Principal -->
+        <form method="POST" action="" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="form-grid-fields">
+                <!-- Nombre Completo -->
+                <div class="form-group">
+                    <label class="form-label" for="id_nombre">Nombre y Apellido *</label>
+                    <input type="text" id="id_nombre" name="nombre" value="{{ ciclista.nombre|default:'' }}" class="form-control-input" required {% if modo == 'ver' %}disabled{% endif %} placeholder="Ej: Mateo Carrera">
+                </div>
+
+                <!-- Correo Electrónico -->
+                <div class="form-group">
+                    <label class="form-label" for="id_email">Correo Electrónico *</label>
+                    <input type="email" id="id_email" name="email" value="{{ ciclista.email|default:'' }}" class="form-control-input" required {% if modo == 'ver' %}disabled{% endif %} placeholder="ejemplo@correo.com">
+                </div>
+
+                <!-- DNI / Documento -->
+                <div class="form-group">
+                    <label class="form-label" for="id_dni">DNI / Documento de Identidad *</label>
+                    <input type="text" id="id_dni" name="dni" value="{{ ciclista.dni|default:'' }}" class="form-control-input" required {% if modo == 'ver' %}disabled{% endif %} placeholder="Ej: 12345678X o 38452123">
+                </div>
+
+                <!-- Fecha de Nacimiento -->
+                <div class="form-group">
+                    <label class="form-label" for="id_fecha_nacimiento">
+                        Fecha de Nacimiento
+                        {% if ciclista.edad is not None %}
+                            <span style="font-size: 0.75rem; color: #15803d; font-weight: 600; margin-left: 0.35rem;">({{ ciclista.edad }} años)</span>
+                        {% endif %}
+                    </label>
+                    <input type="date" id="id_fecha_nacimiento" name="fecha_nacimiento" value="{{ ciclista.fecha_nacimiento|date:'Y-m-d'|default:'' }}" class="form-control-input" {% if modo == 'ver' %}disabled{% endif %}>
+                </div>
+
+                <!-- Teléfono -->
+                <div class="form-group">
+                    <label class="form-label" for="id_telefono">Teléfono de Contacto</label>
+                    <input type="text" id="id_telefono" name="telefono" value="{{ ciclista.telefono|default:'' }}" class="form-control-input" {% if modo == 'ver' %}disabled{% endif %} placeholder="Ej: +54 9 351 1234567">
+                </div>
+
+                <!-- Club / Entidad -->
+                <div class="form-group">
+                    <label class="form-label" for="id_club_entidad">Club / Entidad Deportiva</label>
+                    <input type="text" id="id_club_entidad" name="club_entidad" value="{{ ciclista.club_entidad|default:'Independiente' }}" class="form-control-input" {% if modo == 'ver' %}disabled{% endif %} placeholder="Ej: Veloz Ciclo Club">
+                </div>
+
+                <!-- Nivel -->
+                <div class="form-group">
+                    <label class="form-label" for="id_nivel">Nivel de Competencia</label>
+                    <select id="id_nivel" name="nivel" class="form-control-select" {% if modo == 'ver' %}disabled{% endif %}>
+                        <option value="Aficionado" {% if ciclista.nivel == 'Aficionado' %}selected{% endif %}>Aficionado</option>
+                        <option value="Pro" {% if ciclista.nivel == 'Pro' %}selected{% endif %}>Pro</option>
+                        <option value="Elite" {% if ciclista.nivel == 'Elite' %}selected{% endif %}>Elite</option>
+                    </select>
+                </div>
+
+                <!-- Estado de Validación -->
+                <div class="form-group">
+                    <label class="form-label" for="id_estado">Estado de Validación *</label>
+                    <select id="id_estado" name="estado" class="form-control-select" {% if modo == 'ver' %}disabled{% endif %}>
+                        <option value="Pendiente" {% if ciclista.estado == 'Pendiente' %}selected{% endif %}>Pendiente (En revisión)</option>
+                        <option value="Validado" {% if ciclista.estado == 'Validado' %}selected{% endif %}>Validado (Acreditado)</option>
+                        <option value="Rechazado" {% if ciclista.estado == 'Rechazado' %}selected{% endif %}>Rechazado</option>
+                    </select>
+                </div>
+
+                <!-- Contacto de Emergencia -->
+                <div class="form-group">
+                    <label class="form-label" for="id_contacto_emergencia">Contacto de Emergencia</label>
+                    <input type="text" id="id_contacto_emergencia" name="contacto_emergencia" value="{{ ciclista.contacto_emergencia|default:'' }}" class="form-control-input" {% if modo == 'ver' %}disabled{% endif %} placeholder="Nombre y Teléfono de familiar">
+                </div>
+
+                <!-- Foto de Perfil -->
+                <div class="form-group form-group-full">
+                    <label class="form-label" for="id_foto">Foto de Perfil / Documento</label>
+                    {% if ciclista.foto %}
+                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+                            <img src="{{ ciclista.foto.url }}" alt="{{ ciclista.nombre }}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
+                            <span style="font-size: 0.8rem; color: #64748b;">Archivo actual: {{ ciclista.foto.name }}</span>
+                        </div>
+                    {% endif %}
+                    {% if modo != 'ver' %}
+                        <input type="file" id="id_foto" name="foto" class="form-control-input" accept="image/*">
+                    {% endif %}
+                </div>
+
+                <!-- Observaciones / Documentación -->
+                <div class="form-group form-group-full">
+                    <label class="form-label" for="id_observaciones">Observaciones / Notas de Validación</label>
+                    <textarea id="id_observaciones" name="observaciones" rows="3" class="form-control-textarea" {% if modo == 'ver' %}disabled{% endif %} placeholder="Detalles de certificado médico, apto físico o notas administrativas...">{{ ciclista.observaciones|default:'' }}</textarea>
+                </div>
+
+                <!-- Credencial de Acceso / Clave Asignada (CONFIDENCIAL: SOLO ROL ADMINISTRADOR) -->
+                {% if request.user.is_superuser or request.user.is_staff %}
+                <div class="form-group form-group-full" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1.5px dashed #cbd5e1; border-radius: 14px; padding: 1.15rem 1.35rem; margin-top: 0.5rem;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.45rem;">
+                        <label class="form-label" style="margin: 0; color: #0b381e; font-weight: 800; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 0.5rem;">
+                            <i class="fa-solid fa-key" style="color: #ca8a04;"></i>
+                            <span>Clave Asignada del Ciclista</span>
+                            <span style="font-size: 0.72rem; background: #e0f2fe; color: #0369a1; padding: 0.2rem 0.6rem; border-radius: 9999px; font-weight: 700; text-transform: uppercase;">
+                                <i class="fa-solid fa-shield-halved"></i> Solo Administrador
+                            </span>
+                        </label>
+                    </div>
+
+                    <p style="font-size: 0.8rem; color: #64748b; margin: 0 0 0.85rem 0; line-height: 1.45;">
+                        Esta es la contraseña provista al participante cuando fue aprobado. En la cuenta de usuario se encuentra cifrada con <strong>hash seguro (PBKDF2/SHA256)</strong>. Se conserva aquí legible únicamente para el equipo administrador por si el ciclista olvida su clave.
+                    </p>
+
+                    <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; max-width: 480px;">
+                        <div style="position: relative; flex: 1; min-width: 200px;">
+                            <input 
+                                type="password" 
+                                id="id_clave_asignada" 
+                                name="clave_asignada" 
+                                value="{{ ciclista.clave_asignada|default:'' }}" 
+                                class="form-control-input" 
+                                style="font-family: monospace; font-size: 1rem; font-weight: 700; background: #ffffff; padding-right: 2.5rem; letter-spacing: 0.05em;" 
+                                {% if modo == 'ver' %}readonly{% endif %}
+                                placeholder="{% if ciclista.estado == 'Pendiente' %}Se generará al aprobar la solicitud{% else %}Sin clave registrada{% endif %}"
+                            >
+                            <button 
+                                type="button" 
+                                onclick="toggleVerClaveAdmin()" 
+                                style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #64748b; cursor: pointer; padding: 6px; font-size: 1rem;" 
+                                title="Mostrar / Ocultar clave"
+                            >
+                                <i id="iconoOjoClave" class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
+
+                        {% if ciclista.clave_asignada %}
+                        <button 
+                            type="button" 
+                            onclick="copiarClaveAdmin()" 
+                            class="btn-secondary-cancel" 
+                            id="btnCopiarClave"
+                            style="padding: 0.6rem 0.95rem; font-size: 0.82rem; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.4rem;" 
+                            title="Copiar contraseña al portapapeles"
+                        >
+                            <i class="fa-regular fa-copy"></i>
+                            <span id="txtBtnCopiar">Copiar</span>
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Footer de Acciones del Formulario -->
+            <div class="form-actions-footer">
+                <div style="display: flex; gap: 0.75rem; align-items: center;">
+                    <a href="{% url 'panel_ciclistas_listado' %}" class="btn-secondary-cancel">
+                        <i class="fa-solid fa-arrow-left"></i> Volver
+                    </a>
+
+                    {% if ciclista.id %}
+                        <!-- Botón para Eliminar Ciclista -->
+                        <button type="button" class="btn-danger-delete" onclick="document.getElementById('modalEliminarCiclista').style.display='flex'">
+                            <i class="fa-regular fa-trash-can"></i> Eliminar Ciclista
+                        </button>
+                    {% endif %}
+                </div>
+
+                {% if modo != 'ver' %}
+                <div>
+                    <button type="submit" class="btn-primary-save">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        <span>{% if ciclista.id %}Guardar Cambios{% else %}Registrar Ciclista{% endif %}</span>
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+</div>
+
+<!-- --------------------------------------------------------------------------- -->
+<!-- MODAL DE CONFIRMACIÓN DE ELIMINACIÓN                                        -->
+<!-- --------------------------------------------------------------------------- -->
+{% if ciclista.id %}
+<div id="modalEliminarCiclista" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div style="background: #ffffff; border-radius: 18px; max-width: 460px; width: 90%; padding: 1.75rem; box-shadow: 0 20px 40px rgba(0,0,0,0.25);">
+        <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 1rem;">
+            <div style="width: 44px; height: 44px; border-radius: 12px; background: #fee2e2; color: #dc2626; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div>
+                <h3 style="margin: 0; font-family: 'Outfit', sans-serif; font-size: 1.15rem; font-weight: 800; color: #0f172a;">¿Eliminar Ciclista?</h3>
+                <span style="font-size: 0.78rem; color: #64748b;">Acción irreversible</span>
+            </div>
+        </div>
+
+        <p style="font-size: 0.88rem; color: #475569; margin: 0 0 1.5rem 0; line-height: 1.45;">
+            ¿Está seguro de que desea eliminar a <strong>{{ ciclista.nombre }}</strong> ({{ ciclista.codigo_id }}) de la base de datos municipal? Esta acción eliminará sus datos de acreditación.
+        </p>
+
+        <form method="POST" action="{% url 'panel_ciclista_eliminar' ciclista.id %}" style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+            {% csrf_token %}
+            <button type="button" class="btn-secondary-cancel" onclick="document.getElementById('modalEliminarCiclista').style.display='none'">
+                Cancelar
+            </button>
+            <button type="submit" class="btn-danger-delete">
+                Sí, Eliminar Definitivamente
+            </button>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+<!-- ======================================================================= -->
+<!-- MODAL DE VALIDACIÓN Y ALTA DE CREDENCIALES                              -->
+<!-- ======================================================================= -->
+<div id="modalValidarCiclista" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center; padding: 1rem;">
+    <div style="background: #ffffff; border-radius: 16px; width: 100%; max-width: 480px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); overflow: hidden; animation: modalPop 0.2s ease-out;">
+        <!-- Header del Modal -->
+        <div style="background: #0b381e; color: #ffffff; padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(34, 197, 94, 0.2); display: flex; align-items: center; justify-content: center; color: #4ade80;">
+                    <i class="fa-solid fa-key" style="font-size: 1.1rem;"></i>
+                </div>
+                <div>
+                    <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: #ffffff;">Aprobar y Dar de Alta</h3>
+                    <span style="font-size: 0.8rem; color: #cbd5e1;">Asignación de credenciales para la App Ciclista</span>
+                </div>
+            </div>
+            <button type="button" onclick="cerrarModalValidar()" style="background: none; border: none; color: #94a3b8; font-size: 1.2rem; cursor: pointer;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Formulario del Modal -->
+        <form id="formValidarCiclista" method="POST" action="" style="padding: 1.5rem;">
+            {% csrf_token %}
+
+            <!-- Resumen de Ciclista -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.85rem 1rem; margin-bottom: 1.25rem;">
+                <div style="font-weight: 700; color: #0f172a; font-size: 0.95rem; margin-bottom: 0.25rem;" id="modalNombreCiclista">Nombre del Ciclista</div>
+                <div style="font-size: 0.82rem; color: #64748b; display: flex; flex-direction: column; gap: 0.2rem;">
+                    <span><i class="fa-regular fa-id-card" style="width: 16px;"></i> <strong>DNI:</strong> <span id="modalDniCiclista"></span></span>
+                    <span><i class="fa-regular fa-envelope" style="width: 16px;"></i> <strong>Gmail / Correo:</strong> <span id="modalEmailCiclista"></span></span>
+                </div>
+            </div>
+
+            <!-- Campo Contraseña -->
+            <div style="margin-bottom: 1.25rem;">
+                <label for="modalPasswordInput" style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.4rem;">
+                    Contraseña de Acceso para el Ciclista <span style="color: #dc2626;">*</span>
+                </label>
+                <div style="position: relative; display: flex; align-items: center;">
+                    <input 
+                        type="text" 
+                        id="modalPasswordInput" 
+                        name="password" 
+                        required 
+                        style="width: 100%; padding: 0.7rem 2.5rem 0.7rem 0.85rem; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; font-family: monospace; font-weight: 600; color: #0f172a;"
+                    >
+                    <button 
+                        type="button" 
+                        onclick="generarClaveModal()" 
+                        title="Generar otra clave aleatoria"
+                        style="position: absolute; right: 8px; background: none; border: none; color: #2e7d32; font-size: 1rem; cursor: pointer; padding: 4px;"
+                    >
+                        <i class="fa-solid fa-arrows-rotate"></i>
+                    </button>
+                </div>
+                <small style="display: block; color: #64748b; font-size: 0.78rem; margin-top: 0.35rem;">
+                    El ciclista podrá ingresar en <a href="{% url 'login' %}" target="_blank" style="color: #2e7d32;">/login/</a> usando su Gmail o su DNI y esta contraseña.
+                </small>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; border-top: 1px solid #f1f5f9; padding-top: 1.25rem;">
+                <button type="button" onclick="cerrarModalValidar()" style="padding: 0.6rem 1.1rem; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; font-weight: 600; font-size: 0.85rem; cursor: pointer;">
+                    Cancelar
+                </button>
+                <button type="submit" style="padding: 0.6rem 1.25rem; border-radius: 8px; border: none; background: #15803d; color: #ffffff; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fa-solid fa-check"></i>
+                    <span>Aprobar y Dar de Alta</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function abrirModalValidar(id, nombre, dni, email) {
+    const modal = document.getElementById('modalValidarCiclista');
+    const form = document.getElementById('formValidarCiclista');
+    const txtNombre = document.getElementById('modalNombreCiclista');
+    const txtDni = document.getElementById('modalDniCiclista');
+    const txtEmail = document.getElementById('modalEmailCiclista');
+    const inputPass = document.getElementById('modalPasswordInput');
+
+    form.action = `/panel/ciclistas/${id}/estado/Validado/`;
+    txtNombre.textContent = nombre;
+    txtDni.textContent = dni;
+    txtEmail.textContent = email;
+
+    // Generar sugerencia de clave inicial: Muni + últimos 4 dígitos o caracteres aleatorios
+    const digitos = (dni || '').replace(/\D/g, '').slice(-4) || '2026';
+    inputPass.value = `Muni${digitos}!`;
+
+    modal.style.display = 'flex';
+}
+
+function generarClaveModal() {
+    const chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let rand = '';
+    for (let i = 0; i < 4; i++) {
+        rand += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    document.getElementById('modalPasswordInput').value = `Muni-${rand}!`;
+}
+
+function toggleVerClaveAdmin() {
+    const input = document.getElementById('id_clave_asignada');
+    const icono = document.getElementById('iconoOjoClave');
+    if (!input) return;
+    if (input.type === 'password') {
+        input.type = 'text';
+        if (icono) {
+            icono.classList.remove('fa-eye');
+            icono.classList.add('fa-eye-slash');
+        }
+    } else {
+        input.type = 'password';
+        if (icono) {
+            icono.classList.remove('fa-eye-slash');
+            icono.classList.add('fa-eye');
+        }
+    }
+}
+
+function copiarClaveAdmin() {
+    const input = document.getElementById('id_clave_asignada');
+    const txtBtn = document.getElementById('txtBtnCopiar');
+    if (!input || !input.value) return;
+
+    navigator.clipboard.writeText(input.value).then(() => {
+        if (txtBtn) {
+            const original = txtBtn.textContent;
+            txtBtn.textContent = '¡Copiada!';
+            setTimeout(() => {
+                txtBtn.textContent = original;
+            }, 2000);
+        }
+    }).catch(() => {
+        input.select();
+        document.execCommand('copy');
+        if (txtBtn) {
+            txtBtn.textContent = '¡Copiada!';
+            setTimeout(() => { txtBtn.textContent = 'Copiar'; }, 2000);
+        }
+    });
+}
+
+function cerrarModalValidar() {
+    document.getElementById('modalValidarCiclista').style.display = 'none';
+}
+
+// Cerrar con Escape o clic exterior
+window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') cerrarModalValidar();
+});
+</script>
+{% endblock %}

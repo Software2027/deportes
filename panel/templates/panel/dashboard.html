@@ -1,0 +1,366 @@
+{% extends "base/base_panel.html" %}
+{% load static %}
+
+{% block title %}Panel de Control | Municipalidad de Malagueño{% endblock %}
+{% block page_title %}Panel de Control{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/panel_dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-main-container">
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 1. HEADER DE LA PÁGINA (TÍTULO, SUBTÍTULO Y ACCIONES DE FILTRO)         -->
+    <!-- ----------------------------------------------------------------------- -->
+    <section class="dashboard-header-section">
+        <div class="header-titles-block">
+            <div class="header-pretitle-badge">
+                <i class="fa-solid fa-shield-halved"></i>
+                <span>Gestión Municipal</span>
+            </div>
+            <h1 class="header-main-title">Panel de Control</h1>
+            <p class="header-main-subtitle">
+                Bienvenido de nuevo, Administrador. Aquí tienes el resumen de hoy en Malagueño.
+            </p>
+        </div>
+    </section>
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 2. SECCIÓN DE ACCESOS RÁPIDOS                                           -->
+    <!-- (En Desktop se visualiza al final, y en móvil SE MUESTRA AL PRINCIPIO)  -->
+    <!-- ----------------------------------------------------------------------- -->
+    <section class="dashboard-quick-actions" id="dashboardQuickActions">
+        <div class="quick-cards-grid">
+            <!-- Tarjeta 1: Gestión de Usuarios -->
+            <a href="{% url 'panel_ciclistas_listado' %}" class="quick-card-item card-users" title="Gestión de Ciclistas">
+                <div class="quick-card-header">
+                    <div class="quick-card-icon icon-yellow">
+                        <i class="fa-solid fa-user-group"></i>
+                    </div>
+                </div>
+                <div class="quick-card-body">
+                    <h3 class="quick-card-title">Gestión de Usuarios</h3>
+                    <p class="quick-card-desc">Verificar registros y perfiles de ciclistas.</p>
+                </div>
+                <div class="quick-card-footer">
+                    <i class="fa-solid fa-chevron-right quick-card-arrow"></i>
+                </div>
+            </a>
+
+            <!-- Tarjeta 2: Control de Circuitos -->
+            <a href="{% url 'panel_circuitos_listado' %}" class="quick-card-item card-circuits" title="Control de Rutas">
+                <div class="quick-card-header">
+                    <div class="quick-card-icon icon-green">
+                        <i class="fa-solid fa-location-dot"></i>
+                    </div>
+                </div>
+                <div class="quick-card-body">
+                    <h3 class="quick-card-title">Control de Circuitos</h3>
+                    <p class="quick-card-desc">Editar rutas y puntos de control en tiempo real.</p>
+                </div>
+                <div class="quick-card-footer">
+                    <i class="fa-solid fa-chevron-right quick-card-arrow"></i>
+                </div>
+            </a>
+
+            <!-- Tarjeta 3: Red de Comercios -->
+            <a href="{% url 'panel_comercios_listado' %}" class="quick-card-item card-shops" title="Comercios Aliados">
+                <div class="quick-card-header">
+                    <div class="quick-card-icon icon-yellow">
+                        <i class="fa-solid fa-store"></i>
+                    </div>
+                </div>
+                <div class="quick-card-body">
+                    <h3 class="quick-card-title">Red de Comercios</h3>
+                    <p class="quick-card-desc">Validar nuevos establecimientos y ofertas.</p>
+                </div>
+                <div class="quick-card-footer">
+                    <i class="fa-solid fa-chevron-right quick-card-arrow"></i>
+                </div>
+            </a>
+
+            <!-- Tarjeta 4: Reportes Avanzados -->
+            <a href="{% url 'panel_ciclistas_exportar_csv' %}" class="quick-card-item card-reports" title="Exportar Reportes y Padrón Oficial">
+                <div class="quick-card-header">
+                    <div class="quick-card-icon icon-green">
+                        <i class="fa-solid fa-file-csv"></i>
+                    </div>
+                </div>
+                <div class="quick-card-body">
+                    <h3 class="quick-card-title">Reportes Oficiales</h3>
+                    <p class="quick-card-desc">Descargar nómina de ciclistas y métricas en CSV.</p>
+                </div>
+                <div class="quick-card-footer">
+                    <i class="fa-solid fa-chevron-right quick-card-arrow"></i>
+                </div>
+            </a>
+        </div>
+    </section>
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 3. FILA DE 4 TARJETAS DE KPIS PRINCIPALES (DATOS REALES)                -->
+    <!-- ----------------------------------------------------------------------- -->
+    <section class="dashboard-kpis-section">
+        <div class="kpis-cards-grid">
+            <!-- KPI 1: Participantes Totales -->
+            <div class="metric-card">
+                <div class="metric-card-top">
+                    <div class="metric-icon-wrap icon-user-box">
+                        <i class="fa-solid fa-user-group"></i>
+                    </div>
+                    {% if ciclistas_pendientes > 0 %}
+                    <span class="trend-badge trend-down" style="background:#fef3c7; color:#b45309;" title="{{ ciclistas_pendientes }} ciclistas por auditar">
+                        <i class="fa-solid fa-clock"></i> {{ ciclistas_pendientes }} pendientes
+                    </span>
+                    {% else %}
+                    <span class="trend-badge trend-up">
+                        <i class="fa-solid fa-check"></i> Al día
+                    </span>
+                    {% endif %}
+                </div>
+                <span class="metric-label">PARTICIPANTES TOTALES</span>
+                <div class="metric-value-wrap">
+                    <h2 class="metric-number">{{ total_participantes }}</h2>
+                </div>
+                <span class="metric-subtext">{{ ciclistas_aprobados }} activos • {{ ciclistas_pendientes }} por auditar</span>
+            </div>
+
+            <!-- KPI 2: Circuitos Activos -->
+            <div class="metric-card">
+                <div class="metric-card-top">
+                    <div class="metric-icon-wrap icon-bike-box">
+                        <i class="fa-solid fa-bicycle"></i>
+                    </div>
+                    {% if circuitos_activos > 0 %}
+                    <span class="trend-badge trend-up">
+                        <i class="fa-solid fa-route"></i> Habilitado
+                    </span>
+                    {% else %}
+                    <span class="trend-badge trend-down">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Inactivo
+                    </span>
+                    {% endif %}
+                </div>
+                <span class="metric-label">CIRCUITOS ACTIVOS</span>
+                <div class="metric-value-wrap">
+                    <h2 class="metric-number">{{ circuitos_activos }}</h2>
+                </div>
+                <span class="metric-subtext">{{ circuitos_activos }} de {{ total_circuitos }} rutas en Malagueño</span>
+            </div>
+
+            <!-- KPI 3: Comercios Aliados -->
+            <div class="metric-card">
+                <div class="metric-card-top">
+                    <div class="metric-icon-wrap icon-shop-box">
+                        <i class="fa-solid fa-store"></i>
+                    </div>
+                    {% if comercios_revision > 0 %}
+                    <span class="trend-badge trend-down" style="background:#fef3c7; color:#b45309;">
+                        <i class="fa-solid fa-hourglass-half"></i> {{ comercios_revision }} en revisión
+                    </span>
+                    {% else %}
+                    <span class="trend-badge trend-up">
+                        <i class="fa-solid fa-store"></i> Red Activa
+                    </span>
+                    {% endif %}
+                </div>
+                <span class="metric-label">COMERCIOS ALIADOS</span>
+                <div class="metric-value-wrap">
+                    <h2 class="metric-number">{{ total_comercios }}</h2>
+                </div>
+                <span class="metric-subtext">{{ comercios_activos }} verificados en la red</span>
+            </div>
+
+            <!-- KPI 4: Kilómetros Totales -->
+            <div class="metric-card">
+                <div class="metric-card-top">
+                    <div class="metric-icon-wrap icon-chart-box">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                    <span class="trend-badge trend-up">
+                        <i class="fa-solid fa-person-biking"></i> {{ total_recorridos }} carreras
+                    </span>
+                </div>
+                <span class="metric-label">KILÓMETROS TOTALES</span>
+                <div class="metric-value-wrap">
+                    <h2 class="metric-number">{{ km_totales }}</h2>
+                </div>
+                <span class="metric-subtext">{{ recorridos_en_curso }} en curso hoy</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 4. GRÁFICO PRINCIPAL: PARTICIPACIÓN SEMANAL (CALCULADO EN VIVO)          -->
+    <!-- ----------------------------------------------------------------------- -->
+    <section class="dashboard-chart-section">
+        <div class="chart-main-card">
+            <div class="chart-card-header">
+                <div class="chart-header-left">
+                    <h2 class="chart-card-title">Participación Semanal</h2>
+                    <p class="chart-card-subtitle">Comparativa entre usuarios inscritos y actividad real de los últimos 7 días</p>
+                </div>
+                <div class="chart-header-right">
+                    <span class="badge-live-stream">
+                        <span class="live-dot-pulse"></span>
+                        <span>En Vivo</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Gráfico Vectorial SVG Curvas de Área Suaves con Gradiente Dinámico -->
+            <div class="chart-svg-container">
+                <svg viewBox="0 0 900 280" class="weekly-area-chart" preserveAspectRatio="none">
+                    <defs>
+                        <!-- Gradiente Área Inscritos (Verde Institucional) -->
+                        <linearGradient id="gradInscritos" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#15803d" stop-opacity="0.35" />
+                            <stop offset="100%" stop-color="#15803d" stop-opacity="0.02" />
+                        </linearGradient>
+
+                        <!-- Gradiente Área Activos (Amarillo / Dorado Suave) -->
+                        <linearGradient id="gradActivos" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#eab308" stop-opacity="0.3" />
+                            <stop offset="100%" stop-color="#eab308" stop-opacity="0.02" />
+                        </linearGradient>
+                    </defs>
+
+                    <!-- Líneas Guía Horizontales y Eje Y Dinámico -->
+                    <g class="chart-grid-lines">
+                        {% for nivel in grafico.eje_y %}
+                        <line x1="50" y1="{{ nivel.y }}" x2="880" y2="{{ nivel.y }}" stroke="{% if forloop.last %}#e2e8f0{% else %}#f1f5f9{% endif %}" {% if not forloop.last %}stroke-dasharray="4 4"{% endif %} />
+                        <text x="35" y="{{ nivel.y|add:4 }}" class="axis-y-label">{{ nivel.valor }}</text>
+                        {% endfor %}
+                    </g>
+
+                    <!-- Áreas Sombreadas y Curvas Dinámicas Bézier -->
+                    {% if grafico.area_inscritos %}
+                    <!-- 1. Curva Inscritos (Área y Trazo Verde) -->
+                    <path d="{{ grafico.area_inscritos }}" fill="url(#gradInscritos)" />
+                    <path d="{{ grafico.line_inscritos }}" fill="none" stroke="#15803d" stroke-width="2.5" stroke-linecap="round" />
+                    {% endif %}
+
+                    {% if grafico.area_activos %}
+                    <!-- 2. Curva Activos (Área y Trazo Amarillo/Dorado) -->
+                    <path d="{{ grafico.area_activos }}" fill="url(#gradActivos)" />
+                    <path d="{{ grafico.line_activos }}" fill="none" stroke="#ca8a04" stroke-width="2" stroke-linecap="round" />
+                    {% endif %}
+
+                    <!-- Puntos clave interactivos finales -->
+                    {% if grafico.ultimo_pto_inscritos %}
+                    <circle cx="{{ grafico.ultimo_pto_inscritos.x }}" cy="{{ grafico.ultimo_pto_inscritos.y }}" r="4.5" fill="#15803d" stroke="#ffffff" stroke-width="2">
+                        <title>Inscritos: {{ grafico.ultimo_pto_inscritos.val }}</title>
+                    </circle>
+                    {% endif %}
+
+                    {% if grafico.ultimo_pto_activos %}
+                    <circle cx="{{ grafico.ultimo_pto_activos.x }}" cy="{{ grafico.ultimo_pto_activos.y }}" r="4" fill="#ca8a04" stroke="#ffffff" stroke-width="2">
+                        <title>Activos: {{ grafico.ultimo_pto_activos.val }}</title>
+                    </circle>
+                    {% endif %}
+                </svg>
+
+                <!-- Etiquetas del Eje X (Días Reales de la Semana) -->
+                <div class="axis-x-row">
+                    {% for dia in grafico.dias %}
+                    <span class="day-label">{{ dia }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Leyenda Inferior del Gráfico -->
+            <div class="chart-legend-bottom">
+                <div class="legend-point-item">
+                    <span class="legend-dot dot-inscritos"></span>
+                    <span class="legend-text">Nuevos Inscritos</span>
+                </div>
+                <div class="legend-point-item">
+                    <span class="legend-dot dot-activos"></span>
+                    <span class="legend-text">Actividades / Recorridos</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 5. FILA INTERMEDIA: ACTIVIDAD RECIENTE + IMPACTO COMERCIAL LOCAL         -->
+    <!-- ----------------------------------------------------------------------- -->
+    <section class="dashboard-middle-grid">
+        <!-- Columna Izquierda: Actividad Reciente Real -->
+        <div class="middle-card activity-card">
+            <div class="middle-card-header">
+                <h2 class="middle-card-title">Actividad Reciente</h2>
+                <p class="middle-card-subtitle" style="margin: 0;">Eventos y acciones en tiempo real</p>
+            </div>
+            <div class="middle-card-body">
+                <div class="activity-timeline-list">
+                    {% for act in actividad_reciente %}
+                    <div class="activity-item">
+                        <span class="activity-status-dot dot-{{ act.estado_color|default:'green' }}"></span>
+                        <div class="activity-item-info">
+                            <span class="activity-user-name">{{ act.usuario }}</span>
+                            <span class="activity-action-desc">{{ act.accion }}</span>
+                        </div>
+                        <span class="activity-time-ago">
+                            <i class="fa-regular fa-clock"></i> {{ act.tiempo }}
+                        </span>
+                    </div>
+                    {% empty %}
+                    <div style="text-align: center; padding: 2.5rem 1rem; color: #94a3b8;">
+                        <i class="fa-solid fa-bell-slash" style="font-size: 1.8rem; margin-bottom: 0.5rem; opacity: 0.6; display: block;"></i>
+                        <span style="font-size: 0.85rem; font-weight: 500;">No hay actividad reciente registrada en el sistema.</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="middle-card-footer">
+                <a href="{% url 'panel_ciclistas_listado' %}" class="link-view-all">Ver gestión de ciclistas</a>
+            </div>
+        </div>
+
+        <!-- Columna Derecha: Impacto Comercial Local (Barras Horizontales Reales) -->
+        <div class="middle-card impact-card">
+            <div class="middle-card-header">
+                <h2 class="middle-card-title">Impacto Comercial Local</h2>
+                <p class="middle-card-subtitle">Distribución real por categoría de negocio</p>
+            </div>
+            <div class="middle-card-body">
+                <div class="horizontal-bars-container">
+                    {% for item in impacto_comercial %}
+                    <div class="bar-chart-row">
+                        <span class="bar-category-label" title="{{ item.categoria }}">{{ item.categoria }}</span>
+                        <div class="bar-track-wrap" title="{{ item.consumos }} ({{ item.porcentaje }}%)">
+                            <div class="bar-fill-green" style="width: {{ item.porcentaje }}%;"></div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div style="text-align: center; padding: 2.5rem 1rem; color: #94a3b8;">
+                        <i class="fa-solid fa-store-slash" style="font-size: 1.8rem; margin-bottom: 0.5rem; opacity: 0.6; display: block;"></i>
+                        <span style="font-size: 0.85rem; font-weight: 500;">Sin visitas comerciales registradas todavía.</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 6. FOOTER INFERIOR DEL DASHBOARD                                        -->
+    <!-- ----------------------------------------------------------------------- -->
+    <footer class="dashboard-footer-section">
+        <div class="footer-left-legal">
+            <span>&copy; 2026 MUNICIPALIDAD DE MALAGUEÑO &bull; SISTEMA DE GESTIÓN MUNICIPAL</span>
+        </div>
+        <div class="footer-right-links">
+            <a href="#" class="legal-link">Ayuda</a>
+            <span class="sep">&bull;</span>
+            <a href="#" class="legal-link">Privacidad</a>
+            <span class="sep">&bull;</span>
+            <a href="#" class="legal-link">Términos</a>
+        </div>
+    </footer>
+
+</div>
+{% endblock %}

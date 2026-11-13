@@ -1,0 +1,48 @@
+{% load static %}
+<!-- ----------------------------------------------------------------------- -->
+<!-- TOPBAR INSTITUCIONAL DEL CICLISTA (VERDE OSCURO MALAGUEÑO)              -->
+<!-- ----------------------------------------------------------------------- -->
+<header class="ciclista-topbar">
+    <div class="container topbar-container">
+        <!-- Avatar y Saludo -->
+        <div class="topbar-user-info">
+            <div class="topbar-avatar-wrap">
+                {% if ciclista.foto %}
+                    <img src="{{ ciclista.foto.url }}" alt="{{ ciclista.nombre|default:user.get_full_name|default:user.username }}" class="topbar-avatar-img">
+                {% elif user.perfil_ciclista.foto %}
+                    <img src="{{ user.perfil_ciclista.foto.url }}" alt="{{ user.perfil_ciclista.nombre|default:user.username }}" class="topbar-avatar-img">
+                {% else %}
+                    <div class="topbar-avatar-placeholder">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="topbar-greeting">
+                <span class="topbar-greeting-small">Ciclista Acreditado</span>
+                <span class="topbar-username">
+                    {% if ciclista.nombre %}
+                        {{ ciclista.nombre }}
+                    {% elif user.perfil_ciclista.nombre %}
+                        {{ user.perfil_ciclista.nombre }}
+                    {% else %}
+                        {{ user.get_full_name|default:user.username }}
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+
+        <!-- Acciones y Circuito Activo -->
+        <div class="topbar-actions">
+            {% if circuito %}
+            <a href="{% if request.resolver_match.url_name == 'mapa_carrera' %}{% url 'mi_progreso' %}{% else %}{% url 'mapa_carrera' %}{% endif %}" class="badge-circuito-activo" title="Circuito Activo de Malagueño">
+                <i class="fa-solid fa-location-dot"></i>
+                <span>{{ circuito.nombre }}</span>
+            </a>
+            {% endif %}
+            <a href="{% url 'logout' %}" class="btn-topbar-logout" title="Cerrar Sesión" aria-label="Cerrar Sesión">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </a>
+        </div>
+    </div>
+</header>
+

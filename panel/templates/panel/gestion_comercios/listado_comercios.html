@@ -1,0 +1,193 @@
+{% extends "base/base_panel.html" %}
+{% load static l10n %}
+
+{% block title %}Gestión de Comercios | Municipalidad de Malagueño{% endblock %}
+{% block page_title %}Comercios{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/panel_comercios.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="comercios-wrapper">
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 1. ENCABEZADO DE PÁGINA Y BOTONES DE ACCIÓN PRINCIPAL                   -->
+    <!-- ----------------------------------------------------------------------- -->
+    <section class="comercios-header-section">
+        <div class="header-titles">
+            <h1 class="header-title-main">Gestión de Comercios</h1>
+            <p class="header-subtitle-main">
+                Administra los establecimientos asociados, sus coordenadas y radios de detección.
+            </p>
+        </div>
+
+        <div class="header-actions-group">
+            <button type="button" class="btn-filter-top" id="btnToggleFilters" onclick="document.getElementById('searchComercioInput').focus()">
+                <i class="fa-solid fa-filter"></i>
+                <span>Filtrar</span>
+            </button>
+            <a href="{% url 'panel_comercio_nuevo' %}" class="btn-create-comercio" title="Registrar nuevo establecimiento">
+                <i class="fa-solid fa-plus"></i>
+                <span>Nuevo Comercio</span>
+            </a>
+        </div>
+    </section>
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 2. FILA DE 4 TARJETAS DE KPIS                                            -->
+    <!-- ----------------------------------------------------------------------- -->
+    <section class="comercios-kpis-grid">
+        <!-- KPI 1: Total Comercios -->
+        <div class="comercio-metric-card">
+            <div class="metric-icon-square icon-box-green">
+                <i class="fa-solid fa-store"></i>
+            </div>
+            <div class="metric-texts">
+                <span class="metric-title-small">Total Comercios</span>
+                <h2 class="metric-value-huge">{{ total_comercios|default:"5" }}</h2>
+            </div>
+        </div>
+
+        <!-- KPI 2: Activos -->
+        <div class="comercio-metric-card">
+            <div class="metric-icon-square icon-box-green">
+                <i class="fa-regular fa-circle-check"></i>
+            </div>
+            <div class="metric-texts">
+                <span class="metric-title-small">Activos</span>
+                <h2 class="metric-value-huge">{{ activos|default:"4" }}</h2>
+            </div>
+        </div>
+
+        <!-- KPI 3: En Revisión -->
+        <div class="comercio-metric-card">
+            <div class="metric-icon-square icon-box-amber">
+                <i class="fa-regular fa-pen-to-square"></i>
+            </div>
+            <div class="metric-texts">
+                <span class="metric-title-small">En Revisión</span>
+                <h2 class="metric-value-huge">{{ en_revision|default:"0" }}</h2>
+            </div>
+        </div>
+
+        <!-- KPI 4: Inactivos -->
+        <div class="comercio-metric-card">
+            <div class="metric-icon-square icon-box-red">
+                <i class="fa-regular fa-circle-xmark"></i>
+            </div>
+            <div class="metric-texts">
+                <span class="metric-title-small">Inactivos</span>
+                <h2 class="metric-value-huge">{{ inactivos|default:"1" }}</h2>
+            </div>
+        </div>
+    </section>
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 3. TARJETA PRINCIPAL: TABLA DE ESTABLECIMIENTOS Y BÚSQUEDA              -->
+    <!-- ----------------------------------------------------------------------- -->
+    <section class="comercios-table-card">
+        <!-- Encabezado de la Tarjeta con Buscador -->
+        <div class="table-card-header">
+            <div class="table-title-group">
+                <i class="fa-solid fa-store table-title-icon"></i>
+                <h2 class="table-title-text">Listado de Establecimientos</h2>
+            </div>
+
+            <form method="GET" action="{% url 'panel_comercios_listado' %}">
+                <div class="search-box-wrap">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" name="q" id="searchComercioInput" value="{{ query|default:'' }}" placeholder="Búsqueda rápida..." class="search-input-box">
+                </div>
+            </form>
+        </div>
+
+        <!-- Tabla de Datos -->
+        <div class="table-responsive-container">
+            <table class="comercios-data-table">
+                <thead>
+                    <tr>
+                        <th>Comercio</th>
+                        <th>Categoría</th>
+                        <th>Ubicación (Lat, Long)</th>
+                        <th>Radio</th>
+                        <th>Estado</th>
+                        <th style="text-align: right;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for com in comercios %}
+                    <tr>
+                        <!-- Comercio: Nombre + Dirección -->
+                        <td class="col-comercio-info">
+                            <span class="comercio-name-bold">{{ com.nombre }}</span>
+                            <span class="comercio-address-sub">{{ com.direccion|default:"Sin dirección registrada" }}</span>
+                        </td>
+
+                        <!-- Categoría -->
+                        <td>
+                            <span class="badge-category">{{ com.categoria }}</span>
+                        </td>
+
+                        <!-- Ubicación Lat, Long -->
+                        <td class="col-coords">
+                            {{ com.latitud|stringformat:".4f" }}, {{ com.longitud|stringformat:".4f" }}
+                        </td>
+
+                        <!-- Radio de Tolerancia -->
+                        <td class="col-radius">
+                            {{ com.radio_tolerancia_metros }}m
+                        </td>
+
+                        <!-- Estado con Badge -->
+                        <td>
+                            {% if com.estado == 'Activo' %}
+                                <span class="badge-status-comercio status-activo">Activo</span>
+                            {% elif com.estado == 'En Revision' or com.estado == 'En Revisión' %}
+                                <span class="badge-status-comercio status-revision">En Revisión</span>
+                            {% else %}
+                                <span class="badge-status-comercio status-inactivo">Inactivo</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Acciones Rápidas -->
+                        <td>
+                            <div class="actions-dots-wrap">
+                                <a href="{% url 'panel_comercio_ver' com.id %}" class="btn-action-icon" title="Ver Ficha y Mapa">
+                                    <i class="fa-regular fa-eye"></i>
+                                </a>
+                                <a href="{% url 'panel_comercio_editar' com.id %}" class="btn-action-icon btn-edit" title="Editar Establecimiento">
+                                    <i class="fa-regular fa-pen-to-square"></i>
+                                </a>
+                                <a href="{% url 'panel_comercio_eliminar' com.id %}" class="btn-action-icon btn-delete" title="Eliminar Establecimiento">
+                                    <i class="fa-regular fa-trash-can"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 2.5rem; color: #64748b;">
+                            <i class="fa-solid fa-store-slash" style="font-size: 2rem; margin-bottom: 0.5rem; display: block; color: #cbd5e1;"></i>
+                            No se encontraron comercios registrados con los criterios seleccionados.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer de Paginación -->
+        <div class="table-card-footer">
+            <span class="table-records-count">
+                Mostrando {{ comercios|length }} de {{ total_comercios }} comercios
+            </span>
+            <div class="table-pagination-nav">
+                <a href="#" class="btn-page-step disabled">Anterior</a>
+                <a href="#" class="btn-page-step disabled">Siguiente</a>
+            </div>
+        </div>
+    </section>
+
+</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% load static %}
+<!-- ----------------------------------------------------------------------- -->
+<!-- BOTTOM NAVIGATION BAR FIJA PARA DISPOSITIVOS MÓVILES                     -->
+<!-- ----------------------------------------------------------------------- -->
+<nav class="bottom-nav-bar" aria-label="Navegación Móvil del Ciclista">
+    <a href="{% url 'mapa_carrera' %}" class="bottom-nav-item {% if request.resolver_match.url_name == 'mapa_carrera' %}active{% endif %}">
+        <i class="fa-solid fa-map-location-dot"></i>
+        <span>MAPA</span>
+    </a>
+    <a href="{% url 'mi_progreso' %}" class="bottom-nav-item {% if request.resolver_match.url_name == 'mi_progreso' %}active{% endif %}">
+        <i class="fa-solid fa-trophy"></i>
+        <span>PROGRESO</span>
+    </a>
+    <a href="{% url 'logout' %}" class="bottom-nav-item" title="Cerrar Sesión">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        <span>SALIR</span>
+    </a>
+</nav>
+

@@ -1,0 +1,113 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Panel de Control | Municipalidad de Malagueño{% endblock %}</title>
+
+    <!-- Tipografías Oficiales Google Fonts: Outfit (Titulares) e Inter (Cuerpo) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Favicon Oficial -->
+    <link rel="icon" type="image/png" href="{% static 'IMG/logo_iso_municipalidad.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'IMG/logo_iso_municipalidad.png' %}">
+
+    <!-- FontAwesome 6.4 Free -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Leaflet CSS (Local para alta disponibilidad sin timeouts) -->
+    <link rel="stylesheet" href="{% static 'vendor/leaflet/leaflet.css' %}">
+
+    <!-- Estilos de Layout del Panel -->
+    <link rel="stylesheet" href="{% static 'css/pages/panel_layout.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="panel-body-layout">
+
+    <div class="panel-app-wrapper">
+        <!-- 1. SIDEBAR DE NAVEGACIÓN -->
+        {% include "includes/sidebar_panel.html" %}
+
+        <!-- BACKDROP PARA MÓVILES -->
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+        <!-- 2. ÁREA DE CONTENIDO PRINCIPAL -->
+        <div class="panel-main-content">
+            <!-- TOPBAR SUPERIOR DEL PANEL (Activo en móvil para botón de menú) -->
+            <header class="panel-topbar">
+                <div class="topbar-left">
+                    <button type="button" class="btn-sidebar-toggle" id="btnSidebarToggle" aria-label="Abrir Menú">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="topbar-mobile-brand">
+                        <img src="{% static 'IMG/logo_iso_municipalidad.png' %}" alt="Logo Malagueño" class="topbar-mobile-logo">
+                        <span class="topbar-mobile-name">Gestión Municipal</span>
+                    </div>
+                </div>
+
+                <div class="topbar-right">
+                    <div class="system-status-indicator" title="Servidor en Línea">
+                        <span class="status-pulse-dot"></span>
+                        <span class="status-text">En Línea</span>
+                    </div>
+
+                    <div class="topbar-user-badge">
+                        <div class="user-avatar-mini">
+                            <i class="fa-solid fa-user-shield"></i>
+                        </div>
+                        <span class="user-display-name">{{ request.user.first_name|default:"Admin" }}</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- CONTENEDOR DE CONTENIDO -->
+            <main class="panel-page-container">
+                <!-- MENSAJES DJANGO -->
+                {% if messages %}
+                    <div class="panel-messages-box">
+                        {% for message in messages %}
+                            <div class="panel-alert alert-{{ message.tags }}">
+                                <i class="fa-solid fa-circle-check"></i>
+                                <span>{{ message }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <!-- Leaflet JS (Local para alta disponibilidad sin timeouts) -->
+    <script src="{% static 'vendor/leaflet/leaflet.js' %}"></script>
+
+    <!-- Script de control del Sidebar -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggleBtn = document.getElementById('btnSidebarToggle');
+            const closeBtn = document.getElementById('btnSidebarClose');
+            const sidebar = document.getElementById('panelSidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+
+            function openSidebar() {
+                if (sidebar) sidebar.classList.add('open');
+                if (backdrop) backdrop.classList.add('open');
+            }
+
+            function closeSidebar() {
+                if (sidebar) sidebar.classList.remove('open');
+                if (backdrop) backdrop.classList.remove('open');
+            }
+
+            if (toggleBtn) toggleBtn.addEventListener('click', openSidebar);
+            if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+            if (backdrop) backdrop.addEventListener('click', closeSidebar);
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

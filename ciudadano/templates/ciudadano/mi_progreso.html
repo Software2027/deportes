@@ -1,0 +1,441 @@
+{% extends "base/base_ciclista.html" %}
+{% load static %}
+
+{% block title %}Mi Progreso | Ciclismo Malagueño{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/mi_progreso.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="panel-ciclista-body">
+
+    <!-- CONTENIDO PRINCIPAL DEL DASHBOARD -->
+    <div class="panel-main-content">
+        <div class="container">
+
+            <!-- --------------------------------------------------------------- -->
+            <!-- CARD HERO DE BIENVENIDA Y ACCIÓN DE CIRCUITO ACTIVO             -->
+            <!-- --------------------------------------------------------------- -->
+            <section class="hero-progress-card">
+                <div class="hero-progress-flex">
+                    <!-- Perfil y Textos -->
+                    <div class="hero-user-profile">
+                        <div class="hero-large-avatar-wrap">
+                            {% if ciclista.foto %}
+                                <img src="{{ ciclista.foto.url }}" alt="{{ ciclista.nombre|default:user.get_full_name|default:user.username }}" class="hero-large-avatar-img">
+                            {% else %}
+                                <div class="hero-large-avatar-placeholder">
+                                    <i class="fa-solid fa-user"></i>
+                                </div>
+                            {% endif %}
+                            <div class="hero-badge-medal" title="Medalla de Nivel">
+                                <i class="fa-solid fa-medal"></i>
+                            </div>
+                        </div>
+
+                        <div class="hero-text-info">
+                            <h1 class="hero-greeting-title">¡Buen ritmo, {% if ciclista.nombre %}{{ ciclista.nombre }}{% else %}{{ user.first_name|default:user.username }}{% endif %}!</h1>
+                            
+                            <!-- Píldoras de Credencial y Datos Personales -->
+                            <div class="ciclista-credential-pill-row">
+                                <span class="cred-pill cred-pill-highlight" title="Código Oficial en el Padrón Municipal">
+                                    <i class="fa-solid fa-id-badge"></i> {{ ciclista.codigo_id|default:"CIC-001" }}
+                                </span>
+                                <span class="cred-pill" title="Documento Nacional de Identidad">
+                                    <i class="fa-solid fa-address-card"></i> DNI: <strong>{{ ciclista.dni|default:"--" }}</strong>
+                                </span>
+                                {% if ciclista.edad %}
+                                <span class="cred-pill" title="Edad Registrada">
+                                    <i class="fa-solid fa-cake-candles"></i> <strong>{{ ciclista.edad }} años</strong>
+                                </span>
+                                {% endif %}
+                                <span class="cred-pill" title="Club o Entidad">
+                                    <i class="fa-solid fa-shield-halved"></i> <strong>{{ ciclista.club_entidad|default:"Independiente" }}</strong>
+                                </span>
+                                <span class="badge-ciclista-level" title="Categoría / Nivel de Desempeño">
+                                    <i class="fa-solid fa-award"></i> {{ nivel_ciclista }}
+                                </span>
+                                {% if esta_inscripto %}
+                                <span class="cred-pill cred-pill-dorsal" title="Número Oficial de Dorsal">
+                                    <i class="fa-solid fa-bicycle"></i> Dorsal: <strong>#{{ recorrido.id|stringformat:"04d" }}</strong>
+                                </span>
+                                <span class="cred-pill" title="Modalidad del Recorrido">
+                                    <i class="fa-solid fa-flag"></i> <strong>{{ modalidad_display }}</strong>
+                                </span>
+                                {% endif %}
+                            </div>
+
+                            <!-- Ficha de Información del Circuito Activo -->
+                            <div class="circuit-info-box">
+                                <div class="circuit-info-row">
+                                    <span>
+                                        <i class="fa-solid fa-route" style="color: #16a34a;"></i> 
+                                        <strong>{{ circuito.nombre|default:"Reto Urbano Malagueño 2026" }}</strong>
+                                    </span>
+                                    {% if circuito.fecha_evento %}
+                                    <span>
+                                        <i class="fa-regular fa-calendar-check" style="color: #0284c7;"></i> 
+                                        Evento Oficial: <strong>{{ circuito.fecha_evento|date:"d/m/Y" }}</strong>
+                                    </span>
+                                    {% endif %}
+                                    {% if circuito.fecha_limite_inscripcion %}
+                                    <span class="{% if circuito.inscripcion_abierta %}text-green{% else %}text-amber{% endif %}">
+                                        <i class="fa-solid fa-hourglass-half"></i> 
+                                        {% if circuito.inscripcion_abierta %}
+                                            Inscripción abierta hasta el {{ circuito.fecha_limite_inscripcion|date:"d/m/Y" }}
+                                        {% else %}
+                                            Inscripción oficial cerrada (Disponible para práctica libre)
+                                        {% endif %}
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Donut Chart Radial SVG -->
+                    <div class="hero-donut-wrap">
+                        <div class="donut-svg-container">
+                            <svg class="donut-svg" width="96" height="96" viewBox="0 0 96 96">
+                                <circle class="donut-circle-bg" cx="48" cy="48" r="40"></circle>
+                                <!-- Cálculo del stroke-dasharray (perímetro = 2 * PI * 40 = 251.32) -->
+                                <circle 
+                                    class="donut-circle-fill" 
+                                    cx="48" 
+                                    cy="48" 
+                                    r="40"
+                                    stroke-dasharray="251.32"
+                                    stroke-dashoffset="{{ 251.32|add:'0' }}"
+                                    id="donutFillCircle"
+                                ></circle>
+                            </svg>
+                            <div class="donut-text-center">
+                                <span class="donut-percent-num">{{ porcentaje_total }}%</span>
+                                <span class="donut-percent-label">TOTAL</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Barra de Acción Rápida: Inscribirme vs Iniciar GPS -->
+                <div class="hero-circuit-actions-bar">
+                    {% if not esta_inscripto %}
+                        {% if circuito.inscripcion_abierta %}
+                            <div class="circuit-action-msg">
+                                <i class="fa-solid fa-circle-info"></i>
+                                <span>Inscripción abierta al evento oficial. ¡Asegura tu dorsal y puesto de salida!</span>
+                            </div>
+                            <form method="POST" action="{% url 'mi_progreso' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="accion" value="inscribir">
+                                <button type="submit" class="btn-inscribir-circuito">
+                                    <i class="fa-solid fa-user-plus"></i>
+                                    <span>Inscribirme al Circuito Oficial</span>
+                                </button>
+                            </form>
+                        {% else %}
+                            <div class="circuit-action-msg">
+                                <i class="fa-solid fa-person-biking"></i>
+                                <span>Inscripción al evento oficial cerrada. Puedes pedalear el trazado en <strong>Modo Libre / Práctica</strong>.</span>
+                            </div>
+                            <a href="{% url 'mapa_carrera' %}" class="btn-start-gps-race">
+                                <i class="fa-solid fa-play"></i>
+                                <span>Iniciar Recorrido Libre</span>
+                                <i class="fa-solid fa-arrow-right" style="font-size: 0.85rem;"></i>
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        <div class="circuit-action-msg">
+                            <i class="fa-solid fa-circle-check" style="color: #16a34a;"></i>
+                            <span>Inscripción activa • Dorsal <strong>#{{ recorrido.id|stringformat:"04d" }}</strong> • Modalidad: <strong>{{ modalidad_display }}</strong></span>
+                        </div>
+                        <a href="{% url 'mapa_carrera' %}" class="btn-start-gps-race">
+                            <i class="fa-solid fa-bicycle"></i>
+                            <span>{% if esta_en_carrera %}Continuar Recorrido en Vivo{% else %}Iniciar Recorrido GPS{% endif %}</span>
+                            <i class="fa-solid fa-arrow-right" style="font-size: 0.85rem;"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </section>
+
+            <!-- --------------------------------------------------------------- -->
+            <!-- FILA DE 4 CARDS DE KPIS                                         -->
+            <!-- --------------------------------------------------------------- -->
+            <section class="metrics-kpi-grid">
+                <!-- KPI 1: Distancia -->
+                <div class="kpi-card">
+                    <div class="kpi-icon-circle">
+                        <i class="fa-solid fa-location-dot"></i>
+                    </div>
+                    <div class="kpi-body">
+                        <span class="kpi-label">Distancia</span>
+                        <span class="kpi-value">{{ distancia_km }} km</span>
+                        <span class="kpi-subtext">de {{ total_km }} km totales</span>
+                    </div>
+                </div>
+
+                <!-- KPI 2: Tiempo -->
+                <div class="kpi-card">
+                    <div class="kpi-icon-circle">
+                        <i class="fa-regular fa-clock"></i>
+                    </div>
+                    <div class="kpi-body">
+                        <span class="kpi-label">Tiempo</span>
+                        <span class="kpi-value">{{ tiempo_str }}</span>
+                        <span class="kpi-subtext">Ritmo: {{ ritmo_str }}</span>
+                    </div>
+                </div>
+
+                <!-- KPI 3: Validaciones -->
+                <div class="kpi-card">
+                    <div class="kpi-icon-circle">
+                        <i class="fa-regular fa-circle-check"></i>
+                    </div>
+                    <div class="kpi-body">
+                        <span class="kpi-label">Validaciones</span>
+                        <span class="kpi-value">{{ checkpoints_validados }}</span>
+                        <span class="kpi-subtext">Checkpoints registrados</span>
+                    </div>
+                </div>
+
+                <!-- KPI 4: Locales -->
+                <div class="kpi-card">
+                    <div class="kpi-icon-circle">
+                        <i class="fa-solid fa-store"></i>
+                    </div>
+                    <div class="kpi-body">
+                        <span class="kpi-label">Locales</span>
+                        <span class="kpi-value">{{ total_comercios }}</span>
+                        <span class="kpi-subtext">locales en el recorrido</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- --------------------------------------------------------------- -->
+            <!-- MINI MAPA DEL CIRCUITO ACTIVO                                   -->
+            <!-- --------------------------------------------------------------- -->
+            <section id="mapa-circuito" class="circuit-preview-card">
+                <div class="preview-top-flex">
+                    <h2 class="preview-title">
+                        <i class="fa-solid fa-map-location-dot"></i>
+                        <span>Ruta del {{ circuito.nombre|default:"Circuito Municipal" }}</span>
+                    </h2>
+                    <a href="{% url 'mapa_carrera' %}" class="subcircuits-link-map">
+                        <span>Abrir Navegador GPS</span>
+                        <i class="fa-solid fa-chevron-right" style="font-size: 0.8rem;"></i>
+                    </a>
+                </div>
+                <div id="mini-mapa-progreso" class="mini-map-embed"></div>
+            </section>
+
+            <!-- --------------------------------------------------------------- -->
+            <!-- SECCIÓN: MIS SUB-CIRCUITOS                                      -->
+            <!-- --------------------------------------------------------------- -->
+            <section class="subcircuits-section">
+                <div class="subcircuits-section-header">
+                    <h2 class="subcircuits-title">Mis Sub-circuitos</h2>
+                    <a href="{% url 'mapa_carrera' %}" class="subcircuits-link-map">
+                        <span>Ver mapa completo</span>
+                        <i class="fa-solid fa-chevron-right" style="font-size: 0.8rem;"></i>
+                    </a>
+                </div>
+
+                <div class="subcircuits-grid">
+                    {% for sub in subcircuitos %}
+                    <div class="subcircuit-card">
+                        <div class="subcircuit-top">
+                            <h3 class="subcircuit-name">{{ sub.nombre }}</h3>
+                            <span class="badge-status {{ sub.estado }}">
+                                {% if sub.estado == 'completado' %}
+                                    <i class="fa-regular fa-circle-check"></i>
+                                {% elif sub.estado == 'en-curso' %}
+                                    <i class="fa-solid fa-arrow-trend-up"></i>
+                                {% else %}
+                                    <i class="fa-regular fa-clock"></i>
+                                {% endif %}
+                                {{ sub.estado_display }}
+                            </span>
+                        </div>
+
+                        <div class="subcircuit-meta">
+                            <span><i class="fa-solid fa-location-arrow"></i> {{ sub.distancia }}</span>
+                            <span>•</span>
+                            <span>{{ sub.checkpoints }} Checkpoints</span>
+                        </div>
+
+                        <div class="subcircuit-progress-wrap">
+                            <div class="progress-label-row">
+                                <span class="progress-label-text">Progreso del tramo</span>
+                                <span class="progress-label-percent">{{ sub.porcentaje }}%</span>
+                            </div>
+                            <div class="progress-track">
+                                <div class="progress-bar-fill {% if sub.estado == 'completado' %}fill-green{% elif sub.estado == 'en-curso' %}fill-yellow{% else %}fill-gray{% endif %}" style="width: {{ sub.porcentaje }}%;"></div>
+                            </div>
+                            <span class="subcircuit-validated-text">{{ sub.validados_texto }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <!-- --------------------------------------------------------------- -->
+            <!-- SECCIÓN: CRONOGRAMA DE PARADAS (TIMELINE VERTICAL)              -->
+            <!-- --------------------------------------------------------------- -->
+            <section class="schedule-section">
+                <div class="schedule-section-header">
+                    <h2 class="schedule-title">Cronograma de Paradas</h2>
+                    <span class="badge-live-update">
+                        <i class="fa-solid fa-circle" style="font-size: 6px;"></i>
+                        <span>Actualizado en vivo</span>
+                    </span>
+                </div>
+
+                <div class="schedule-timeline-card">
+                    <div class="timeline-subtitle-row">
+                        <i class="fa-regular fa-calendar-check"></i>
+                        <h3 class="timeline-subtitle">Historial y Siguientes Pasos</h3>
+                        <span class="timeline-instruction">Sigue el orden de los puntos de control para completar el evento oficial.</span>
+                    </div>
+
+                    <div class="timeline-list">
+                        {% for item in cronograma %}
+                        <div class="timeline-item">
+                            <!-- Columna Izquierda: Nodo e Hilo Conector -->
+                            <div class="timeline-node-col">
+                                <div class="timeline-node-icon node-{{ item.estado }}">
+                                    {% if item.estado == 'completed' %}
+                                        <i class="fa-solid fa-check"></i>
+                                    {% elif item.estado == 'current' %}
+                                        <i class="fa-regular fa-circle-dot"></i>
+                                    {% else %}
+                                        <i class="fa-regular fa-circle"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="timeline-connector-line"></div>
+                            </div>
+
+                            <!-- Columna Derecha: Contenido y Título de la Parada -->
+                            <div class="timeline-content-col">
+                                <div class="timeline-header-row">
+                                    <h4 class="timeline-title">{{ item.titulo }}</h4>
+                                    <span class="timeline-time-badge">{{ item.hora }}</span>
+                                </div>
+                                <p class="timeline-desc">{{ item.desc }}</p>
+                                {% if item.accion_url %}
+                                <a href="{{ item.accion_url }}" class="btn-timeline-action">
+                                    <span>{{ item.accion_texto }}</span>
+                                    <i class="fa-solid fa-arrow-right" style="font-size: 0.75rem;"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // 1. Animación del Donut Radial SVG
+        const donutCircle = document.getElementById('donutFillCircle');
+        if (donutCircle) {
+            const circumference = 251.32;
+            const percent = parseInt("{{ porcentaje_total|default:'0' }}", 10);
+            const offset = circumference - (percent / 100) * circumference;
+            setTimeout(() => {
+                donutCircle.style.strokeDashoffset = offset;
+            }, 200);
+        }
+
+        // 2. Inicialización del Mini Mapa Leaflet
+        const mapContainer = document.getElementById('mini-mapa-progreso');
+        if (mapContainer && typeof L !== 'undefined') {
+            // Centro en Malagueño, Córdoba (-31.468, -64.355)
+            const map = L.map('mini-mapa-progreso', {
+                zoomControl: true,
+                scrollWheelZoom: false
+            }).setView([-31.468, -64.355], 14);
+
+            // Capa de mapa optimizada de la Municipalidad de Malagueño (OpenStreetMap HOT)
+            L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+                maxZoom: 18,
+                minZoom: 11,
+                subdomains: 'abc',
+                keepBuffer: 6,
+                updateWhenIdle: true,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Tiles style by <a href="https://www.hotosm.org/" target="_blank">HOT</a> | Muni Malagueño'
+            }).addTo(map);
+
+            // Trazado de subcircuitos
+            const trazados = {{ trazado_json|safe|default:'[]' }};
+            const bounds = [];
+
+            if (trazados.length > 0) {
+                trazados.forEach(tr => {
+                    if (tr.coordenadas && tr.coordenadas.length > 0) {
+                        const polyline = L.polyline(tr.coordenadas, {
+                            color: tr.color || '#16a34a',
+                            weight: 5,
+                            opacity: 0.85
+                        }).addTo(map);
+                        polyline.bindPopup(`<b>${tr.nombre}</b>`);
+                        tr.coordenadas.forEach(c => bounds.push(c));
+                    }
+                });
+            }
+
+            // Comercios y Checkpoints con íconos temáticos FontAwesome
+            function getComercioDivIcon(categoria) {
+                let iconClass = 'fa-solid fa-location-dot';
+                let bg = '#16a34a';
+
+                if (categoria.includes('Hidratación')) {
+                    iconClass = 'fa-solid fa-droplet';
+                    bg = '#0284c7';
+                } else if (categoria.includes('Taller')) {
+                    iconClass = 'fa-solid fa-wrench';
+                    bg = '#f59e0b';
+                } else if (categoria.includes('Gastronomía')) {
+                    iconClass = 'fa-solid fa-utensils';
+                    bg = '#e11d48';
+                } else if (categoria.includes('Control')) {
+                    iconClass = 'fa-solid fa-flag-checkered';
+                    bg = '#7c3aed';
+                }
+
+                return L.divIcon({
+                    className: 'custom-comercio-pin',
+                    html: `<div style="background:${bg}; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:12px; border:2px solid #ffffff; box-shadow:0 3px 8px rgba(0,0,0,0.25);"><i class="${iconClass}"></i></div>`,
+                    iconSize: [28, 28],
+                    iconAnchor: [14, 14],
+                    popupAnchor: [0, -14]
+                });
+            }
+
+            const comercios = {{ comercios_json|safe|default:'[]' }};
+            if (comercios.length > 0) {
+                comercios.forEach(com => {
+                    const marker = L.marker([com.lat, com.lng], {
+                        icon: getComercioDivIcon(com.categoria)
+                    }).addTo(map);
+                    marker.bindPopup(`<b>${com.nombre}</b><br><span style="color:#64748b; font-size: 0.85rem;">${com.categoria}</span>`);
+                    bounds.push([com.lat, com.lng]);
+                });
+            }
+
+            // Ajustar vista a las coordenadas
+            if (bounds.length > 0) {
+                map.fitBounds(bounds, { padding: [25, 25] });
+            }
+        }
+    });
+</script>
+{% endblock %}

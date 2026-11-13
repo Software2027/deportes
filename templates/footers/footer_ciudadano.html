@@ -1,0 +1,95 @@
+{% load static %}
+<footer class="site-footer">
+    <div class="container footer-main-container">
+        <div class="footer-grid">
+            <!-- Columna 1: Municipalidad de Malagueño -->
+            <div class="footer-col col-brand">
+                <div class="muni-logo-wrapper">
+                    <img src="{% static 'IMG/logo_muni_blanco.png' %}" alt="Municipalidad de Malagueño" class="muni-footer-logo-img">
+                </div>
+                <p class="footer-description">
+                    Plataforma integral para eventos de ciclismo municipal, conectando ciclistas, organizadores y comercios locales para un desarrollo urbano sostenible.
+                </p>
+                <div class="footer-social-links">
+                    <a href="#" aria-label="Facebook" class="social-circle">
+                        <i class="fa-brands fa-facebook-f"></i>
+                    </a>
+                    <a href="#" aria-label="Instagram" class="social-circle">
+                        <i class="fa-brands fa-instagram"></i>
+                    </a>
+                    <a href="#" aria-label="Web" class="social-circle">
+                        <i class="fa-solid fa-globe"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Columna 2: Plataforma -->
+            <div class="footer-col">
+                <h4 class="col-title">
+                    <span class="col-icon"><i class="fa-solid fa-chevron-right"></i></span>
+                    PLATAFORMA
+                </h4>
+                <ul class="col-links">
+                    <li><a href="{% url 'index' %}#circuito">Rutas y Circuitos</a></li>
+                    <li><a href="{% url 'noticias_listado' %}">Noticias y Novedades</a></li>
+                    <li><a href="{% url 'comercios_listado' %}">Comercios Adheridos</a></li>
+                    <li><a href="{% url 'contacto' %}">Contacto y Atención</a></li>
+                    <li><a href="{% url 'login' %}">Acceso Ciclistas</a></li>
+                </ul>
+            </div>
+
+            <!-- Columna 3: Contacto -->
+            <div class="footer-col">
+                <h4 class="col-title">
+                    <span class="col-icon"><i class="fa-solid fa-circle-info"></i></span>
+                    CONTACTO
+                </h4>
+                <ul class="col-contact-info">
+                    <li>
+                        <i class="fa-solid fa-location-dot" style="margin-top: 3px; font-size: 14px;"></i>
+                        <span>San Martín 590, Malagueño, Córdoba (X5101)</span>
+                    </li>
+                    <li>
+                        <i class="fa-solid fa-phone" style="font-size: 14px;"></i>
+                        <span>498 00 00</span>
+                    </li>
+                    <li>
+                        <i class="fa-solid fa-envelope" style="font-size: 14px;"></i>
+                        <span>info@malagueno.gob.ar</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Columna 4: Ubicación (Mini Mapa) -->
+            <div class="footer-col col-map">
+                <h4 class="col-title">
+                    <span class="col-icon"><i class="fa-solid fa-location-dot"></i></span>
+                    UBICACIÓN
+                </h4>
+                <div class="mini-map-card">
+                    <div class="mini-map-visual">
+                        <!-- Representación cartográfica minimalista con pin central -->
+                        <div class="map-grid-lines"></div>
+                        <div class="map-pin-pulse">
+                            <i class="fa-solid fa-location-dot" style="font-size: 22px; color: #3b82f6;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barra Inferior de Copyright y Legales -->
+    <div class="footer-bottom-bar">
+        <div class="container footer-bottom-flex">
+            <span>&copy; 2026 Municipalidad de Malagueño. Todos los derechos reservados.</span>
+            <div class="legal-links">
+                <a href="#">Términos y Condiciones</a>
+                <span class="sep">|</span>
+                <a href="#">Políticas de Privacidad</a>
+                <span class="sep">|</span>
+                <a href="{% url 'panel_login' %}" title="Acceso Interno de Gestión">Acceso Interno</a>
+            </div>
+        </div>
+    </div>
+</footer>

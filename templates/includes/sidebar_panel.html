@@ -1,0 +1,81 @@
+{% load static %}
+<aside class="panel-sidebar" id="panelSidebar">
+    <!-- Encabezado del Sidebar con Marca Institucional -->
+    <div class="sidebar-header">
+        <a href="{% url 'panel_dashboard' %}" class="sidebar-brand">
+            <img src="{% static 'IMG/logo_iso_municipalidad.png' %}" alt="Municipalidad de Malagueño" class="sidebar-logo">
+            <span class="sidebar-brand-title">Panel de Administración</span>
+        </a>
+        <button type="button" class="btn-sidebar-close" id="btnSidebarClose" aria-label="Cerrar Menú">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    <!-- Navegación del Panel -->
+    <nav class="sidebar-nav">
+        <ul class="nav-list">
+            <li class="nav-item">
+                <a href="{% url 'panel_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'panel_dashboard' or request.resolver_match.url_name == 'panel_dashboard_alias' %}active{% endif %}">
+                    <div class="nav-link-content">
+                        <i class="fa-solid fa-table-cells-large nav-icon"></i>
+                        <span>Dashboard</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right nav-arrow"></i>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'panel_ciclistas_listado' %}" class="nav-link {% if 'ciclista' in request.resolver_match.url_name %}active{% endif %}" title="Gestión de Ciclistas">
+                    <div class="nav-link-content">
+                        <i class="fa-solid fa-users nav-icon"></i>
+                        <span>Ciclistas</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right nav-arrow"></i>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'panel_comercios_listado' %}" class="nav-link {% if 'comercio' in request.resolver_match.url_name %}active{% endif %}" title="Gestión de Comercios">
+                    <div class="nav-link-content">
+                        <i class="fa-solid fa-store nav-icon"></i>
+                        <span>Comercios</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right nav-arrow"></i>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'panel_circuitos_listado' %}" class="nav-link {% if 'circuito' in request.resolver_match.url_name %}active{% endif %}" title="Gestión de Circuitos y Etapas">
+                    <div class="nav-link-content">
+                        <i class="fa-solid fa-route nav-icon"></i>
+                        <span>Circuitos</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right nav-arrow"></i>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'panel_noticias_listado' %}" class="nav-link {% if 'noticia' in request.resolver_match.url_name %}active{% endif %}" title="Gestión de Noticias y Comunicados">
+                    <div class="nav-link-content">
+                        <i class="fa-solid fa-newspaper nav-icon"></i>
+                        <span>Noticias</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right nav-arrow"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Footer del Sidebar con Perfil de Usuario y Logout -->
+    <div class="sidebar-user-footer">
+        <div class="user-card-box">
+            <div class="user-avatar-circle">
+                <i class="fa-solid fa-user"></i>
+            </div>
+            <div class="user-text-info">
+                <span class="user-name">Admin Malagueño</span>
+                <span class="user-email">admin@malagueno.gob.ar</span>
+            </div>
+        </div>
+        <a href="{% url 'panel_logout' %}" class="btn-logout-sidebar" title="Cerrar Sesión">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            <span>Cerrar sesión</span>
+        </a>
+    </div>
+</aside>

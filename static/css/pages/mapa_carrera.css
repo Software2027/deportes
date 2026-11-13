@@ -1,0 +1,1246 @@
+/* ==============================================================================
+   MAPA DE CARRERA EN VIVO - CICLISMO MALAGUEÑO
+   Diseño HUD Fullscreen inmersivo para ciclistas en ruta.
+   ============================================================================== */
+
+/* Reset y modo carrera en el panel del ciclista */
+body.carrera-mode {
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    background-color: #0f172a;
+}
+
+.carrera-wrapper {
+    position: relative;
+    width: 100%;
+    height: calc(100vh - 62px - 64px);
+    height: calc(100dvh - 62px - 64px);
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+}
+
+:fullscreen .carrera-wrapper,
+:-webkit-full-screen .carrera-wrapper {
+    height: 100vh !important;
+    width: 100vw !important;
+}
+
+/* ------------------------------------------------------------------------------
+   1. MAPA LEAFLET A PANTALLA COMPLETA
+   ------------------------------------------------------------------------------ */
+#mapa-carrera-fs {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    background-color: #e5e7eb;
+}
+
+/* ------------------------------------------------------------------------------
+   2. TOPBAR SUPERIOR FLOTANTE
+   ------------------------------------------------------------------------------ */
+.carrera-topbar-floating {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    pointer-events: none;
+    /* Permite clicks a través excepto en botones */
+}
+
+.carrera-topbar-floating>* {
+    pointer-events: auto;
+}
+
+.btn-carrera-back {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background-color: #ffffff;
+    color: #0f172a !important;
+    border-radius: 50%;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    text-decoration: none;
+    font-size: 1.1rem;
+    transition: transform 0.15s ease, background-color 0.15s ease;
+    border: 1px solid #e2e8f0;
+}
+
+.btn-carrera-back:hover {
+    transform: scale(1.05);
+    background-color: #f8fafc;
+}
+
+.topbar-center-badge {
+    background: rgba(11, 56, 30, 0.92);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: #ffffff;
+    padding: 0.45rem 1rem;
+    border-radius: 9999px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 700;
+    box-shadow: 0 4px 14px rgba(11, 56, 30, 0.25);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    max-width: 260px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.topbar-center-badge i {
+    color: #eab308;
+}
+
+.topbar-right-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.gps-signal-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    padding: 0.45rem 0.85rem;
+    border-radius: 9999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #059669;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+    border: 1px solid #e2e8f0;
+}
+
+.gps-dot-pulse {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.35);
+    animation: gpsPulse 1.8s infinite;
+}
+
+@keyframes gpsPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6);
+    }
+
+    70% {
+        box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
+}
+
+.btn-toggle-fullscreen {
+    width: 44px;
+    height: 44px;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 50%;
+    color: #475569;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+    transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.btn-toggle-fullscreen:hover {
+    transform: scale(1.05);
+    color: #0f172a;
+}
+
+/* Botón Topbar para abrir Drawer de Etapas */
+.btn-toggle-etapas {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 9999px;
+    padding: 0.45rem 0.85rem;
+    color: #0b381e;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+    transition: all 0.15s ease;
+}
+
+.btn-toggle-etapas i {
+    color: #16a34a;
+    font-size: 0.9rem;
+}
+
+.btn-toggle-etapas:hover {
+    background-color: #f0fdf4;
+    border-color: #bbf7d0;
+    transform: translateY(-1px);
+}
+
+/* ------------------------------------------------------------------------------
+   2.1. PÍLDORA FLOTANTE DE SUBCIRCUITO ACTIVO Y STEPPER
+   ------------------------------------------------------------------------------ */
+.subcircuito-floating-pill {
+    position: absolute;
+    top: 64px;
+    left: 12px;
+    right: 12px;
+    max-width: 640px;
+    margin: 0 auto;
+    z-index: 460;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.94), rgba(11, 56, 30, 0.95));
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 14px;
+    padding: 0.5rem 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.65rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+    color: #ffffff;
+}
+
+.subcircuito-pill-left {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-width: 0;
+}
+
+.subcircuito-step-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 0.22rem 0.6rem;
+    border-radius: 9999px;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    white-space: nowrap;
+}
+
+.subcircuito-name-text {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: #f8fafc;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.subcircuito-pill-right {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-shrink: 0;
+}
+
+.subcircuito-dist-text {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #cbd5e1;
+}
+
+.btn-subcircuito-drawer-open {
+    background: rgba(255, 255, 255, 0.14);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 9999px;
+    padding: 0.25rem 0.65rem;
+    font-size: 0.74rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    transition: all 0.15s ease;
+}
+
+.btn-subcircuito-drawer-open:hover {
+    background: rgba(255, 255, 255, 0.24);
+}
+
+.subcircuitos-stepper-bar {
+    position: absolute;
+    top: 104px;
+    left: 16px;
+    right: 16px;
+    max-width: 632px;
+    margin: 0 auto;
+    z-index: 460;
+    display: flex;
+    gap: 5px;
+    pointer-events: none;
+}
+
+.stepper-segment {
+    flex: 1;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.35);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+    backdrop-filter: blur(4px);
+}
+
+.stepper-segment .segment-fill {
+    width: 0%;
+    height: 100%;
+    transition: width 0.4s ease;
+}
+
+.stepper-segment.segment-active {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.stepper-segment.segment-active .segment-fill {
+    width: 100%;
+    background: var(--seg-color, #10b981);
+    box-shadow: 0 0 10px var(--seg-color, #10b981);
+    animation: pulseSegment 2s infinite ease-in-out;
+}
+
+.stepper-segment.segment-completed .segment-fill {
+    width: 100%;
+    background: #10b981;
+}
+
+@keyframes pulseSegment {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.65;
+    }
+}
+
+/* ------------------------------------------------------------------------------
+   2.2. BANNER DE ALERTA DE AVANCE DE ETAPA
+   ------------------------------------------------------------------------------ */
+.etapa-alert-banner {
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 24px);
+    max-width: 480px;
+    z-index: 9999;
+    animation: etapaSlideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes etapaSlideDown {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+.etapa-alert-content {
+    background: linear-gradient(135deg, #0b381e, #14532d);
+    border: 2px solid #eab308;
+    border-radius: 16px;
+    padding: 0.9rem 1.1rem;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35);
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    color: #ffffff;
+}
+
+.etapa-alert-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: #eab308;
+    color: #0b381e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+    box-shadow: 0 0 14px rgba(234, 179, 8, 0.6);
+}
+
+.etapa-alert-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.etapa-alert-tag {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: #fef08a;
+    letter-spacing: 0.8px;
+    margin-bottom: 2px;
+}
+
+.etapa-alert-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 800;
+    margin: 0;
+    line-height: 1.2;
+    color: #ffffff;
+}
+
+.etapa-alert-desc {
+    font-size: 0.82rem;
+    color: #e2e8f0;
+    margin: 2px 0 0 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.btn-close-etapa-alert {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 0.25rem;
+    align-self: flex-start;
+}
+
+.btn-close-etapa-alert:hover {
+    color: #ffffff;
+}
+
+/* ------------------------------------------------------------------------------
+   3. HUD SUPERIOR DE TELEMETRÍA DEPORTIVA
+   ------------------------------------------------------------------------------ */
+.carrera-hud-container {
+    position: absolute;
+    top: 116px;
+    left: 12px;
+    right: 12px;
+    z-index: 450;
+    pointer-events: none;
+}
+
+.carrera-hud-card {
+    pointer-events: auto;
+    max-width: 640px;
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-radius: 18px;
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+    padding: 0.9rem 1.25rem;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+}
+
+.hud-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+}
+
+.hud-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: -0.375rem;
+    top: 15%;
+    bottom: 15%;
+    width: 1px;
+    background-color: #e2e8f0;
+}
+
+.hud-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 2px;
+}
+
+.hud-value-group {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+}
+
+.hud-value {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1;
+}
+
+.hud-unit {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #94a3b8;
+}
+
+/* ------------------------------------------------------------------------------
+   4. BOTÓN FLOTANTE "CENTRAR GPS EN MÍ"
+   ------------------------------------------------------------------------------ */
+.btn-recenter-gps {
+    position: absolute;
+    bottom: 154px;
+    right: 16px;
+    z-index: 1100;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #ffffff;
+    color: #16a34a;
+    border: 2px solid #16a34a;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.2);
+    transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.btn-recenter-gps:hover {
+    transform: scale(1.08);
+    background-color: #f0fdf4;
+}
+
+/* ------------------------------------------------------------------------------
+   5. BANNER EMERGENTE DE PROXIMIDAD A COMERCIO O PARADA
+   ------------------------------------------------------------------------------ */
+.proximity-banner {
+    position: absolute;
+    bottom: 154px;
+    left: 16px;
+    right: 80px;
+    max-width: 480px;
+    z-index: 1100;
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1.5px solid #22c55e;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.18);
+    padding: 0.9rem 1.1rem;
+    display: none;
+    /* Se activa con JS cuando dist <= 30m */
+    animation: slideUp 0.35s ease;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.proximity-flex {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.85rem;
+}
+
+.proximity-icon-wrap {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background-color: #dcfce7;
+    color: #15803d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.proximity-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.proximity-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.2;
+    margin-bottom: 2px;
+}
+
+.proximity-benefit {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.78rem;
+    color: #15803d;
+    font-weight: 600;
+}
+
+.btn-close-proximity {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0.3rem;
+}
+
+/* ------------------------------------------------------------------------------
+   6. BARRA INFERIOR DE CONTROLES TÁCTILES GIGANTES
+   ------------------------------------------------------------------------------ */
+.carrera-controls-bar {
+    position: absolute;
+    bottom: 76px;
+    left: 12px;
+    right: 12px;
+    z-index: 1100;
+    max-width: 540px;
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-radius: 20px;
+    padding: 0.75rem 1rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    justify-content: space-between;
+    box-sizing: border-box;
+}
+
+.btn-carrera-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    border-radius: 14px;
+    padding: 0.85rem 1.25rem;
+    border: none;
+    cursor: pointer;
+    min-height: 52px;
+    transition: transform 0.12s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+    flex: 1;
+}
+
+.btn-carrera-action:active {
+    transform: scale(0.98);
+}
+
+/* Estado Iniciar */
+.btn-action-start {
+    background-color: #16a34a;
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(22, 163, 74, 0.35);
+}
+
+.btn-action-start:hover {
+    background-color: #15803d;
+    box-shadow: 0 6px 18px rgba(22, 163, 74, 0.45);
+}
+
+/* Estado Pausar */
+.btn-action-pause {
+    background-color: #eab308;
+    color: #1e293b;
+    box-shadow: 0 4px 14px rgba(234, 179, 8, 0.32);
+}
+
+.btn-action-pause:hover {
+    background-color: #ca8a04;
+}
+
+/* Estado Reanudar */
+.btn-action-resume {
+    background-color: #10b981;
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+}
+
+/* Estado Finalizar */
+.btn-action-finish {
+    background-color: #f1f5f9;
+    color: #dc2626;
+    border: 1px solid #fee2e2;
+    flex: 0.7;
+}
+
+.btn-action-finish:hover {
+    background-color: #fee2e2;
+}
+
+/* ------------------------------------------------------------------------------
+   7. MODAL DE CONFIRMACIÓN PARA FINALIZAR
+   ------------------------------------------------------------------------------ */
+.modal-confirm-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1.25rem;
+    box-sizing: border-box;
+}
+
+.modal-confirm-card {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 2rem;
+    max-width: 420px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+    animation: zoomIn 0.25s ease;
+}
+
+@keyframes zoomIn {
+    from {
+        transform: scale(0.92);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.modal-icon-warning {
+    width: 58px;
+    height: 58px;
+    background-color: #fef2f2;
+    color: #ef4444;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin: 0 auto 1.25rem auto;
+}
+
+.modal-confirm-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 0.5rem;
+}
+
+.modal-confirm-desc {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    color: #64748b;
+    line-height: 1.45;
+    margin-bottom: 1.5rem;
+}
+
+.modal-actions-row {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.btn-modal-cancel {
+    flex: 1;
+    padding: 0.75rem;
+    border-radius: 10px;
+    background-color: #f1f5f9;
+    color: #475569;
+    border: none;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.btn-modal-confirm {
+    flex: 1;
+    padding: 0.75rem;
+    border-radius: 10px;
+    background-color: #dc2626;
+    color: #ffffff;
+    border: none;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* ------------------------------------------------------------------------------
+   7.1. DRAWER LATERAL Y BOTTOM SHEET DE SUBCIRCUITOS
+   ------------------------------------------------------------------------------ */
+.drawer-subcircuitos-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 2100;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.drawer-subcircuitos-backdrop.open {
+    opacity: 1;
+    visibility: visible;
+}
+
+.drawer-subcircuitos {
+    position: fixed;
+    top: 0;
+    right: -420px;
+    width: 390px;
+    max-width: 90vw;
+    height: 100vh;
+    background: #ffffff;
+    z-index: 2200;
+    box-shadow: -10px 0 35px rgba(0, 0, 0, 0.25);
+    display: flex;
+    flex-direction: column;
+    transition: right 0.35s cubic-bezier(0.16, 1, 0.3, 1), bottom 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    font-family: 'Inter', sans-serif;
+}
+
+.drawer-subcircuitos.open {
+    right: 0;
+}
+
+.drawer-header {
+    padding: 1.25rem 1.25rem 1rem 1.25rem;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.drawer-header-info {
+    flex: 1;
+}
+
+.drawer-badge-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+}
+
+.drawer-route-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: #e2e8f0;
+    color: #0f172a;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.2rem 0.55rem;
+    border-radius: 9999px;
+    text-transform: uppercase;
+}
+
+.drawer-route-badge i {
+    color: #16a34a;
+}
+
+.drawer-total-kms {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #64748b;
+}
+
+.drawer-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 0.2rem 0;
+}
+
+.drawer-subtitle {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin: 0;
+    line-height: 1.35;
+}
+
+.btn-close-drawer {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+}
+
+.btn-close-drawer:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+.drawer-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.drawer-tip-box {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 12px;
+    padding: 0.75rem 0.85rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    font-size: 0.78rem;
+    color: #1e40af;
+    line-height: 1.4;
+}
+
+.drawer-tip-box i {
+    margin-top: 2px;
+    color: #3b82f6;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.drawer-subcircuitos-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.subcircuito-card-item {
+    border: 1.5px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 0.95rem;
+    background: #ffffff;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.subcircuito-card-item:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.subcircuito-card-item.item-active {
+    border-color: #22c55e;
+    background: #f0fdf4;
+    box-shadow: 0 4px 16px rgba(34, 197, 94, 0.15);
+}
+
+.subcircuito-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.subcircuito-number-badge {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 800;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.subcircuito-card-title-group {
+    flex: 1;
+    min-width: 0;
+}
+
+.subcircuito-item-name {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 0.2rem 0;
+    line-height: 1.3;
+}
+
+.subcircuito-item-meta {
+    font-size: 0.75rem;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.subcircuito-item-status-tag {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.2rem 0.55rem;
+    border-radius: 9999px;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.subcircuito-item-status-tag.status-en-curso {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.subcircuito-item-status-tag.status-completado {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.subcircuito-item-status-tag.status-pendiente {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.subcircuito-card-actions {
+    display: flex;
+    gap: 0.5rem;
+    padding-top: 0.35rem;
+    border-top: 1px dashed #e2e8f0;
+}
+
+.btn-enfocar-subcircuito {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 9999px;
+    padding: 0.45rem 0.85rem;
+    color: #0f172a;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn-enfocar-subcircuito:hover {
+    background: #0b381e;
+    color: #ffffff;
+    border-color: #0b381e;
+}
+
+/* ------------------------------------------------------------------------------
+   8. PIN PERSONALIZADO DEL CICLISTA CON HALO
+   ------------------------------------------------------------------------------ */
+.cyclist-marker-pin {
+    width: 22px;
+    height: 22px;
+    background-color: #15803d;
+    border: 3px solid #ffffff;
+    border-radius: 50%;
+    position: relative;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+.cyclist-marker-pulse {
+    position: absolute;
+    top: -9px;
+    left: -9px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: rgba(34, 197, 94, 0.3);
+    animation: cyclistPulse 2s infinite ease-out;
+}
+
+@keyframes cyclistPulse {
+    0% {
+        transform: scale(0.5);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1.6);
+        opacity: 0;
+    }
+}
+
+/* ------------------------------------------------------------------------------
+   9. RESPONSIVE QUERIES (TELÉFONOS SMARTPHONE)
+   ------------------------------------------------------------------------------ */
+@media (max-width: 640px) {
+    .carrera-hud-container {
+        top: 112px;
+        left: 8px;
+        right: 8px;
+    }
+
+    .carrera-hud-card {
+        padding: 0.65rem 0.45rem;
+        border-radius: 14px;
+        gap: 0.25rem;
+    }
+
+    .hud-value {
+        font-size: 1.2rem;
+    }
+
+    .hud-label {
+        font-size: 0.6rem;
+    }
+
+    .hud-unit {
+        font-size: 0.62rem;
+    }
+
+    .topbar-center-badge {
+        font-size: 0.76rem;
+        max-width: 140px;
+        padding: 0.35rem 0.65rem;
+    }
+
+    .btn-etapas-text {
+        display: none;
+    }
+
+    .btn-toggle-etapas {
+        padding: 0.45rem 0.6rem;
+    }
+
+    .gps-text-label {
+        display: none;
+    }
+
+    .gps-signal-badge {
+        padding: 0.45rem 0.55rem;
+    }
+
+    .subcircuito-floating-pill {
+        top: 60px;
+        left: 8px;
+        right: 8px;
+        padding: 0.45rem 0.65rem;
+    }
+
+    .subcircuito-name-text {
+        max-width: 130px;
+        font-size: 0.78rem;
+    }
+
+    .subcircuito-stepper-bar {
+        top: 100px;
+        left: 12px;
+        right: 12px;
+    }
+
+    /* En móvil el drawer se convierte en Bottom Sheet */
+    .drawer-subcircuitos {
+        top: auto;
+        bottom: -100%;
+        right: 0;
+        left: 0;
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        max-height: 82vh;
+        border-radius: 20px 20px 0 0;
+    }
+
+    .drawer-subcircuitos.open {
+        bottom: 0;
+        right: 0;
+    }
+
+    .carrera-controls-bar {
+        bottom: 12px;
+        padding: 0.6rem 0.75rem;
+    }
+
+    .btn-carrera-action {
+        font-size: 0.95rem;
+        padding: 0.75rem 0.85rem;
+        min-height: 48px;
+    }
+
+    .proximity-banner {
+        right: 16px;
+        bottom: 95px;
+    }
+
+    .btn-recenter-gps {
+        bottom: 85px;
+        right: 12px;
+        width: 44px;
+        height: 44px;
+        font-size: 1.1rem;
+    }
+}

@@ -1,0 +1,358 @@
+{% extends "base/base_ciudadano.html" %}
+{% load static %}
+
+{% block title %}Inscripción de Ciclistas | Ciclismo Malagueño{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'vendor/leaflet/leaflet.css' %}">
+<link rel="stylesheet" href="{% static 'css/pages/contacto.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- --------------------------------------------------------------------------- -->
+<!-- 1. HERO INSTITUCIONAL: IDÉNTICO A LA IDENTIDAD DE LA WEB                    -->
+<!-- --------------------------------------------------------------------------- -->
+<section class="contacto-hero-section">
+    <div class="contacto-hero-overlay"></div>
+    <div class="container" style="position: relative; z-index: 2;">
+        <div class="contacto-hero-content">
+            <!-- Badge dorado institucional -->
+            <div class="contacto-hero-badge">
+                <i class="fa-solid fa-bicycle"></i>
+                <span>Inscripción Oficial de Ciclistas</span>
+            </div>
+
+            <h1 class="contacto-hero-title">
+                Registro y <br>
+                <span class="highlight-yellow">Asistencia Municipal</span>
+            </h1>
+
+            <p class="contacto-hero-desc">
+                Inscríbete para participar en los circuitos municipales de Malagueño. Al completar tu registro, tu solicitud quedará en estado <strong>PENDIENTE</strong> para la revisión y validación del equipo organizador.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- --------------------------------------------------------------------------- -->
+<!-- 2. CONTENIDO PRINCIPAL: FONDO BLANCO LIMPIO                                 -->
+<!-- --------------------------------------------------------------------------- -->
+<section class="contacto-page-content">
+    <div class="container">
+        <div class="contacto-content-grid">
+
+            <!-- COLUMNA IZQUIERDA: PASOS DE VALIDACIÓN Y CANALES -->
+            <div class="contacto-info-column">
+                <!-- Tarjeta: Proceso de Validación -->
+                <div class="info-channel-card" style="border-left: 4px solid #2e7d32;">
+                    <div class="info-channel-icon">
+                        <i class="fa-solid fa-clipboard-check"></i>
+                    </div>
+                    <div class="info-channel-body">
+                        <h3 class="info-channel-title">Proceso de Validación Oficial</h3>
+                        <p class="info-channel-text">
+                            <strong>1. Envío:</strong> Completas tus datos en este formulario.<br>
+                            <strong>2. Estado Pendiente:</strong> Tu ficha ingresa al panel administrativo municipal.<br>
+                            <strong>3. Aprobación:</strong> El administrador valida tu identidad y te notifica por correo para acceder a la app de carrera.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Tarjeta: Sede Municipal -->
+                <div class="info-channel-card">
+                    <div class="info-channel-icon">
+                        <i class="fa-solid fa-building-columns"></i>
+                    </div>
+                    <div class="info-channel-body">
+                        <h3 class="info-channel-title">Sede Municipal</h3>
+                        <p class="info-channel-text">
+                            Av. San Martín 450, Malagueño, Córdoba (CP 5101).<br>
+                            <strong>Horario de atención:</strong> Lunes a Viernes de 07:00 a 14:00 hs.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Tarjeta: Teléfonos y Emergencias -->
+                <div class="info-channel-card">
+                    <div class="info-channel-icon">
+                        <i class="fa-solid fa-phone"></i>
+                    </div>
+                    <div class="info-channel-body">
+                        <h3 class="info-channel-title">Líneas de Asistencia</h3>
+                        <p class="info-channel-text">
+                            <strong>Mesa de Entradas:</strong> (0351) 498-1000<br>
+                            <strong>Dirección de Deportes:</strong> (0351) 498-1001<br>
+                            <strong>Guardia Urbana / Defensa Civil:</strong> 103 (24 hs)
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Tarjeta: Correos Oficiales -->
+                <div class="info-channel-card">
+                    <div class="info-channel-icon">
+                        <i class="fa-solid fa-envelope"></i>
+                    </div>
+                    <div class="info-channel-body">
+                        <h3 class="info-channel-title">Correos Oficiales</h3>
+                        <p class="info-channel-text">
+                            <strong>Área de Ciclismo:</strong> <a href="mailto:ciclismo@malagueno.gob.ar" class="info-channel-link">ciclismo@malagueno.gob.ar</a><br>
+                            <strong>Consultas Generales:</strong> <a href="mailto:contacto@malagueno.gob.ar" class="info-channel-link">contacto@malagueno.gob.ar</a>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Mini Mapa Interactivo de Malagueño -->
+                <div class="contacto-mapa-box">
+                    <div class="contacto-mapa-header">
+                        <h4 class="contacto-mapa-title">
+                            <i class="fa-solid fa-location-dot" style="color: #2e7d32;"></i>
+                            <span>Edificio Municipal de Malagueño</span>
+                        </h4>
+                        <span style="font-size: 0.8rem; color: #64748b;">Av. San Martín 450</span>
+                    </div>
+                    <div id="contactoMapContainer"></div>
+                </div>
+            </div>
+
+            <!-- COLUMNA DERECHA: FORMULARIO OFICIAL DE INSCRIPCIÓN -->
+            <div class="contacto-form-column">
+                <div class="contacto-form-card">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+                        <h2 class="form-header-title" style="margin: 0;">Ficha de Inscripción</h2>
+                        <span class="category-tag" style="background: #fef3c7; color: #b45309; border-color: #fde68a;">
+                            <i class="fa-regular fa-clock" style="margin-right: 4px;"></i> Estado inicial: Pendiente
+                        </span>
+                    </div>
+                    <p class="form-header-desc">
+                        Ingresa tus datos personales y deportivos. Una vez enviado el formulario, tu solicitud aparecerá en estado <strong>Pendiente</strong> en el Panel de Ciclistas para la decisión del administrador.
+                    </p>
+
+                    <!-- Mensajes Flash de Django -->
+                    {% if messages %}
+                        {% for message in messages %}
+                        <div class="alert-box {% if message.tags == 'error' %}error{% elif message.tags == 'warning' %}error{% else %}success{% endif %}">
+                            <i class="fa-solid {% if message.tags == 'error' or message.tags == 'warning' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %}"></i>
+                            <span>{{ message }}</span>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="POST" action="" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <!-- Fila 1: Nombre y DNI -->
+                        <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 1rem;">
+                            <div class="contacto-form-group">
+                                <label for="inputNombre" class="contacto-label">
+                                    <i class="fa-regular fa-user"></i>
+                                    <span>Nombre y Apellido <span style="color: #dc2626;">*</span></span>
+                                </label>
+                                <input type="text"
+                                       id="inputNombre"
+                                       name="nombre"
+                                       required
+                                       value="{{ datos.nombre|default:'' }}"
+                                       placeholder="Ej: Mateo Carrera"
+                                       class="contacto-input">
+                            </div>
+
+                            <div class="contacto-form-group">
+                                <label for="inputDNI" class="contacto-label">
+                                    <i class="fa-regular fa-id-card"></i>
+                                    <span>DNI / Documento <span style="color: #dc2626;">*</span></span>
+                                </label>
+                                <input type="text"
+                                       id="inputDNI"
+                                       name="dni"
+                                       required
+                                       value="{{ datos.dni|default:'' }}"
+                                       placeholder="Ej: 40123456"
+                                       class="contacto-input">
+                            </div>
+                        </div>
+
+                        <!-- Fila 2: Email y Teléfono -->
+                        <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 1rem;">
+                            <div class="contacto-form-group">
+                                <label for="inputEmail" class="contacto-label">
+                                    <i class="fa-regular fa-envelope"></i>
+                                    <span>Correo Electrónico <span style="color: #dc2626;">*</span></span>
+                                </label>
+                                <input type="email"
+                                       id="inputEmail"
+                                       name="email"
+                                       required
+                                       value="{{ datos.email|default:'' }}"
+                                       placeholder="mateo@correo.com"
+                                       class="contacto-input">
+                            </div>
+
+                            <div class="contacto-form-group">
+                                <label for="inputTelefono" class="contacto-label">
+                                    <i class="fa-brands fa-whatsapp"></i>
+                                    <span>Teléfono / WhatsApp <span style="color: #dc2626;">*</span></span>
+                                </label>
+                                <input type="tel"
+                                       id="inputTelefono"
+                                       name="telefono"
+                                       required
+                                       value="{{ datos.telefono|default:'' }}"
+                                       placeholder="Ej: 351 1234567"
+                                       class="contacto-input">
+                            </div>
+                        </div>
+
+                        <!-- Fila 3: Fecha de Nacimiento y Nivel -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div class="contacto-form-group">
+                                <label for="inputFechaNacimiento" class="contacto-label">
+                                    <i class="fa-regular fa-calendar-days"></i>
+                                    <span>Fecha de Nacimiento</span>
+                                </label>
+                                <input type="date"
+                                       id="inputFechaNacimiento"
+                                       name="fecha_nacimiento"
+                                       value="{{ datos.fecha_nacimiento|default:'' }}"
+                                       class="contacto-input">
+                            </div>
+
+                            <div class="contacto-form-group">
+                                <label for="selectNivel" class="contacto-label">
+                                    <i class="fa-solid fa-gauge-high"></i>
+                                    <span>Nivel de Ciclismo</span>
+                                </label>
+                                <select id="selectNivel" name="nivel" class="contacto-select">
+                                    <option value="Aficionado" {% if datos.nivel == 'Aficionado' or not datos %}selected{% endif %}>Aficionado</option>
+                                    <option value="Pro" {% if datos.nivel == 'Pro' %}selected{% endif %}>Pro (Avanzado)</option>
+                                    <option value="Elite" {% if datos.nivel == 'Elite' %}selected{% endif %}>Elite (Competición)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Fila 4: Club / Entidad -->
+                        <div class="contacto-form-group">
+                            <label for="inputClub" class="contacto-label">
+                                <i class="fa-solid fa-users"></i>
+                                <span>Club / Entidad Deportiva</span>
+                            </label>
+                            <input type="text"
+                                   id="inputClub"
+                                   name="club_entidad"
+                                   value="{{ datos.club_entidad|default:'' }}"
+                                   placeholder="Ej: Independiente o Club Malagueño"
+                                   class="contacto-input">
+                        </div>
+
+                        <!-- Fila: Foto Carnet / Imagen de Perfil -->
+                        <div class="contacto-form-group">
+                            <label for="inputFotoCarnet" class="contacto-label">
+                                <i class="fa-solid fa-camera"></i>
+                                <span>Foto Carnet / Imagen de Perfil</span>
+                            </label>
+                            <div style="display: flex; align-items: center; gap: 1.15rem; background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 12px; padding: 0.9rem 1.1rem;">
+                                <div id="fotoCarnetPreviewWrap" style="width: 60px; height: 60px; border-radius: 50%; overflow: hidden; background: #e2e8f0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 2px solid #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.08);">
+                                    <i class="fa-solid fa-user" id="fotoCarnetIcon" style="font-size: 1.8rem; color: #94a3b8;"></i>
+                                    <img id="fotoCarnetImg" src="" alt="Vista previa" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                                </div>
+                                <div style="flex: 1;">
+                                    <input type="file"
+                                           id="inputFotoCarnet"
+                                           name="foto"
+                                           accept="image/*"
+                                           class="contacto-input"
+                                           style="padding: 0.45rem 0.6rem; font-size: 0.85rem; background: #ffffff;"
+                                           onchange="handleFotoCarnetPreview(this)">
+                                    <small style="display: block; color: #64748b; font-size: 0.76rem; margin-top: 0.3rem;">
+                                        Formatos recomendados: JPG, PNG o WEBP. Foto de rostro nítida para tu credencial oficial.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Fila 4: Contacto de Emergencia -->
+                        <div class="contacto-form-group">
+                            <label for="inputEmergencia" class="contacto-label">
+                                <i class="fa-solid fa-heart-pulse"></i>
+                                <span>Contacto de Emergencia (Nombre y Teléfono) <span style="color: #dc2626;">*</span></span>
+                            </label>
+                            <input type="text"
+                                   id="inputEmergencia"
+                                   name="contacto_emergencia"
+                                   required
+                                   value="{{ datos.contacto_emergencia|default:'' }}"
+                                   placeholder="Ej: Laura Carrera (Madre) - 351 7654321"
+                                   class="contacto-input">
+                        </div>
+
+                        <!-- Fila 5: Observaciones o Datos Médicos -->
+                        <div class="contacto-form-group">
+                            <label for="textareaObs" class="contacto-label">
+                                <i class="fa-regular fa-comment-dots"></i>
+                                <span>Observaciones / Información Médica Relevante</span>
+                            </label>
+                            <textarea id="textareaObs"
+                                      name="observaciones"
+                                      placeholder="Alergias, grupo sanguíneo, consulta particular o mensaje para la organización..."
+                                      class="contacto-textarea">{{ datos.observaciones|default:'' }}</textarea>
+                        </div>
+
+                        <!-- Botón Enviar Solicitud -->
+                        <button type="submit" class="btn-enviar-contacto">
+                            <i class="fa-solid fa-user-plus"></i>
+                            <span>Completar Inscripción (Quedará Pendiente)</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'vendor/leaflet/leaflet.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Coordenadas oficiales de la Municipalidad de Malagueño
+        const lat = -31.464500;
+        const lng = -64.362000;
+
+        const map = L.map('contactoMapContainer', {
+            zoomControl: true,
+            scrollWheelZoom: false
+        }).setView([lat, lng], 15);
+
+        // Capa OSM HOT
+        L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors',
+            maxZoom: 19,
+            subdomains: 'abc'
+        }).addTo(map);
+
+        // Marcador Institucional
+        const marker = L.marker([lat, lng]).addTo(map);
+        marker.bindPopup(`
+            <div style="font-family: inherit; font-size: 0.85rem; padding: 4px;">
+                <strong style="color: #114224; font-size: 0.95rem;">Municipalidad de Malagueño</strong><br>
+                <span>Av. San Martín 450</span><br>
+                <small style="color: #2e7d32; font-weight: 600;">Sede de Validación de Ciclistas</small>
+            </div>
+        `).openPopup();
+    });
+
+    function handleFotoCarnetPreview(input) {
+        const icon = document.getElementById('fotoCarnetIcon');
+        const img = document.getElementById('fotoCarnetImg');
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                img.src = e.target.result;
+                img.style.display = 'block';
+                icon.style.display = 'none';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
+{% endblock %}
