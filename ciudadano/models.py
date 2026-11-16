@@ -56,9 +56,9 @@ class CircuitoGeneral(models.Model):
         help_text="Fecha hasta la cual los ciclistas pueden postularse para la carrera oficial."
     )
     radio_largada_metros = models.IntegerField(
-        default=80,
+        default=20,
         verbose_name="Radio de Largada (metros)",
-        help_text="Distancia máxima de tolerancia respecto al punto de inicio para validar la largada oficial."
+        help_text="Distancia máxima de tolerancia (20 m recomendados) respecto al Km 0 para validar la largada oficial."
     )
 
     class Meta:
@@ -68,6 +68,27 @@ class CircuitoGeneral(models.Model):
 
     def __str__(self):
         return f"{self.nombre} {'(ACTIVO)' if self.activo else ''}"
+
+    @property
+    def es_evento(self):
+        """Indica si el circuito corresponde a una carrera o evento oficial con fecha programada."""
+        return self.fecha_evento is not None
+
+    @property
+    def evento_vigente(self):
+        """Indica si la fecha de la carrera es igual o posterior a la jornada actual."""
+        if not self.fecha_evento:
+            return False
+        from datetime import date
+        return self.fecha_evento >= date.today()
+
+    @property
+    def evento_concluido(self):
+        """Indica si la fecha programada de la carrera ya transcurrió pero el circuito continúa disponible para uso libre."""
+        if not self.fecha_evento:
+            return False
+        from datetime import date
+        return self.fecha_evento < date.today()
 
     @property
     def punto_largada(self):
@@ -92,16 +113,14 @@ class CircuitoGeneral(models.Model):
     @property
     def distancia_total_km(self):
         """Calcula la distancia total acumulada del circuito sumando los trazados de sus etapas."""
-        from .utils import calcular_distancia_total_puntos
-        total_metros = 0.0
-        for sub in self.subcircuitos.all():
-            pts = list(sub.trazado.values('latitud', 'longitud').order_by('orden'))
-            total_metros += calcular_distancia_total_puntos(pts)
-        return round(total_metros / 1000.0, 1)
+        total_metros = sum(sub.distancia_metros for sub in self.subcircuitos.all())
+        return round(total_metros / 1000.0, 2)
 
     @property
     def inscripcion_abierta(self):
         """Indica si el período de inscripción para el evento oficial sigue vigente."""
+        if not self.evento_vigente:
+            return False
         if not self.fecha_limite_inscripcion:
             return True
         from datetime import date
@@ -134,6 +153,21 @@ class SubCircuito(models.Model):
 
     def __str__(self):
         return f"[{self.orden}] {self.nombre} - {self.circuito_general.nombre}"
+
+    @property
+    def distancia_metros(self):
+        """Calcula la distancia geodésica acumulada de los puntos del tramo utilizando la fórmula de Haversine."""
+        from .utils import calcular_distancia_total_puntos
+        pts = list(self.trazado.values('latitud', 'longitud').order_by('orden'))
+        if not pts or len(pts) < 2:
+            return 0.0
+        return calcular_distancia_total_puntos(pts)
+
+    @property
+    def distancia_km(self):
+        """Devuelve la distancia del tramo o etapa en kilómetros redondeada a 2 decimales."""
+        m = self.distancia_metros
+        return round(m / 1000.0, 2)
 
 
 class PuntosTramo(models.Model):
@@ -237,9 +271,9 @@ class ComercioAdherido(models.Model):
     latitud = models.DecimalField(max_digits=9, decimal_places=6, verbose_name="Latitud")
     longitud = models.DecimalField(max_digits=9, decimal_places=6, verbose_name="Longitud")
     radio_tolerancia_metros = models.IntegerField(
-        default=30,
+        default=20,
         verbose_name="Radio de Tolerancia (metros)",
-        help_text="Distancia máxima para validar automáticamente la visita del ciclista."
+        help_text="Distancia máxima de tolerancia (20 m por defecto) para validar automáticamente la visita del ciclista."
     )
     imagen = models.ImageField(
         upload_to=ruta_logo_comercio,
@@ -338,6 +372,15 @@ class RecorridoCiclista(models.Model):
 
     def __str__(self):
         return f"Recorrido #{self.id} ({self.get_modalidad_display()}) - {self.ciclista.username} [{self.get_estado_display()}]"
+
+    @property
+    def distancia_km(self):
+        """Calcula la distancia acumulada en kilómetros sumando la telemetría GPS registrada."""
+        from .utils import calcular_distancia_total_puntos
+        pts = list(self.puntos.values('latitud', 'longitud').order_by('timestamp'))
+        if not pts:
+            return 0.0
+        return round(calcular_distancia_total_puntos(pts) / 1000.0, 2)
 
 
 class ParadaRecorrido(models.Model):

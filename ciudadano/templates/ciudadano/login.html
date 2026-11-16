@@ -33,8 +33,11 @@
             {% endif %}
 
             <!-- Formulario de Inicio de Sesión -->
-            <form method="POST" action="{% url 'login' %}" class="login-form">
+            <form method="POST" action="{% url 'login' %}{% if next_url or request.GET.next %}?next={{ next_url|default:request.GET.next }}{% endif %}" class="login-form">
                 {% csrf_token %}
+                {% if next_url or request.GET.next %}
+                <input type="hidden" name="next" value="{{ next_url|default:request.GET.next }}">
+                {% endif %}
 
                 <!-- Campo DNI o Correo -->
                 <div class="login-form-group">

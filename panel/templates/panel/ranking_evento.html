@@ -1,0 +1,769 @@
+{% extends "base/base_panel.html" %}
+{% load static %}
+
+{% block title %}Ranking y Estadísticas Oficiales | Municipalidad de Malagueño{% endblock %}
+{% block page_title %}Ranking y Estadísticas de Carrera{% endblock %}
+
+{% block extra_css %}
+<style>
+.ranking-container {
+    padding: 1.5rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    font-family: 'Outfit', sans-serif;
+}
+
+/* Header & Filtros */
+.ranking-header {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 1.5rem 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    border: 1px solid #f1f5f9;
+    margin-bottom: 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.ranking-title-group h1 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 0.35rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.ranking-title-group p {
+    font-size: 0.92rem;
+    color: #64748b;
+    margin: 0;
+}
+
+.circuito-badge-evento {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: #fef3c7;
+    color: #b45309;
+    padding: 0.3rem 0.8rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.circuito-badge-libre {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: #f1f5f9;
+    color: #475569;
+    padding: 0.3rem 0.8rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.ranking-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.85rem;
+}
+
+.select-circuito-picker {
+    padding: 0.65rem 1.1rem;
+    border-radius: 12px;
+    border: 1.5px solid #cbd5e1;
+    background: #f8fafc;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #0f172a;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.select-circuito-picker:focus {
+    border-color: #16a34a;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15);
+}
+
+.tabs-modalidad-group {
+    display: flex;
+    background: #f1f5f9;
+    padding: 4px;
+    border-radius: 12px;
+}
+
+.tab-modalidad-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.82rem;
+    font-weight: 800;
+    border-radius: 9px;
+    text-decoration: none;
+    color: #64748b;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.tab-modalidad-btn.active {
+    background: #ffffff;
+    color: #0f172a;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* KPI Cards */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+.kpi-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 1.25rem 1.5rem;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.03);
+    border: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.kpi-icon-wrap {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.45rem;
+    flex-shrink: 0;
+}
+
+.kpi-gold { background: #fffbeb; color: #d97706; }
+.kpi-emerald { background: #ecfdf5; color: #059669; }
+.kpi-blue { background: #eff6ff; color: #2563eb; }
+.kpi-purple { background: #f5f3ff; color: #7c3aed; }
+
+.kpi-data-wrap {
+    display: flex;
+    flex-direction: column;
+}
+
+.kpi-val {
+    font-size: 1.65rem;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.2;
+}
+
+.kpi-lbl {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+}
+
+/* Podio de Honor */
+.podio-section {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 2.25rem;
+    color: #ffffff;
+    box-shadow: 0 8px 30px rgba(15, 23, 42, 0.15);
+}
+
+.podio-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.podio-header h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin: 0 0 0.4rem 0;
+    color: #f8fafc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+}
+
+.podio-header p {
+    color: #94a3b8;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.podio-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+    align-items: stretch;
+}
+
+.podio-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 18px;
+    padding: 1.75rem 1.25rem;
+    text-align: center;
+    position: relative;
+    transition: transform 0.25s ease;
+}
+
+.podio-card:hover {
+    transform: translateY(-4px);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.podio-1 {
+    border-color: #f59e0b;
+    box-shadow: 0 0 25px rgba(245, 158, 11, 0.2);
+    background: linear-gradient(180deg, rgba(245, 158, 11, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%);
+}
+
+.medal-badge {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    margin: -10px auto 1rem auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    font-weight: 800;
+    border: 3px solid #ffffff;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.medal-1 { background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%); color: #78350f; }
+.medal-2 { background: linear-gradient(135deg, #e2e8f0 0%, #94a3b8 100%); color: #334155; }
+.medal-3 { background: linear-gradient(135deg, #fed7aa 0%, #ea580c 100%); color: #7c2d12; }
+
+.podio-ciclista-name {
+    font-size: 1.2rem;
+    font-weight: 800;
+    margin: 0 0 0.3rem 0;
+    color: #ffffff;
+}
+
+.podio-ciclista-club {
+    font-size: 0.82rem;
+    color: #94a3b8;
+    margin-bottom: 1.25rem;
+}
+
+.podio-metrics-box {
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 12px;
+    padding: 0.85rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.65rem;
+    text-align: center;
+}
+
+.podio-metric-val {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #10b981;
+}
+
+.podio-metric-lbl {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #cbd5e1;
+    text-transform: uppercase;
+}
+
+/* Tabla de Ranking */
+.ranking-table-card {
+    background: #ffffff;
+    border-radius: 18px;
+    box-shadow: 0 4px 22px rgba(0, 0, 0, 0.04);
+    border: 1px solid #f1f5f9;
+    overflow: hidden;
+    margin-bottom: 2.5rem;
+}
+
+.table-header-block {
+    padding: 1.25rem 1.75rem;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.table-header-block h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+.ranking-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.ranking-table th {
+    background: #f8fafc;
+    padding: 0.95rem 1.25rem;
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.ranking-table td {
+    padding: 1.05rem 1.25rem;
+    font-size: 0.9rem;
+    color: #334155;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+
+.ranking-table tr:hover {
+    background: #f8fafc;
+}
+
+.rank-pos {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #0f172a;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: #f1f5f9;
+}
+
+.rank-pos-1 { background: #fef3c7; color: #b45309; }
+.rank-pos-2 { background: #f1f5f9; color: #475569; }
+.rank-pos-3 { background: #ffedd5; color: #c2410c; }
+
+.ciclista-info-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+}
+
+.ciclista-avatar-circle {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #16a34a;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.ciclista-name-txt {
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+}
+
+.ciclista-meta-txt {
+    font-size: 0.76rem;
+    color: #64748b;
+}
+
+.tag-modalidad-oficial {
+    background: #dcfce7;
+    color: #15803d;
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 800;
+}
+
+.tag-modalidad-libre {
+    background: #f1f5f9;
+    color: #475569;
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 800;
+}
+
+/* Tramos y Subcircuitos */
+.tramos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+.tramo-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 1.25rem;
+    box-shadow: 0 3px 14px rgba(0, 0, 0, 0.03);
+    border: 1px solid #f1f5f9;
+    border-left-width: 5px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ranking-container">
+
+    <!-- ------------------------------------------------------------------- -->
+    <!-- 1. HEADER DE CONTROL, FILTROS Y SELECTOR DE CIRCUITO                -->
+    <!-- ------------------------------------------------------------------- -->
+    <div class="ranking-header">
+        <div class="ranking-title-group">
+            <h1>
+                <i class="fa-solid fa-trophy" style="color: #f59e0b;"></i>
+                Ranking y Telemetría Oficial
+            </h1>
+            <p>
+                Clasificación de tiempos de largada a meta, velocidades punta y paradas en puntos de control para eventos municipales.
+            </p>
+        </div>
+
+        <div class="ranking-filter-bar">
+            <!-- Selector de Circuito -->
+            <form method="GET" action="{% url 'panel_ranking_evento' %}" style="display: flex; gap: 0.5rem; align-items: center;">
+                <input type="hidden" name="modalidad" value="{{ modalidad_filtro }}">
+                <select name="circuito_id" class="select-circuito-picker" onchange="this.form.submit()">
+                    {% if not circuitos_eventos and not circuitos_libres %}
+                        <option value="">No hay circuitos activos</option>
+                    {% else %}
+                        {% if circuitos_eventos %}
+                        <optgroup label="Carreras y Eventos Oficiales">
+                            {% for c in circuitos_eventos %}
+                            <option value="{{ c.id }}" {% if circuito.id == c.id %}selected{% endif %}>
+                                Carrera: {{ c.nombre }} ({{ c.fecha_evento|date:"d/m/Y" }})
+                            </option>
+                            {% endfor %}
+                        </optgroup>
+                        {% endif %}
+                        {% if circuitos_libres %}
+                        <optgroup label="Circuitos Recreativos / Libres">
+                            {% for c in circuitos_libres %}
+                            <option value="{{ c.id }}" {% if circuito.id == c.id %}selected{% endif %}>
+                                Circuito: {{ c.nombre }} (Permanente)
+                            </option>
+                            {% endfor %}
+                        </optgroup>
+                        {% endif %}
+                    {% endif %}
+                </select>
+            </form>
+
+            <!-- Pestañas de Modalidad -->
+            <div class="tabs-modalidad-group">
+                <a href="?circuito_id={{ circuito.id }}&modalidad=OFICIAL" class="tab-modalidad-btn {% if modalidad_filtro == 'OFICIAL' %}active{% endif %}">
+                    <i class="fa-solid fa-flag-checkered"></i> Oficial
+                </a>
+                <a href="?circuito_id={{ circuito.id }}&modalidad=LIBRE" class="tab-modalidad-btn {% if modalidad_filtro == 'LIBRE' %}active{% endif %}">
+                    <i class="fa-solid fa-person-biking"></i> Libre
+                </a>
+                <a href="?circuito_id={{ circuito.id }}&modalidad=TODAS" class="tab-modalidad-btn {% if modalidad_filtro == 'TODAS' %}active{% endif %}">
+                    Todos
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Indicador de Circuito Activo -->
+    {% if circuito %}
+    <div style="margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="font-size: 1.25rem; font-weight: 800; color: #0f172a;">{{ circuito.nombre }}</span>
+            {% if circuito.es_evento %}
+                <span class="circuito-badge-evento">
+                    <i class="fa-solid fa-calendar-check"></i> Evento: {{ circuito.fecha_evento|date:"d/m/Y" }}
+                </span>
+            {% else %}
+                <span class="circuito-badge-libre">
+                    <i class="fa-solid fa-infinity"></i> Recreativo Permanente
+                </span>
+            {% endif %}
+            <span style="font-size: 0.85rem; color: #64748b; font-weight: 600;">
+                <i class="fa-solid fa-road"></i> {{ circuito.distancia_total_km|default:"--" }} km
+            </span>
+        </div>
+        <div style="font-size: 0.85rem; color: #64748b;">
+            Tolerancia de Largada y Meta: <strong>20 metros</strong>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ------------------------------------------------------------------- -->
+    <!-- 2. KPI CARDS DE ESTADÍSTICAS DEL EVENTO                             -->
+    <!-- ------------------------------------------------------------------- -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-icon-wrap kpi-gold">
+                <i class="fa-solid fa-stopwatch"></i>
+            </div>
+            <div class="kpi-data-wrap">
+                <span class="kpi-val">{{ mejor_tiempo }}</span>
+                <span class="kpi-lbl">Récord / Mejor Marca</span>
+            </div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-icon-wrap kpi-emerald">
+                <i class="fa-solid fa-gauge-high"></i>
+            </div>
+            <div class="kpi-data-wrap">
+                <span class="kpi-val">{{ velocidad_max_evento }} <small style="font-size: 0.9rem;">km/h</small></span>
+                <span class="kpi-lbl">Velocidad Máx. Registrada</span>
+            </div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-icon-wrap kpi-blue">
+                <i class="fa-solid fa-bolt"></i>
+            </div>
+            <div class="kpi-data-wrap">
+                <span class="kpi-val">{{ velocidad_prom_evento }} <small style="font-size: 0.9rem;">km/h</small></span>
+                <span class="kpi-lbl">Velocidad Media Pelotón</span>
+            </div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-icon-wrap kpi-purple">
+                <i class="fa-solid fa-users"></i>
+            </div>
+            <div class="kpi-data-wrap">
+                {% if modalidad_filtro == 'OFICIAL' %}
+                    <span class="kpi-val">{{ total_finalizados_oficial }} <small style="font-size: 0.9rem;">/ {{ total_inscriptos_oficiales }}</small></span>
+                    <span class="kpi-lbl">Arribos / Inscriptos Oficiales</span>
+                {% elif modalidad_filtro == 'LIBRE' %}
+                    <span class="kpi-val">{{ total_sesiones_libres }} <small style="font-size: 0.9rem;">({{ ciclistas_libres_unicos }} ciclistas)</small></span>
+                    <span class="kpi-lbl">Sesiones Libres / Usuarios</span>
+                {% else %}
+                    <span class="kpi-val">{{ total_finalizados }} <small style="font-size: 0.9rem;">/ {{ total_iniciados }}</small></span>
+                    <span class="kpi-lbl">Total Arribos / Iniciados</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- ------------------------------------------------------------------- -->
+    <!-- 3. PODIO DE HONOR (TOP 3 CORREDORES)                                -->
+    <!-- ------------------------------------------------------------------- -->
+    {% if podio %}
+    <div class="podio-section">
+        <div class="podio-header">
+            <h2>
+                <i class="fa-solid fa-crown" style="color: #fbbf24;"></i>
+                Podio Oficial de Competencia
+            </h2>
+            <p>Los tres mejores registros de tiempo completados en el circuito oficial</p>
+        </div>
+
+        <div class="podio-cards-grid">
+            {% for p in podio %}
+            <div class="podio-card {% if p.posicion == 1 %}podio-1{% endif %}">
+                <div class="medal-badge medal-{{ p.posicion }}">
+                    {% if p.posicion == 1 %}
+                        <i class="fa-solid fa-medal"></i>
+                    {% elif p.posicion == 2 %}
+                        <i class="fa-solid fa-medal"></i>
+                    {% else %}
+                        <i class="fa-solid fa-award"></i>
+                    {% endif %}
+                </div>
+                <h3 class="podio-ciclista-name">{{ p.ciclista_nombre }}</h3>
+                <div class="podio-ciclista-club">
+                    <i class="fa-solid fa-id-card"></i> DNI: {{ p.dni }} • {{ p.club }}
+                </div>
+
+                <div class="podio-metrics-box">
+                    <div>
+                        <div class="podio-metric-val">{{ p.tiempo_str }}</div>
+                        <div class="podio-metric-lbl">Tiempo Neto</div>
+                    </div>
+                    <div>
+                        <div class="podio-metric-val">{{ p.velocidad_prom }} <span style="font-size:0.7rem;">km/h</span></div>
+                        <div class="podio-metric-lbl">Velocidad Media</div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ------------------------------------------------------------------- -->
+    <!-- 4. TABLA CLASIFICATORIA GENERAL COMPLETA                            -->
+    <!-- ------------------------------------------------------------------- -->
+    <div class="ranking-table-card">
+        <div class="table-header-block">
+            <h3>
+                <i class="fa-solid fa-list-ol"></i>
+                Tabla Clasificatoria Oficial ({{ participantes|length }} Participantes)
+            </h3>
+        </div>
+
+        <div class="table-responsive">
+            <table class="ranking-table">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">Pos</th>
+                        <th>Ciclista / DNI</th>
+                        <th>Categoría / Club</th>
+                        <th>Tiempo Oficial</th>
+                        <th>Distancia</th>
+                        <th>Vel. Promedio</th>
+                        <th>Vel. Máx GPS</th>
+                        <th>Paradas / Control</th>
+                        <th>Modalidad</th>
+                        <th>Fecha y Hora</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in participantes %}
+                    <tr>
+                        <td>
+                            <span class="rank-pos {% if p.posicion <= 3 %}rank-pos-{{ p.posicion }}{% endif %}">
+                                {{ p.posicion }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="ciclista-info-cell">
+                                <div class="ciclista-avatar-circle">
+                                    {{ p.ciclista_nombre|slice:":1"|upper }}
+                                </div>
+                                <div>
+                                    <p class="ciclista-name-txt">
+                                        {{ p.ciclista_nombre }}
+                                        {% if p.dorsal_str != '--' %}
+                                            <span style="display: inline-block; font-size: 0.72rem; font-weight: 700; background: #eff6ff; color: #1d4ed8; padding: 1px 6px; border-radius: 4px; margin-left: 4px;">Dorsal {{ p.dorsal_str }}</span>
+                                        {% endif %}
+                                    </p>
+                                    <span class="ciclista-meta-txt">DNI: {{ p.dni }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <strong style="color: #0f172a;">{{ p.nivel }}</strong>
+                            <div style="font-size: 0.78rem; color: #64748b;">{{ p.club }}</div>
+                        </td>
+                        <td>
+                            <strong style="font-size: 1.05rem; color: #059669; font-family: monospace;">
+                                {{ p.tiempo_str }}
+                            </strong>
+                        </td>
+                        <td>
+                            <strong>{{ p.distancia_km }} km</strong>
+                        </td>
+                        <td>
+                            <strong>{{ p.velocidad_prom }} km/h</strong>
+                        </td>
+                        <td>
+                            <span style="color: #dc2626; font-weight: 700;">
+                                <i class="fa-solid fa-gauge-high"></i> {{ p.velocidad_max }} km/h
+                            </span>
+                        </td>
+                        <td>
+                            <span title="Paradas totales: {{ p.paradas }} | En comercio adherido: {{ p.comercios }}">
+                                <i class="fa-solid fa-store" style="color: #16a34a;"></i> {{ p.comercios }}
+                                <small style="color: #94a3b8;">({{ p.paradas }} tot)</small>
+                            </span>
+                        </td>
+                        <td>
+                            {% if p.modalidad == 'OFICIAL' %}
+                                <span class="tag-modalidad-oficial"><i class="fa-solid fa-flag-checkered"></i> Oficial</span>
+                            {% else %}
+                                <span class="tag-modalidad-libre"><i class="fa-solid fa-person-biking"></i> Libre</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span style="font-size: 0.82rem; color: #64748b;">{{ p.fecha }}</span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="10" style="text-align: center; padding: 3rem 1.5rem; color: #64748b;">
+                            <div style="font-size: 2.5rem; color: #cbd5e1; margin-bottom: 0.75rem;">
+                                <i class="fa-solid fa-person-biking"></i>
+                            </div>
+                            <h4 style="font-weight: 700; margin: 0 0 0.25rem 0; color: #334155;">No hay registros para este filtro</h4>
+                            <p style="margin: 0; font-size: 0.88rem;">No se encontraron recorridos finalizados en la modalidad seleccionada.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ------------------------------------------------------------------- -->
+    <!-- 5. TRAMOS Y SUBCIRCUITOS DE LA CARRERA                              -->
+    <!-- ------------------------------------------------------------------- -->
+    {% if subcircuitos %}
+    <div style="margin-bottom: 1rem;">
+        <h3 style="font-size: 1.2rem; font-weight: 800; color: #0f172a; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fa-solid fa-route" style="color: #16a34a;"></i>
+            Etapas y Tramos del Circuito
+        </h3>
+        <div class="tramos-grid">
+            {% for sub in subcircuitos %}
+            <div class="tramo-card" style="border-left-color: {{ sub.color_capa|default:'#16a34a' }};">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <span style="font-size: 0.75rem; font-weight: 800; color: {{ sub.color_capa|default:'#16a34a' }}; text-transform: uppercase;">
+                        Etapa {{ sub.orden }}
+                    </span>
+                    <span style="font-size: 0.85rem; font-weight: 800; color: #0f172a;">
+                        {{ sub.distancia_km|default:"0.0" }} km
+                    </span>
+                </div>
+                <h4 style="font-size: 1rem; font-weight: 700; margin: 0 0 0.35rem 0; color: #0f172a;">
+                    {{ sub.nombre }}
+                </h4>
+                <p style="font-size: 0.82rem; color: #64748b; margin: 0;">
+                    {{ sub.descripcion|default:"Tramo oficial del recorrido municipal." }}
+                </p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+

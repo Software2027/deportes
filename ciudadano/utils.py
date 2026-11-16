@@ -69,6 +69,7 @@ def calcular_distancia_total_puntos(puntos: List[Dict[str, Any]]) -> float:
 def evaluar_parada_comercio(lat: float | Decimal, lon: float | Decimal, comercios) -> Optional[Dict[str, Any]]:
     """
     Verifica si una coordenada GPS se encuentra dentro del radio de tolerancia de algún comercio adherido.
+    Asegura un radio mínimo efectivo de 20 metros para compensar el margen del GPS móvil.
 
     Parámetros:
         lat, lon: Coordenadas capturadas del ciclista.
@@ -79,14 +80,16 @@ def evaluar_parada_comercio(lat: float | Decimal, lon: float | Decimal, comercio
     """
     for comercio in comercios:
         distancia = calcular_distancia_metros(lat, lon, comercio.latitud, comercio.longitud)
-        if distancia <= comercio.radio_tolerancia_metros:
+        # Radio mínimo de 20 metros garantizado
+        radio_efectivo = max(20, getattr(comercio, 'radio_tolerancia_metros', 20) or 20)
+        if distancia <= radio_efectivo:
             return {
                 'id': comercio.id,
                 'nombre': comercio.nombre,
                 'categoria': comercio.get_categoria_display() if hasattr(comercio, 'get_categoria_display') else comercio.categoria,
                 'distancia_metros': round(distancia, 1),
-                'radio_tolerancia': comercio.radio_tolerancia_metros,
-                'imagen_url': comercio.imagen.url if comercio.imagen else None
+                'radio_tolerancia': radio_efectivo,
+                'imagen_url': comercio.imagen.url if (comercio.imagen and hasattr(comercio.imagen, 'url')) else None
             }
     return None
 

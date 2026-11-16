@@ -41,19 +41,19 @@
             </div>
             <div class="metric-texts">
                 <span class="metric-title-small">Total Circuitos</span>
-                <h2 class="metric-value-huge">{{ total_circuitos|default:"1" }}</h2>
+                <h2 class="metric-value-huge">{{ total_circuitos }}</h2>
             </div>
         </div>
 
-        <!-- KPI 2: Circuito Activo -->
+        <!-- KPI 2: Circuitos Activos -->
         <div class="circuito-metric-card">
             <div class="metric-icon-square icon-box-blue">
                 <i class="fa-solid fa-flag-checkered"></i>
             </div>
             <div class="metric-texts">
-                <span class="metric-title-small">Circuito Activo</span>
-                <h2 class="metric-value-huge" style="font-size: 1.1rem; margin-top: 0.3rem;">
-                    {{ circuito_activo.nombre|default:"Ninguno" }}
+                <span class="metric-title-small">Circuitos Activos</span>
+                <h2 class="metric-value-huge">
+                    {{ circuitos_activos }}
                 </h2>
             </div>
         </div>
@@ -65,7 +65,7 @@
             </div>
             <div class="metric-texts">
                 <span class="metric-title-small">Total Etapas</span>
-                <h2 class="metric-value-huge">{{ total_subcircuitos|default:"3" }}</h2>
+                <h2 class="metric-value-huge">{{ total_subcircuitos }}</h2>
             </div>
         </div>
 
@@ -76,7 +76,7 @@
             </div>
             <div class="metric-texts">
                 <span class="metric-title-small">Comercios en Red</span>
-                <h2 class="metric-value-huge">{{ total_comercios_en_circuito|default:"5" }}</h2>
+                <h2 class="metric-value-huge">{{ total_comercios_en_circuito }}</h2>
             </div>
         </div>
     </section>
@@ -97,7 +97,9 @@
                 <thead>
                     <tr>
                         <th>Circuito</th>
-                        <th>Etapas / Subcircuitos</th>
+                        <th>Modalidad / Fechas</th>
+                        <th>Distancia</th>
+                        <th>Etapas</th>
                         <th>Comercios</th>
                         <th>Estado</th>
                         <th style="text-align: right;">Acciones</th>
@@ -110,6 +112,39 @@
                         <td class="col-circuito-info">
                             <span class="circuito-name-bold">{{ c.nombre }}</span>
                             <span class="circuito-desc-sub">{{ c.descripcion|default:"Sin descripción detallada" }}</span>
+                        </td>
+
+                        <!-- Modalidad y Fechas Oficiales -->
+                        <td>
+                            {% if c.es_evento %}
+                                <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                    <span style="display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 700; font-size: 0.8rem; color: #b45309; background: #fef3c7; padding: 0.2rem 0.55rem; border-radius: 6px; width: fit-content;">
+                                        <i class="fa-solid fa-trophy"></i> Carrera Oficial
+                                    </span>
+                                    <span style="font-size: 0.82rem; color: #334155; font-weight: 600;">
+                                        <i class="fa-regular fa-calendar" style="color: #64748b;"></i> {{ c.fecha_evento|date:"d/m/Y" }}
+                                    </span>
+                                    {% if c.fecha_limite_inscripcion %}
+                                    <span style="font-size: 0.74rem; color: #64748b;">
+                                        Límite: {{ c.fecha_limite_inscripcion|date:"d/m/Y" }}
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <span style="display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 700; font-size: 0.8rem; color: #0369a1; background: #e0f2fe; padding: 0.2rem 0.55rem; border-radius: 6px;">
+                                    <i class="fa-solid fa-infinity"></i> Recreativo Permanente
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Distancia y Radio -->
+                        <td>
+                            <strong style="color: #0f172a; font-size: 0.95rem;">
+                                {{ c.distancia_total_km|default:"0.0" }} km
+                            </strong>
+                            <span style="display: block; font-size: 0.74rem; color: #64748b;">
+                                Largada: ±{{ c.radio_deteccion_metros }}m
+                            </span>
                         </td>
 
                         <!-- Etapas / Subcircuitos con color identificatorio -->
@@ -153,13 +188,21 @@
                             <div class="actions-cell-wrap">
                                 <a href="{% url 'panel_circuito_editar' c.id %}" class="btn-action-pill btn-action-editor" title="Abrir Editor y Trazador">
                                     <i class="fa-solid fa-pen-ruler"></i>
-                                    <span>Editor y Trazador</span>
+                                    <span>Editor</span>
                                 </a>
 
-                                {% if not c.activo %}
+                                {% if c.activo %}
                                 <form method="POST" action="{% url 'panel_circuito_activar' c.id %}" style="display: inline;">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn-action-pill btn-action-activate" title="Fijar como circuito activo en toda la app">
+                                    <button type="submit" class="btn-action-pill" style="background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1;" title="Pausar y ocultar circuito de los ciclistas">
+                                        <i class="fa-solid fa-eye-slash"></i>
+                                        <span>Pausar</span>
+                                    </button>
+                                </form>
+                                {% else %}
+                                <form method="POST" action="{% url 'panel_circuito_activar' c.id %}" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-action-pill btn-action-activate" title="Activar y publicar en la app">
                                         <i class="fa-solid fa-circle-check"></i>
                                         <span>Activar</span>
                                     </button>
@@ -174,7 +217,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="5" style="text-align: center; padding: 2.5rem; color: #64748b;">
+                        <td colspan="7" style="text-align: center; padding: 2.5rem; color: #64748b;">
                             <i class="fa-solid fa-route" style="font-size: 2rem; margin-bottom: 0.5rem; display: block; color: #cbd5e1;"></i>
                             No hay circuitos registrados en el sistema. Presione "+ Nuevo Circuito" para comenzar.
                         </td>

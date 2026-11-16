@@ -37,6 +37,10 @@ urlpatterns = [
     path('circuitos/<int:pk>/eliminar/', views.circuito_delete_view, name='panel_circuito_eliminar'),
     path('circuitos/api/guardar/', views.circuito_guardar_api_view, name='panel_circuito_guardar_api'),
 
+    # Módulo: Ranking y Estadísticas de Eventos
+    path('ranking/', views.ranking_evento_view, name='panel_ranking_evento'),
+    path('ranking/<int:circuito_id>/', views.ranking_evento_view, name='panel_ranking_evento_circuito'),
+
     # Módulo: Gestión de Noticias
     path('noticias/', views.noticias_list_view, name='panel_noticias_listado'),
     path('noticias/nueva/', views.noticia_create_view, name='panel_noticia_nueva'),

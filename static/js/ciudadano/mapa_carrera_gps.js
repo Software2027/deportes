@@ -73,25 +73,52 @@ document.addEventListener('DOMContentLoaded', () => {
     const etapaAlertDesc = document.getElementById('etapa-alert-desc');
     const btnCloseEtapaAlert = document.getElementById('btn-close-etapa-alert');
 
+    // Elementos Fuera de Ruta
+    const alertaFueraRutaBanner = document.getElementById('alerta-fuera-ruta-banner');
+    const fueraRutaDistVal = document.getElementById('fuera-ruta-dist-val');
+    const btnCentrarDesvio = document.getElementById('btn-centrar-desvio-retorno');
+
+    // Elementos Modal Fuera de Meta
+    const modalFueraMeta = document.getElementById('modal-fuera-meta');
+    const metaDistActual = document.getElementById('meta-dist-actual');
+    const btnContinuarMeta = document.getElementById('btn-continuar-a-meta');
+    const btnForzarFinalizar = document.getElementById('btn-forzar-finalizar');
+
+    // Elementos Modal Selector de Circuitos
+    const modalSelectorCircuitos = document.getElementById('modal-selector-circuitos');
+    const btnAbrirSelector = document.getElementById('btn-toggle-modal-circuitos');
+    const btnCloseSelector = document.getElementById('btn-close-selector-circuitos');
+
     // Datos inyectados desde Django
     const trazados = window.carreraTrazado || [];
     const comercios = window.carreraComercios || [];
     let recorridoId = window.carreraRecorridoId || 0;
     const puntoLargada = window.carreraPuntoLargada || null; // [lat, lng]
     const puntoMeta = window.carreraPuntoMeta || null; // [lat, lng]
-    const radioLargadaMetros = window.carreraRadioLargadaMetros || 80;
+    const radioLargadaMetros = window.carreraRadioLargadaMetros || 20;
+    const radioMetaMetros = window.carreraRadioMetaMetros || 20;
     const modalidadRecorrido = window.carreraModalidad || 'LIBRE';
     const estadoInicial = window.carreraEstado || 'LISTO';
 
-    // 2. Estado de la Carrera y de Subcircuitos
+    // 2. Estado de la Carrera, Wake Lock y Reconciliación Temporal
     let estadoCarrera = 'LISTO'; // 'LISTO', 'EN_CURSO', 'PAUSADO', 'FINALIZADO'
     let segundosTranscurridos = 0;
     let cronometroInterval = null;
+    let timestampInicioMs = null;
+    let acumuladoPausasMs = 0;
+    let timestampUltimaPausaMs = null;
+    let wakeLock = null;
+
     let distanciaTotalMetros = 0;
     let ultimaCoordenada = null;
     let gpsWatchId = null;
     let autoCentrarGPS = true;
     let subcircuitoActivoIndex = 0; // Índice de la etapa en curso (0: Etapa 1)
+
+    // Estado Fuera de Ruta
+    let fueraDeRuta = false;
+    let lineaRetornoCircuito = null;
+    let puntoMasCercanoRuta = null;
 
     // Búfer de telemetría para envío por lotes a /api/gps/batch/
     let lotePuntosGPS = [];
@@ -290,9 +317,18 @@ document.addEventListener('DOMContentLoaded', () => {
             <div style="font-family:'Outfit', sans-serif; text-align:center;">
                 <span style="font-size:0.75rem; font-weight:800; color:#dc2626; text-transform:uppercase;">Fin del Circuito</span>
                 <h4 style="margin:2px 0 4px 0; font-size:1rem; font-weight:800; color:#0f172a;">LLEGADA / META</h4>
-                <span style="font-size:0.8rem; color:#64748b;">Punto de cierre oficial de la carrera</span>
+                <span style="font-size:0.8rem; color:#64748b;">Radio de tolerancia: <strong>${radioMetaMetros} m</strong></span>
             </div>
         `);
+
+        const metaCircle = L.circle(coordMeta, {
+            radius: radioMetaMetros,
+            color: '#dc2626',
+            fillColor: '#ef4444',
+            fillOpacity: 0.16,
+            weight: 2,
+            dashArray: '6, 6'
+        }).addTo(map);
 
         bounds.push(coordMeta);
     }
@@ -631,6 +667,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Verificar comercios
         verificarProximidadComercios(lat, lng);
 
+        // Verificar desvío fuera de ruta (geofencing)
+        verificarDesvioFueraDeRuta(lat, lng);
+
         // Agregar al búfer de telemetría (compatible con lat/lng y latitud/longitud)
         lotePuntosGPS.push({
             lat: parseFloat(lat.toFixed(6)),
@@ -798,12 +837,166 @@ document.addEventListener('DOMContentLoaded', () => {
         modalParada.style.display = 'flex';
     }
 
+    // 11.1. Algoritmo Geofencing: distancia ortodrómica punto a segmento y desvío de ruta
+    function proyectarPuntoASegmento(lat, lng, p1Lat, p1Lng, p2Lat, p2Lng) {
+        const LAT_TO_M = 110900;
+        const LNG_TO_M = 94800;
+
+        const x = (lng - p1Lng) * LNG_TO_M;
+        const y = (lat - p1Lat) * LAT_TO_M;
+        const dx = (p2Lng - p1Lng) * LNG_TO_M;
+        const dy = (p2Lat - p1Lat) * LAT_TO_M;
+
+        const l2 = dx * dx + dy * dy;
+        if (l2 === 0) {
+            const d = Math.sqrt(x * x + y * y);
+            return { distancia: d, puntoCercano: [p1Lat, p1Lng] };
+        }
+
+        let t = (x * dx + y * dy) / l2;
+        t = Math.max(0, Math.min(1, t));
+
+        const projLng = p1Lng + (t * (p2Lng - p1Lng));
+        const projLat = p1Lat + (t * (p2Lat - p1Lat));
+
+        const px = (lng - projLng) * LNG_TO_M;
+        const py = (lat - projLat) * LAT_TO_M;
+        const distancia = Math.sqrt(px * px + py * py);
+
+        return { distancia, puntoCercano: [projLat, projLng] };
+    }
+
+    function calcularDistanciaMinimaACircuito(lat, lng) {
+        let distanciaMinima = Infinity;
+        let mejorPunto = null;
+
+        for (const tr of trazados) {
+            if (!tr.coordenadas || tr.coordenadas.length < 2) continue;
+            for (let i = 0; i < tr.coordenadas.length - 1; i++) {
+                const p1 = tr.coordenadas[i];
+                const p2 = tr.coordenadas[i + 1];
+                const res = proyectarPuntoASegmento(lat, lng, p1[0], p1[1], p2[0], p2[1]);
+                if (res.distancia < distanciaMinima) {
+                    distanciaMinima = res.distancia;
+                    mejorPunto = res.puntoCercano;
+                }
+            }
+        }
+        return { distancia: distanciaMinima, puntoCercano: mejorPunto };
+    }
+
+    function verificarDesvioFueraDeRuta(lat, lng) {
+        if (!trazados || trazados.length === 0) return;
+
+        const { distancia, puntoCercano } = calcularDistanciaMinimaACircuito(lat, lng);
+        puntoMasCercanoRuta = puntoCercano;
+
+        const UMBRAL_DESVIO = 35; // Umbral de tolerancia: 35 metros
+        const UMBRAL_RETORNO = 22; // Distancia para considerar retorno seguro
+
+        if (distancia > UMBRAL_DESVIO) {
+            fueraDeRuta = true;
+            if (alertaFueraRutaBanner) alertaFueraRutaBanner.style.display = 'block';
+            if (fueraRutaDistVal) fueraRutaDistVal.textContent = Math.round(distancia);
+
+            if (puntoCercano) {
+                if (!lineaRetornoCircuito) {
+                    lineaRetornoCircuito = L.polyline([[lat, lng], puntoCercano], {
+                        color: '#ef4444',
+                        weight: 3.5,
+                        dashArray: '5, 8',
+                        opacity: 0.95
+                    }).addTo(map);
+                } else {
+                    lineaRetornoCircuito.setLatLngs([[lat, lng], puntoCercano]);
+                }
+            }
+
+            if (navigator.vibrate) {
+                navigator.vibrate([250, 100, 250]);
+            }
+        } else if (distancia <= UMBRAL_RETORNO && fueraDeRuta) {
+            fueraDeRuta = false;
+            if (alertaFueraRutaBanner) alertaFueraRutaBanner.style.display = 'none';
+            if (lineaRetornoCircuito) {
+                map.removeLayer(lineaRetornoCircuito);
+                lineaRetornoCircuito = null;
+            }
+        }
+    }
+
+    if (btnCentrarDesvio) {
+        btnCentrarDesvio.addEventListener('click', () => {
+            if (ultimaCoordenada && puntoMasCercanoRuta) {
+                autoCentrarGPS = false;
+                map.fitBounds([
+                    [ultimaCoordenada.lat, ultimaCoordenada.lng],
+                    puntoMasCercanoRuta
+                ], { padding: [80, 80], maxZoom: 17 });
+            }
+        });
+    }
+
+    // 11.2. Wake Lock API y Reconciliación con Reloj de Hardware Satelital
+    async function activarWakeLock() {
+        try {
+            if ('wakeLock' in navigator && !wakeLock) {
+                wakeLock = await navigator.wakeLock.request('screen');
+                wakeLock.addEventListener('release', () => {
+                    wakeLock = null;
+                });
+                console.log('[WakeLock] Pantalla activa garantizada durante la carrera');
+            }
+        } catch (err) {
+            console.warn('[WakeLock] No se pudo activar Wake Lock:', err.name, err.message);
+        }
+    }
+
+    function desactivarWakeLock() {
+        if (wakeLock) {
+            wakeLock.release().then(() => {
+                wakeLock = null;
+            }).catch(() => {
+                wakeLock = null;
+            });
+        }
+    }
+
+    function reconciliarTiempoHardware() {
+        if (estadoCarrera === 'EN_CURSO' && timestampInicioMs) {
+            const ahora = Date.now();
+            const msNetos = ahora - timestampInicioMs - acumuladoPausasMs;
+            if (msNetos >= 0) {
+                segundosTranscurridos = Math.floor(msNetos / 1000);
+                hudTiempo.textContent = formatearTiempo(segundosTranscurridos);
+            }
+        }
+    }
+
+    document.addEventListener('visibilitychange', async () => {
+        if (document.visibilityState === 'visible') {
+            if (estadoCarrera === 'EN_CURSO') {
+                await activarWakeLock();
+                reconciliarTiempoHardware();
+            }
+        }
+    });
+
     // 12. Controles de Carrera (Iniciar / Detener / Reanudar / Finalizar)
     function iniciarCronometro() {
+        if (!timestampInicioMs) {
+            timestampInicioMs = Date.now();
+        } else if (timestampUltimaPausaMs) {
+            acumuladoPausasMs += (Date.now() - timestampUltimaPausaMs);
+            timestampUltimaPausaMs = null;
+        }
+
+        activarWakeLock();
+
         if (cronometroInterval) clearInterval(cronometroInterval);
         cronometroInterval = setInterval(() => {
             segundosTranscurridos++;
-            hudTiempo.textContent = formatearTiempo(segundosTranscurridos);
+            reconciliarTiempoHardware();
         }, 1000);
     }
 
@@ -812,6 +1005,8 @@ document.addEventListener('DOMContentLoaded', () => {
             clearInterval(cronometroInterval);
             cronometroInterval = null;
         }
+        timestampUltimaPausaMs = Date.now();
+        desactivarWakeLock();
     }
 
     // Iniciar Carrera / Recorrido con Validación de Largada
@@ -999,20 +1194,91 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (btnAcceptModal) {
         btnAcceptModal.addEventListener('click', () => {
-            estadoCarrera = 'FINALIZADO';
-            detenerSeguimientoGPS();
-            pausarCronometro();
+            if (modalConfirm) modalConfirm.style.display = 'none';
 
-            if (recorridoId) {
-                fetch('/api/recorrido/finalizar/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-                    body: JSON.stringify({ recorrido_id: recorridoId })
-                }).finally(() => {
-                    window.location.href = '/mi-progreso/';
-                });
-            } else {
-                window.location.href = '/mi-progreso/';
+            // Validar si el ciclista está dentro del radio de 20 metros de la Meta Oficial
+            const refMeta = coordMeta || puntoMeta;
+            if (refMeta && refMeta.length === 2 && ultimaCoordenada) {
+                const distMeta = calcularHaversineMetros(
+                    ultimaCoordenada.lat,
+                    ultimaCoordenada.lng,
+                    refMeta[0],
+                    refMeta[1]
+                );
+                if (distMeta > radioMetaMetros) {
+                    if (modalFueraMeta) {
+                        if (metaDistActual) metaDistActual.textContent = `${Math.round(distMeta)} metros`;
+                        modalFueraMeta.style.display = 'flex';
+                    }
+                    return;
+                }
+            }
+            ejecutarFinalizacionRecorrido(false);
+        });
+    }
+
+    function ejecutarFinalizacionRecorrido(forzar) {
+        estadoCarrera = 'FINALIZADO';
+        detenerSeguimientoGPS();
+        pausarCronometro();
+        desactivarWakeLock();
+
+        const refMeta = coordMeta || puntoMeta;
+        const lat = ultimaCoordenada ? ultimaCoordenada.lat : (refMeta ? refMeta[0] : null);
+        const lng = ultimaCoordenada ? ultimaCoordenada.lng : (refMeta ? refMeta[1] : null);
+
+        if (recorridoId) {
+            fetch('/api/recorrido/finalizar/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                body: JSON.stringify({
+                    recorrido_id: recorridoId,
+                    latitud: lat,
+                    longitud: lng,
+                    forzar: !!forzar
+                })
+            }).finally(() => {
+                const cId = window.carreraCircuitoId || '';
+                window.location.href = cId ? `/mi-progreso/?circuito_id=${cId}` : '/mi-progreso/';
+            });
+        } else {
+            const cId = window.carreraCircuitoId || '';
+            window.location.href = cId ? `/mi-progreso/?circuito_id=${cId}` : '/mi-progreso/';
+        }
+    }
+
+    if (btnContinuarMeta) {
+        btnContinuarMeta.addEventListener('click', () => {
+            if (modalFueraMeta) modalFueraMeta.style.display = 'none';
+            autoCentrarGPS = true;
+            if (coordMeta) {
+                map.flyTo(coordMeta, 16, { duration: 1.2 });
+            }
+        });
+    }
+
+    if (btnForzarFinalizar) {
+        btnForzarFinalizar.addEventListener('click', () => {
+            if (modalFueraMeta) modalFueraMeta.style.display = 'none';
+            ejecutarFinalizacionRecorrido(true);
+        });
+    }
+
+    // Manejo del Modal Selector de Circuitos
+    if (btnAbrirSelector && modalSelectorCircuitos) {
+        btnAbrirSelector.addEventListener('click', () => {
+            modalSelectorCircuitos.style.display = 'flex';
+        });
+    }
+    if (btnCloseSelector && modalSelectorCircuitos) {
+        btnCloseSelector.addEventListener('click', () => {
+            modalSelectorCircuitos.style.display = 'none';
+        });
+    }
+    if (modalSelectorCircuitos) {
+        modalSelectorCircuitos.addEventListener('click', (e) => {
+            if (e.target === modalSelectorCircuitos) {
+                modalSelectorCircuitos.style.display = 'none';
             }
         });
     }

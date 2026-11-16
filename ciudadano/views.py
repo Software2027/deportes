@@ -8,6 +8,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.utils import timezone
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from django.db.models import Q
@@ -18,23 +19,54 @@ from .utils import calcular_distancia_total_puntos
 def index(request):
     """
     Landing pública del circuito ciclista municipal.
-    Muestra el Hero, el circuito activo en modo lectura, noticias y formulario de contacto.
+    Muestra el Hero, circuitos activos clasificados (Eventos Oficiales vs. Rutas Permanentes),
+    el mapa en modo lectura, noticias y formulario de contacto.
     """
-    circuito_activo = CircuitoGeneral.objects.filter(activo=True).prefetch_related(
+    today = date.today()
+    circuitos_activos_qs = CircuitoGeneral.objects.filter(activo=True).prefetch_related(
         'subcircuitos__trazado',
         'comercios'
-    ).first()
+    ).order_by('-fecha_evento', 'nombre')
+
+    circuitos_activos = list(circuitos_activos_qs)
+    # Carreras oficiales vigentes (programadas para hoy o fecha futura)
+    circuitos_eventos = [c for c in circuitos_activos if c.fecha_evento and c.fecha_evento >= today]
+    # Rutas recreativas y circuitos de práctica libre (sin fecha o con carrera ya concluida)
+    circuitos_recreativos = [c for c in circuitos_activos if not c.fecha_evento or c.fecha_evento < today]
+
+    # Circuito seleccionado para visualización en mapa
+    circuito_id_param = request.GET.get('circuito_id')
+    circuito_activo = None
+    if circuito_id_param:
+        for c in circuitos_activos:
+            if str(c.id) == str(circuito_id_param):
+                circuito_activo = c
+                break
+
+    if not circuito_activo:
+        circuito_activo = circuitos_eventos[0] if circuitos_eventos else (circuitos_activos[0] if circuitos_activos else None)
 
     noticias = Noticia.objects.filter(
         Q(estado='Publicado') | Q(estado__isnull=True) | Q(estado='')
     ).order_by('-fecha_publicacion')[:6]
 
-    # Estadísticas aproximadas para el Hero
+    # Estadísticas para el Hero
     total_comercios = circuito_activo.comercios.count() if circuito_activo else 0
     total_subcircuitos = circuito_activo.subcircuitos.count() if circuito_activo else 0
 
+    # Circuitos en los que el usuario ya está inscripto
+    inscriptos_ids = set()
+    if request.user.is_authenticated:
+        inscriptos_ids = set(
+            RecorridoCiclista.objects.filter(ciclista=request.user).values_list('circuito_id', flat=True)
+        )
+
     context = {
         'circuito': circuito_activo,
+        'circuitos_activos': circuitos_activos,
+        'circuitos_eventos': circuitos_eventos,
+        'circuitos_recreativos': circuitos_recreativos,
+        'inscriptos_ids': inscriptos_ids,
         'noticias': noticias,
         'total_comercios': total_comercios,
         'total_subcircuitos': total_subcircuitos,
@@ -347,9 +379,12 @@ def login_view(request):
 
         # Iniciar sesión oficial de Django
         login(request, user)
+        next_url = request.POST.get('next') or request.GET.get('next')
+        if next_url and next_url.startswith('/'):
+            return redirect(next_url)
         return redirect('mi_progreso')
 
-    return render(request, 'ciudadano/login.html')
+    return render(request, 'ciudadano/login.html', {'next_url': request.GET.get('next', '')})
 
 
 def logout_view(request):
@@ -375,26 +410,75 @@ def mapa_carrera_view(request):
             Q(user=user) | Q(dni=user.username) | Q(email__iexact=user.email)
         ).first()
 
-    circuito_activo = CircuitoGeneral.objects.filter(activo=True).prefetch_related(
+    # Todos los circuitos activos en el sistema
+    today = date.today()
+    circuitos_activos_qs = CircuitoGeneral.objects.filter(activo=True).prefetch_related(
         'subcircuitos__trazado',
         'comercios'
-    ).first()
+    ).order_by('-fecha_evento', 'nombre')
+    circuitos_activos = list(circuitos_activos_qs)
+    circuitos_eventos = [c for c in circuitos_activos if c.fecha_evento and c.fecha_evento >= today]
+    circuitos_recreativos = [c for c in circuitos_activos if not c.fecha_evento or c.fecha_evento < today]
 
-    recorrido_actual = None
+    # Determinar qué circuito mostrar
+    circuito_id_param = request.GET.get('circuito_id')
+    modo_param = request.GET.get('modo', '').lower()
+    circuito_activo = None
+
+    if circuito_id_param:
+        for c in circuitos_activos:
+            if str(c.id) == str(circuito_id_param):
+                circuito_activo = c
+                break
+
+    if not circuito_activo:
+        circuito_activo = circuitos_eventos[0] if circuitos_eventos else (circuitos_activos[0] if circuitos_activos else None)
+
+    # Identificar si el usuario tiene inscripción oficial al evento
+    inscripcion_oficial = None
+    esta_inscripto_oficial = False
     if circuito_activo:
+        inscripcion_oficial = RecorridoCiclista.objects.filter(
+            ciclista=user,
+            circuito=circuito_activo,
+            modalidad='OFICIAL'
+        ).first()
+        esta_inscripto_oficial = inscripcion_oficial is not None
+
+    es_dia_evento = bool(circuito_activo and circuito_activo.fecha_evento and circuito_activo.fecha_evento == today)
+
+    # Clasificar el tipo de sesión que correrá en el mapa GPS
+    if es_dia_evento and esta_inscripto_oficial and modo_param != 'libre':
+        tipo_sesion = 'CARRERA_OFICIAL'
+        modalidad_recorrido = 'OFICIAL'
+        recorrido_actual = inscripcion_oficial
+    elif circuito_activo and circuito_activo.es_evento and esta_inscripto_oficial and not es_dia_evento:
+        tipo_sesion = 'ENTRENAMIENTO_PREVIO'
+        modalidad_recorrido = 'LIBRE'
         recorrido_actual = RecorridoCiclista.objects.filter(
             ciclista=user,
             circuito=circuito_activo,
+            modalidad='LIBRE',
+            estado__in=['EN_CURSO', 'PAUSADO']
+        ).order_by('-inicio').first()
+    else:
+        tipo_sesion = 'LIBRE_RECREATIVO'
+        modalidad_recorrido = 'LIBRE'
+        recorrido_actual = RecorridoCiclista.objects.filter(
+            ciclista=user,
+            circuito=circuito_activo,
+            modalidad='LIBRE',
             estado__in=['EN_CURSO', 'PAUSADO']
         ).order_by('-inicio').first()
 
     punto_largada = None
     punto_meta = None
-    radio_largada = 80
+    radio_largada = 20
+    radio_meta = 20
     if circuito_activo:
         punto_largada = circuito_activo.punto_largada
         punto_meta = circuito_activo.punto_meta
-        radio_largada = circuito_activo.radio_largada_metros or 80
+        radio_largada = circuito_activo.radio_largada_metros or 20
 
     # Datos serializados para Leaflet y Etapas / Subcircuitos
     trazado_geojson = []
@@ -407,9 +491,9 @@ def mapa_carrera_view(request):
         for idx, sub in enumerate(subs_list):
             puntos = list(sub.trazado.values('latitud', 'longitud').order_by('orden'))
             coords = [[float(p['latitud']), float(p['longitud'])] for p in puntos]
-            dist_sub_m = calcular_distancia_total_puntos(puntos)
+            dist_sub_m = float(sub.distancia_metros)
             distancia_total_m += dist_sub_m
-            dist_sub_km = round(dist_sub_m / 1000.0, 1) if dist_sub_m > 0 else round(3.5 + idx * 1.5, 1)
+            dist_sub_km = float(sub.distancia_km)
 
             sub_dict = {
                 'id': sub.id,
@@ -418,6 +502,7 @@ def mapa_carrera_view(request):
                 'color': sub.color_capa,
                 'puntos_count': len(coords),
                 'distancia_km': dist_sub_km,
+                'distancia_metros': dist_sub_m,
                 'estado': 'en-curso' if idx == 0 else 'pendiente',
                 'coordenadas': coords
             }
@@ -435,20 +520,28 @@ def mapa_carrera_view(request):
                 'radio': com.radio_tolerancia_metros,
             })
 
-    distancia_total_km = round(distancia_total_m / 1000.0, 1) if distancia_total_m > 0 else 16.5
+    distancia_total_km = round(distancia_total_m / 1000.0, 2) if distancia_total_m > 0 else 0.0
 
     context = {
         'ciclista': ciclista,
         'circuito': circuito_activo,
+        'circuitos_activos': circuitos_activos,
+        'circuitos_eventos': circuitos_eventos,
+        'circuitos_recreativos': circuitos_recreativos,
         'recorrido': recorrido_actual,
         'recorrido_id': recorrido_actual.id if recorrido_actual else 0,
         'estado_carrera': recorrido_actual.estado if recorrido_actual else 'LISTO',
-        'modalidad_recorrido': recorrido_actual.modalidad if recorrido_actual else ('OFICIAL' if (circuito_activo and circuito_activo.fecha_evento and circuito_activo.fecha_evento == date.today()) else 'LIBRE'),
+        'modalidad_recorrido': modalidad_recorrido,
+        'tipo_sesion': tipo_sesion,
+        'esta_inscripto_oficial': esta_inscripto_oficial,
+        'dorsal_oficial': f"#{inscripcion_oficial.id:04d}" if inscripcion_oficial else None,
+        'es_dia_evento': es_dia_evento,
         'punto_largada': punto_largada,
         'punto_largada_json': list(punto_largada) if punto_largada else None,
         'punto_meta': punto_meta,
         'punto_meta_json': list(punto_meta) if punto_meta else None,
         'radio_largada_metros': radio_largada,
+        'radio_meta_metros': radio_meta,
         'subcircuitos': subcircuitos_data,
         'subcircuito_actual': subcircuitos_data[0] if subcircuitos_data else None,
         'total_subcircuitos': len(subcircuitos_data),
@@ -477,28 +570,108 @@ def mi_progreso_view(request):
             Q(user=user) | Q(dni=user.username) | Q(email__iexact=user.email)
         ).first()
 
-    circuito_activo = CircuitoGeneral.objects.filter(activo=True).prefetch_related(
+    # Todos los circuitos activos en el sistema
+    today = date.today()
+    circuitos_activos = list(CircuitoGeneral.objects.filter(activo=True).prefetch_related(
         'subcircuitos__trazado',
         'comercios'
-    ).first()
+    ).order_by('-fecha_evento', 'nombre'))
+    circuitos_eventos = [c for c in circuitos_activos if c.fecha_evento and c.fecha_evento >= today]
+    circuitos_recreativos = [c for c in circuitos_activos if not c.fecha_evento or c.fecha_evento < today]
 
-    # Procesar Inscripción rápida al Circuito Activo
+    # Circuitos a los que el ciclista ya se encuentra inscripto
+    recorridos_ciclista = RecorridoCiclista.objects.filter(
+        ciclista=user,
+        circuito__activo=True
+    ).select_related('circuito').prefetch_related('circuito__subcircuitos', 'circuito__comercios').order_by('-inicio')
+
+    recorrido_por_circuito = {}
+    mis_circuitos_ids = []
+    for r in recorridos_ciclista:
+        if r.circuito_id not in recorrido_por_circuito:
+            recorrido_por_circuito[r.circuito_id] = r
+            mis_circuitos_ids.append(r.circuito_id)
+
+    mis_circuitos_inscriptos = []
+    for c_id in mis_circuitos_ids:
+        r = recorrido_por_circuito[c_id]
+        c = r.circuito
+        dist_rec_km = float(getattr(r, 'distancia_km', 0.0) or 0.0)
+        dist_tot_km = float(getattr(c, 'distancia_total_km', 1.0) or 1.0)
+        pct = min(100, int((dist_rec_km / dist_tot_km) * 100)) if dist_tot_km > 0 else 0
+        mis_circuitos_inscriptos.append({
+            'circuito': c,
+            'recorrido': r,
+            'modalidad': r.modalidad,
+            'estado': r.estado,
+            'distancia_km': dist_rec_km,
+            'distancia_total_km': dist_tot_km,
+            'porcentaje': pct,
+            'es_actual': False,
+        })
+
+    # Procesar Inscripción o Agregar Circuito vía POST
     if request.method == 'POST' and request.POST.get('accion') == 'inscribir':
-        if circuito_activo:
-            modalidad_inicial = 'OFICIAL' if (circuito_activo.fecha_evento and circuito_activo.fecha_evento == date.today()) else 'LIBRE'
+        c_id = request.POST.get('circuito_id')
+        target_circuito = None
+        if c_id:
+            target_circuito = CircuitoGeneral.objects.filter(id=c_id, activo=True).first()
+
+        if not target_circuito and circuitos_activos:
+            target_circuito = circuitos_activos[0]
+
+        if target_circuito:
+            modalidad_inicial = 'OFICIAL' if (target_circuito.fecha_evento and target_circuito.fecha_evento == date.today()) else ('OFICIAL' if target_circuito.es_evento else 'LIBRE')
             recorrido, created = RecorridoCiclista.objects.get_or_create(
                 ciclista=user,
-                circuito=circuito_activo,
+                circuito=target_circuito,
                 defaults={
                     'estado': 'EN_CURSO',
                     'modalidad': modalidad_inicial
                 }
             )
-            messages.success(
-                request,
-                f"¡Inscripción confirmada! Te has registrado en el '{circuito_activo.nombre}'. Tu dorsal es #{recorrido.id:04d}."
-            )
+            tipo_txt = "a la carrera oficial" if target_circuito.es_evento else "a tu lista de circuitos"
+            if created:
+                messages.success(
+                    request,
+                    f"¡Inscripción confirmada! Te has sumado con éxito {tipo_txt} '{target_circuito.nombre}'. Tu dorsal asignado es #{recorrido.id:04d}."
+                )
+            else:
+                messages.info(
+                    request,
+                    f"Ya estás registrado en '{target_circuito.nombre}'. Aquí puedes ver tu progreso."
+                )
+            return redirect(f"/mi-progreso/?circuito_id={target_circuito.id}")
         return redirect('mi_progreso')
+
+    # Determinar qué circuito mostrar en Mi Progreso
+    circuito_id_param = request.GET.get('circuito_id')
+    circuito_activo = None
+
+    if circuito_id_param:
+        for c in circuitos_activos:
+            if str(c.id) == str(circuito_id_param):
+                circuito_activo = c
+                break
+
+    # Si no se pasó por parámetro, buscar entre los circuitos donde está inscripto
+    if not circuito_activo and mis_circuitos_inscriptos:
+        # Priorizar alguno que esté EN_CURSO o PAUSADO
+        en_curso_item = next((it for it in mis_circuitos_inscriptos if it['estado'] in ['EN_CURSO', 'PAUSADO']), None)
+        if en_curso_item:
+            circuito_activo = en_curso_item['circuito']
+        else:
+            circuito_activo = mis_circuitos_inscriptos[0]['circuito']
+
+    # Si aún no tiene inscriptos, seleccionar el evento oficial o el primer activo
+    if not circuito_activo:
+        circuito_activo = circuitos_eventos[0] if circuitos_eventos else (circuitos_activos[0] if circuitos_activos else None)
+
+    # Marcar cuál es el circuito actual en la lista de inscriptos
+    if circuito_activo:
+        for it in mis_circuitos_inscriptos:
+            if it['circuito'].id == circuito_activo.id:
+                it['es_actual'] = True
 
     # Recorrido del ciclista en el circuito activo
     recorrido_actual = None
@@ -676,12 +849,26 @@ def mi_progreso_view(request):
             'estado': 'completed' if (recorrido_actual and recorrido_actual.estado == 'FINALIZADO') else 'pending',
         })
 
-    # Modalidad
+    # Modalidad y Acreditación de Carrera
+    inscriptos_carrera_ids = set(
+        RecorridoCiclista.objects.filter(
+            ciclista=user,
+            modalidad='OFICIAL'
+        ).values_list('circuito_id', flat=True)
+    )
     modalidad_display = 'Evento Oficial' if (recorrido_actual and recorrido_actual.modalidad == 'OFICIAL') else 'Libre / Práctica'
 
     context = {
         'ciclista': ciclista,
         'circuito': circuito_activo,
+        'circuitos_activos': circuitos_activos,
+        'circuitos_eventos': circuitos_eventos,
+        'circuitos_recreativos': circuitos_recreativos,
+        'mis_circuitos_inscriptos': mis_circuitos_inscriptos,
+        'inscriptos_ids': set(mis_circuitos_ids),
+        'inscriptos_carrera_ids': inscriptos_carrera_ids,
+        'total_inscriptos': len(mis_circuitos_inscriptos),
+        'tiene_inscriptos': len(mis_circuitos_inscriptos) > 0,
         'recorrido': recorrido_actual,
         'esta_inscripto': esta_inscripto,
         'esta_en_carrera': esta_en_carrera,
@@ -700,3 +887,158 @@ def mi_progreso_view(request):
         'comercios_json': comercios_geojson,
     }
     return render(request, 'ciudadano/mi_progreso.html', context)
+
+
+@login_required(login_url='login')
+def inscribir_circuito_view(request, circuito_id=None):
+    """
+    Inscribe formalmente a un ciclista a la carrera oficial de un circuito o lo agrega a sus circuitos.
+    Si el circuito tiene carrera oficial vigente:
+        - Asigna o confirma su inscripción oficial (modalidad='OFICIAL') con su Dorsal Oficial.
+    Si es un circuito libre o recreativo:
+        - Lo añade a sus circuitos habilitados (modalidad='LIBRE').
+    """
+    c_id = circuito_id or request.POST.get('circuito_id') or request.GET.get('circuito_id')
+    if not c_id:
+        return redirect('mi_progreso')
+
+    circuito = get_object_or_404(CircuitoGeneral, id=c_id, activo=True)
+
+    if circuito.evento_vigente:
+        # Inscripción formal a la Carrera Oficial
+        recorrido_oficial = RecorridoCiclista.objects.filter(
+            ciclista=request.user,
+            circuito=circuito,
+            modalidad='OFICIAL'
+        ).first()
+
+        if not recorrido_oficial:
+            recorrido_oficial = RecorridoCiclista.objects.create(
+                ciclista=request.user,
+                circuito=circuito,
+                estado='EN_CURSO',
+                modalidad='OFICIAL'
+            )
+            messages.success(
+                request,
+                f"¡Inscripción confirmada! Te has sumado a la carrera oficial '{circuito.nombre}'. Tu dorsal oficial es #{recorrido_oficial.id:04d}."
+            )
+        else:
+            messages.info(
+                request,
+                f"Ya estás inscripto en la carrera oficial '{circuito.nombre}' con el dorsal #{recorrido_oficial.id:04d}."
+            )
+    else:
+        # Circuito libre / recreativo permanente
+        recorrido_libre = RecorridoCiclista.objects.filter(
+            ciclista=request.user,
+            circuito=circuito
+        ).first()
+
+        if not recorrido_libre:
+            recorrido_libre = RecorridoCiclista.objects.create(
+                ciclista=request.user,
+                circuito=circuito,
+                estado='EN_CURSO',
+                modalidad='LIBRE'
+            )
+            messages.success(
+                request,
+                f"¡Circuito habilitado con éxito! Se ha añadido '{circuito.nombre}' a tu panel en modalidad Libre para que lo pedalees cuando quieras."
+            )
+        else:
+            messages.info(
+                request,
+                f"El circuito '{circuito.nombre}' ya se encuentra en tu panel."
+            )
+
+    return redirect(f"/mi-progreso/?circuito_id={circuito.id}")
+
+
+def circuitos_ciudadano_list(request):
+    """
+    Directorio público institucional de circuitos y carreras de Malagueño (/circuitos/).
+    Utiliza exclusivamente la plantilla pública con base_ciudadano.html.
+    """
+    today = date.today()
+    circuitos_activos = list(CircuitoGeneral.objects.filter(activo=True).prefetch_related(
+        'subcircuitos__trazado',
+        'comercios'
+    ).order_by('-fecha_evento', 'nombre'))
+    circuitos_eventos = [c for c in circuitos_activos if c.fecha_evento and c.fecha_evento >= today]
+    circuitos_recreativos = [c for c in circuitos_activos if not c.fecha_evento or c.fecha_evento < today]
+
+    inscriptos_ids = set()
+    inscriptos_carrera_ids = set()
+    if request.user.is_authenticated:
+        inscriptos_ids = set(
+            RecorridoCiclista.objects.filter(ciclista=request.user).values_list('circuito_id', flat=True)
+        )
+        inscriptos_carrera_ids = set(
+            RecorridoCiclista.objects.filter(
+                ciclista=request.user,
+                modalidad='OFICIAL'
+            ).values_list('circuito_id', flat=True)
+        )
+
+    circuito_activo = circuitos_eventos[0] if circuitos_eventos else (circuitos_activos[0] if circuitos_activos else None)
+
+    context = {
+        'circuitos_activos': circuitos_activos,
+        'circuitos_eventos': circuitos_eventos,
+        'circuitos_recreativos': circuitos_recreativos,
+        'inscriptos_ids': inscriptos_ids,
+        'inscriptos_carrera_ids': inscriptos_carrera_ids,
+        'circuito': circuito_activo,
+    }
+    return render(request, 'ciudadano/circuitos_listado.html', context)
+
+
+@login_required(login_url='login')
+def circuitos_ciclista_view(request):
+    """
+    Catálogo de circuitos dentro de la experiencia privada del ciclista acreditado (/mis-circuitos/).
+    Utiliza exclusivamente la plantilla del panel del ciclista con base_ciclista.html.
+    """
+    today = date.today()
+    circuitos_activos = list(CircuitoGeneral.objects.filter(activo=True).prefetch_related(
+        'subcircuitos__trazado',
+        'comercios'
+    ).order_by('-fecha_evento', 'nombre'))
+    circuitos_eventos = [c for c in circuitos_activos if c.fecha_evento and c.fecha_evento >= today]
+    circuitos_recreativos = [c for c in circuitos_activos if not c.fecha_evento or c.fecha_evento < today]
+
+    inscriptos_ids = set(
+        RecorridoCiclista.objects.filter(ciclista=request.user).values_list('circuito_id', flat=True)
+    )
+    inscriptos_carrera_ids = set(
+        RecorridoCiclista.objects.filter(
+            ciclista=request.user,
+            modalidad='OFICIAL'
+        ).values_list('circuito_id', flat=True)
+    )
+    ciclista = Ciclista.objects.filter(user=request.user).first()
+    circuito_activo = circuitos_eventos[0] if circuitos_eventos else (circuitos_activos[0] if circuitos_activos else None)
+
+    context = {
+        'circuitos_activos': circuitos_activos,
+        'circuitos_eventos': circuitos_eventos,
+        'circuitos_recreativos': circuitos_recreativos,
+        'inscriptos_ids': inscriptos_ids,
+        'inscriptos_carrera_ids': inscriptos_carrera_ids,
+        'circuito': circuito_activo,
+        'ciclista': ciclista,
+    }
+    return render(request, 'ciudadano/circuitos_ciclista.html', context)
+    ciclista = Ciclista.objects.filter(user=request.user).first()
+    circuito_activo = circuitos_eventos[0] if circuitos_eventos else (circuitos_activos[0] if circuitos_activos else None)
+
+    context = {
+        'circuitos_activos': circuitos_activos,
+        'circuitos_eventos': circuitos_eventos,
+        'circuitos_recreativos': circuitos_recreativos,
+        'inscriptos_ids': inscriptos_ids,
+        'circuito': circuito_activo,
+        'ciclista': ciclista,
+    }
+    return render(request, 'ciudadano/circuitos_ciclista.html', context)

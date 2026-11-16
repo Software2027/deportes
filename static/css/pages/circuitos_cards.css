@@ -1,0 +1,936 @@
+/* ==============================================================================
+   ESTILOS COMPARTIDOS: SECCIÓN Y CARDS DE CIRCUITOS ACTIVOS Y CARRERAS
+   Sistema de Ciclismo Municipal de Malagueño
+   ============================================================================== */
+
+.all-circuits-section {
+    padding: 2.5rem 0 4.5rem 0;
+    margin: 0;
+    background: #f8fafc;
+}
+
+.all-circuits-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+/* Header de la sección */
+.all-circuits-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.all-circuits-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #ecfdf5;
+    color: #059669;
+    padding: 0.35rem 0.85rem;
+    border-radius: 9999px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 0.5rem;
+    border: 1px solid #a7f3d0;
+}
+
+.all-circuits-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.85rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 0.5rem 0;
+    line-height: 1.25;
+}
+
+.all-circuits-desc {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    color: #64748b;
+    margin: 0;
+    max-width: 620px;
+    line-height: 1.5;
+}
+
+/* Pestañas de Filtro Interactivo */
+.circuits-filter-tabs {
+    display: flex;
+    background: #f1f5f9;
+    padding: 5px;
+    border-radius: 14px;
+    gap: 4px;
+    border: 1px solid #e2e8f0;
+}
+
+.circuit-tab-btn {
+    border: none;
+    background: transparent;
+    padding: 0.55rem 1.15rem;
+    border-radius: 10px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.22s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    white-space: nowrap;
+}
+
+.circuit-tab-btn:hover {
+    color: #0f172a;
+}
+
+.circuit-tab-btn.active {
+    background: #ffffff;
+    color: #0f172a;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.circuit-tab-btn.active i {
+    color: #16a34a;
+}
+
+/* Grilla Responsiva de Cards */
+.circuits-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+    gap: 1.5rem;
+}
+
+/* Card Individual de Circuito */
+.circuit-single-card {
+    background: #ffffff;
+    border-radius: 20px;
+    border: 1.5px solid #e2e8f0;
+    padding: 1.5rem;
+    box-shadow: 0 4px 18px rgba(15, 23, 42, 0.04);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.circuit-single-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(22, 163, 74, 0.1);
+    border-color: #86efac;
+}
+
+/* Card Activa / Seleccionada */
+.circuit-single-card.card-is-current {
+    border-color: #16a34a;
+    background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 40%);
+    box-shadow: 0 8px 25px rgba(22, 163, 74, 0.15);
+}
+
+.circuit-single-card.card-is-current::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, #16a34a, #10b981);
+}
+
+/* Topbar de la Card */
+.circuit-card-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.badge-circuit-event {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: #fffbeb;
+    color: #b45309;
+    border: 1px solid #fde68a;
+    padding: 0.3rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.74rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.badge-circuit-free {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: #f0f9ff;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
+    padding: 0.3rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.74rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.badge-circuit-finished {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: #f8fafc;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    padding: 0.3rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.74rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.badge-circuit-current {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: #16a34a;
+    color: #ffffff;
+    padding: 0.3rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    box-shadow: 0 2px 6px rgba(22, 163, 74, 0.3);
+}
+
+/* Info Principal */
+.circuit-card-main-info {
+    margin-bottom: 1.15rem;
+}
+
+.circuit-card-name {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 0.4rem 0;
+    line-height: 1.3;
+}
+
+.circuit-card-desc {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.86rem;
+    color: #64748b;
+    line-height: 1.5;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Chips de Métricas */
+.circuit-stats-chips {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.65rem;
+    background: #f8fafc;
+    border-radius: 14px;
+    padding: 0.85rem;
+    margin-bottom: 1rem;
+    border: 1px solid #f1f5f9;
+}
+
+.stat-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    color: #475569;
+}
+
+.stat-chip strong {
+    color: #0f172a;
+    font-weight: 800;
+}
+
+.stat-chip i {
+    font-size: 0.95rem;
+    width: 16px;
+    text-align: center;
+}
+
+/* Pastillas de Etapas */
+.circuit-stages-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-bottom: 1.25rem;
+}
+
+.stage-mini-pill {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-left-width: 3.5px;
+    padding: 0.25rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #334155;
+    white-space: nowrap;
+}
+
+/* Acciones en la Card */
+.circuit-card-actions {
+    display: flex;
+    gap: 0.65rem;
+    margin-top: auto;
+    padding-top: 0.75rem;
+    border-top: 1px solid #f1f5f9;
+}
+
+.btn-card-primary {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+    color: #ffffff;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 800;
+    text-decoration: none;
+    box-shadow: 0 3px 12px rgba(22, 163, 74, 0.25);
+    transition: all 0.2s ease;
+}
+
+.btn-card-primary:hover {
+    background: linear-gradient(135deg, #15803d 0%, #166534 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 5px 16px rgba(22, 163, 74, 0.35);
+    color: #ffffff;
+}
+
+.btn-card-select {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    background: #f8fafc;
+    color: #0f172a;
+    border: 1.5px solid #cbd5e1;
+    padding: 0.75rem 0.85rem;
+    border-radius: 12px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.86rem;
+    font-weight: 800;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.btn-card-select:hover {
+    background: #ffffff;
+    border-color: #16a34a;
+    color: #16a34a;
+}
+
+.btn-card-map {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    background: #0284c7;
+    color: #ffffff;
+    padding: 0.75rem 0.95rem;
+    border-radius: 12px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.86rem;
+    font-weight: 800;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.btn-card-map:hover {
+    background: #0369a1;
+    color: #ffffff;
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+    .all-circuits-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .circuits-filter-tabs {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .circuit-tab-btn {
+        flex: 1;
+        justify-content: center;
+    }
+
+    .circuits-cards-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .circuit-card-actions {
+        flex-direction: column;
+    }
+}
+
+/* ==============================================================================
+   SELECTOR SUPERIOR: MIS CIRCUITOS INSCRIPTOS (DASHBOARD MI PROGRESO)
+   ============================================================================== */
+.mis-circuitos-inscriptos-section {
+    margin: 1.75rem 0 2rem 0;
+}
+
+.mis-circuitos-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.15rem;
+}
+
+.mis-circuitos-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.mis-circuitos-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0;
+}
+
+.mis-circuitos-badge-count {
+    background: #dcfce7;
+    color: #15803d;
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 800;
+}
+
+.btn-agregar-mas-circuitos {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    color: #334155;
+    padding: 0.5rem 0.95rem;
+    border-radius: 12px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.btn-agregar-mas-circuitos:hover {
+    border-color: #16a34a;
+    color: #16a34a;
+    background: #f0fdf4;
+}
+
+/* Grilla / Tabs de Circuitos Inscriptos */
+.inscriptos-cards-carousel {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 1.15rem;
+}
+
+.inscripto-card-tab {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 2px solid #e2e8f0;
+    padding: 1.15rem 1.25rem;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.22s ease;
+    box-shadow: 0 3px 12px rgba(15, 23, 42, 0.03);
+    position: relative;
+    cursor: pointer;
+}
+
+.inscripto-card-tab:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(22, 163, 74, 0.1);
+    border-color: #86efac;
+}
+
+.inscripto-card-tab.tab-active {
+    border-color: #16a34a;
+    background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 50%);
+    box-shadow: 0 6px 20px rgba(22, 163, 74, 0.15);
+}
+
+.inscripto-card-tab.tab-active::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: #16a34a;
+    border-radius: 16px 16px 0 0;
+}
+
+.inscripto-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.65rem;
+}
+
+.inscripto-type-tag {
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 0.2rem 0.55rem;
+    border-radius: 6px;
+    text-transform: uppercase;
+}
+
+.tag-oficial {
+    background: #fffbeb;
+    color: #b45309;
+}
+
+.tag-libre {
+    background: #f0f9ff;
+    color: #0369a1;
+}
+
+.badge-inscripto-current {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #16a34a;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.inscripto-circuit-name {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 0.85rem 0;
+    line-height: 1.3;
+}
+
+.inscripto-progress-bar-wrap {
+    margin-bottom: 0.85rem;
+}
+
+.inscripto-progress-track {
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 0.35rem;
+}
+
+.inscripto-progress-fill {
+    height: 100%;
+    background: #16a34a;
+    border-radius: 999px;
+    transition: width 0.4s ease;
+}
+
+.inscripto-progress-text-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+.inscripto-progress-text-row strong {
+    color: #0f172a;
+}
+
+.inscripto-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 0.65rem;
+    border-top: 1px solid #f1f5f9;
+    font-size: 0.78rem;
+}
+
+.inscripto-dorsal {
+    color: #64748b;
+    font-weight: 600;
+}
+
+.inscripto-cta-action {
+    font-weight: 700;
+    color: #0f172a;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* Banner Sin Circuitos Inscriptos */
+.banner-sin-circuitos {
+    background: #ffffff;
+    border: 2px dashed #cbd5e1;
+    border-radius: 18px;
+    padding: 2.25rem 1.5rem;
+    text-align: center;
+    margin: 1.5rem 0 2.5rem 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.banner-sin-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #f0fdf4;
+    color: #16a34a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+}
+
+.banner-sin-content h3 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 0.4rem 0;
+}
+
+.banner-sin-content p {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.92rem;
+    color: #64748b;
+    max-width: 540px;
+    margin: 0 auto 1.25rem auto;
+    line-height: 1.5;
+}
+
+.btn-ir-catalogo-circuitos {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #16a34a;
+    color: #ffffff;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 800;
+    text-decoration: none;
+    box-shadow: 0 4px 14px rgba(22, 163, 74, 0.25);
+    transition: all 0.2s ease;
+}
+
+.btn-ir-catalogo-circuitos:hover {
+    background: #15803d;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(22, 163, 74, 0.35);
+    color: #ffffff;
+}
+
+/* ==============================================================================
+   SELECTOR SUPERIOR: MIS CIRCUITOS INSCRIPTOS (DASHBOARD MI PROGRESO)
+   ============================================================================== */
+.mis-circuitos-inscriptos-section {
+    margin: 1.75rem 0 2rem 0;
+}
+
+.mis-circuitos-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.15rem;
+}
+
+.mis-circuitos-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.mis-circuitos-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0;
+}
+
+.mis-circuitos-badge-count {
+    background: #dcfce7;
+    color: #15803d;
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 800;
+}
+
+.btn-agregar-mas-circuitos {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    color: #334155;
+    padding: 0.5rem 0.95rem;
+    border-radius: 12px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.btn-agregar-mas-circuitos:hover {
+    border-color: #16a34a;
+    color: #16a34a;
+    background: #f0fdf4;
+}
+
+/* Grilla / Tabs de Circuitos Inscriptos */
+.inscriptos-cards-carousel {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 1.15rem;
+}
+
+.inscripto-card-tab {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 2px solid #e2e8f0;
+    padding: 1.15rem 1.25rem;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.22s ease;
+    box-shadow: 0 3px 12px rgba(15, 23, 42, 0.03);
+    position: relative;
+    cursor: pointer;
+}
+
+.inscripto-card-tab:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(22, 163, 74, 0.1);
+    border-color: #86efac;
+}
+
+.inscripto-card-tab.tab-active {
+    border-color: #16a34a;
+    background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 50%);
+    box-shadow: 0 6px 20px rgba(22, 163, 74, 0.15);
+}
+
+.inscripto-card-tab.tab-active::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: #16a34a;
+    border-radius: 16px 16px 0 0;
+}
+
+.inscripto-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.65rem;
+}
+
+.inscripto-type-tag {
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 0.2rem 0.55rem;
+    border-radius: 6px;
+    text-transform: uppercase;
+}
+
+.tag-oficial {
+    background: #fffbeb;
+    color: #b45309;
+}
+
+.tag-libre {
+    background: #f0f9ff;
+    color: #0369a1;
+}
+
+.badge-inscripto-current {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #16a34a;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.inscripto-circuit-name {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 0.85rem 0;
+    line-height: 1.3;
+}
+
+.inscripto-progress-bar-wrap {
+    margin-bottom: 0.85rem;
+}
+
+.inscripto-progress-track {
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 0.35rem;
+}
+
+.inscripto-progress-fill {
+    height: 100%;
+    background: #16a34a;
+    border-radius: 999px;
+    transition: width 0.4s ease;
+}
+
+.inscripto-progress-text-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+.inscripto-progress-text-row strong {
+    color: #0f172a;
+}
+
+.inscripto-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 0.65rem;
+    border-top: 1px solid #f1f5f9;
+    font-size: 0.78rem;
+}
+
+.inscripto-dorsal {
+    color: #64748b;
+    font-weight: 600;
+}
+
+.inscripto-cta-action {
+    font-weight: 700;
+    color: #0f172a;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* Banner Sin Circuitos Inscriptos */
+.banner-sin-circuitos {
+    background: #ffffff;
+    border: 2px dashed #cbd5e1;
+    border-radius: 18px;
+    padding: 2.25rem 1.5rem;
+    text-align: center;
+    margin: 1.5rem 0 2.5rem 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.banner-sin-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #f0fdf4;
+    color: #16a34a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+}
+
+.banner-sin-content h3 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 0.4rem 0;
+}
+
+.banner-sin-content p {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.92rem;
+    color: #64748b;
+    max-width: 540px;
+    margin: 0 auto 1.25rem auto;
+    line-height: 1.5;
+}
+
+.btn-ir-catalogo-circuitos {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #16a34a;
+    color: #ffffff;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 800;
+    text-decoration: none;
+    box-shadow: 0 4px 14px rgba(22, 163, 74, 0.25);
+    transition: all 0.2s ease;
+}
+
+.btn-ir-catalogo-circuitos:hover {
+    background: #15803d;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(22, 163, 74, 0.35);
+    color: #ffffff;
+}

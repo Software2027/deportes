@@ -111,7 +111,7 @@
                 </div>
 
                 <div class="form-group" style="display: flex; align-items: center; gap: 0.65rem; margin-top: 0.5rem; background: #f8fafc; padding: 0.85rem; border-radius: 10px; border: 1px solid #e2e8f0;">
-                    <input type="checkbox" id="circuitoActivo" style="width: 18px; height: 18px; accent-color: #15803d; cursor: pointer;" {% if circuito.activo %}checked{% endif %}>
+                    <input type="checkbox" id="circuitoActivo" style="width: 18px; height: 18px; accent-color: #15803d; cursor: pointer;" {% if circuito %}{% if circuito.activo %}checked{% endif %}{% else %}checked{% endif %}>
                     <label for="circuitoActivo" style="font-size: 0.85rem; font-weight: 700; color: #0f172a; cursor: pointer;">
                         Activar como Circuito Oficial en la App
                         <span style="display: block; font-size: 0.75rem; font-weight: normal; color: #64748b;">
@@ -661,8 +661,8 @@ function dibujarComerciosEnMapa() {
                 <span style="font-size:0.78rem; color:#64748b;">${com.categoria}</span><br>
                 <span style="font-size:0.75rem; color:#15803d; font-weight:700;"><i class="fa-solid fa-radar"></i> Radio: ${com.radio}m</span>
                 <div style="margin-top:0.6rem;">
-                    <button type="button" class="btn-action-pill btn-action-editor" style="width:100%; justify-content:center;" onclick="marcarComercioDesdeMapa(${com.id})">
-                        ${com.adherido ? '✓ Adherido al Circuito' : '+ Adherir a este Circuito'}
+                    <button type="button" class="btn-action-pill btn-action-editor" style="width:100%; justify-content:center; gap:0.4rem;" onclick="marcarComercioDesdeMapa(${com.id})">
+                        ${com.adherido ? '<i class="fa-solid fa-check"></i> Adherido al Circuito' : '<i class="fa-solid fa-plus"></i> Adherir a este Circuito'}
                     </button>
                 </div>
             </div>

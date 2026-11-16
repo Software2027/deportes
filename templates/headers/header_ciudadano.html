@@ -13,6 +13,9 @@
         <div class="header-nav-wrapper">
             <ul class="nav-menu">
                 <li><a href="{% url 'index' %}" class="nav-link">Inicio</a></li>
+                <li><a href="{% url 'circuitos_listado' %}" class="nav-link">
+                    <i class="fa-solid fa-route" style="margin-right: 5px;"></i>Circuitos</a>
+                </li>
                 <li><a href="{% url 'noticias_listado' %}" class="nav-link">
                     <i class="fa-solid fa-newspaper" style="margin-right: 5px;"></i>Noticias</a>
                 </li>
@@ -22,12 +25,21 @@
                 <li><a href="{% url 'contacto' %}" class="nav-link">
                     <i class="fa-solid fa-envelope" style="margin-right: 5px;"></i>Contacto</a>
                 </li>
+                {% if user.is_authenticated %}
+                <li class="nav-item-ingresar">
+                    <a href="{% url 'mi_progreso' %}" class="btn btn-header-ingresar" style="background: #16a34a;" title="Ir a mi panel de ciclista">
+                        <i class="fa-solid fa-bicycle"></i>
+                        <span>Mi Progreso</span>
+                    </a>
+                </li>
+                {% else %}
                 <li class="nav-item-ingresar">
                     <a href="{% url 'login' %}" class="btn btn-header-ingresar" title="Ingresar a la plataforma de ciclistas">
                         <i class="fa-solid fa-arrow-right-to-bracket"></i>
                         <span>Ingresar</span>
                     </a>
                 </li>
+                {% endif %}
             </ul>
 
             <button class="mobile-toggle" aria-label="Abrir Menú">

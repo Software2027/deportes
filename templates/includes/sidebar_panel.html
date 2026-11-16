@@ -51,6 +51,15 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a href="{% url 'panel_ranking_evento' %}" class="nav-link {% if 'ranking' in request.resolver_match.url_name %}active{% endif %}" title="Ranking y Estadísticas Oficiales de Carreras">
+                    <div class="nav-link-content">
+                        <i class="fa-solid fa-trophy nav-icon" style="color: #f59e0b;"></i>
+                        <span>Ranking y Eventos</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right nav-arrow"></i>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a href="{% url 'panel_noticias_listado' %}" class="nav-link {% if 'noticia' in request.resolver_match.url_name %}active{% endif %}" title="Gestión de Noticias y Comunicados">
                     <div class="nav-link-content">
                         <i class="fa-solid fa-newspaper nav-icon"></i>

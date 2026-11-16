@@ -28,12 +28,14 @@ class PuntosTramoSerializer(serializers.ModelSerializer):
 
 
 class SubCircuitoSerializer(serializers.ModelSerializer):
-    """Serializa un subcircuito con toda su secuencia ordenada de puntos de trazado."""
+    """Serializa un subcircuito con toda su secuencia ordenada de puntos de trazado y su longitud calculada."""
     trazado = PuntosTramoSerializer(many=True, read_only=True)
+    distancia_km = serializers.FloatField(read_only=True)
+    distancia_metros = serializers.FloatField(read_only=True)
 
     class Meta:
         model = SubCircuito
-        fields = ['id', 'nombre', 'orden', 'color_capa', 'trazado']
+        fields = ['id', 'nombre', 'orden', 'color_capa', 'distancia_km', 'distancia_metros', 'trazado']
 
 
 class ComercioAdheridoSerializer(serializers.ModelSerializer):
@@ -64,7 +66,7 @@ class CircuitoGeneralSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CircuitoGeneral
-        fields = ['id', 'nombre', 'descripcion', 'activo', 'subcircuitos', 'comercios']
+        fields = ['id', 'nombre', 'descripcion', 'activo', 'distancia_total_km', 'subcircuitos', 'comercios']
 
 
 # ==============================================================================

@@ -1,0 +1,299 @@
+{% extends "base/base_ciudadano.html" %}
+{% load static %}
+
+{% block title %}Circuitos y Carreras Oficiales | Ciclismo Malagueño{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/circuitos_cards.css' %}">
+<style>
+/* Hero Público Institucional (Misma identidad que Comercios y Noticias) */
+.circuitos-public-hero {
+    position: relative;
+    padding: 8.5rem 0 4.5rem 0;
+    background-image: url('https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=1920&q=80');
+    background-size: cover;
+    background-position: center 35%;
+    background-repeat: no-repeat;
+    background-color: #061d0f;
+    color: #ffffff;
+}
+
+.circuitos-public-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, rgba(8, 28, 14, 0.95) 0%, rgba(8, 28, 14, 0.88) 55%, rgba(8, 28, 14, 0.5) 100%);
+    z-index: 1;
+}
+
+.circuitos-public-content {
+    position: relative;
+    z-index: 2;
+    max-width: 800px;
+}
+
+.circuitos-public-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #f59e0b;
+    color: #0f172a;
+    padding: 0.35rem 0.9rem;
+    border-radius: 9999px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 1.25rem;
+}
+
+.circuitos-public-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 2.85rem;
+    font-weight: 800;
+    line-height: 1.15;
+    margin: 0 0 1rem 0;
+    color: #ffffff;
+}
+
+.circuitos-public-title .highlight-yellow {
+    color: #fbbf24;
+}
+
+.circuitos-public-desc {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.05rem;
+    color: #e2e8f0;
+    line-height: 1.6;
+    margin: 0;
+    max-width: 680px;
+}
+
+/* Sección de Contenido */
+.circuitos-page-body {
+    background: #f8fafc;
+    padding: 3.5rem 0 5rem 0;
+    min-height: 60vh;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- --------------------------------------------------------------------------- -->
+<!-- 1. HERO INSTITUCIONAL PÚBLICO (BASE CIUDADANO)                              -->
+<!-- --------------------------------------------------------------------------- -->
+<section class="circuitos-public-hero">
+    <div class="circuitos-public-overlay"></div>
+    <div class="container" style="position: relative; z-index: 2;">
+        <div class="circuitos-public-content">
+            <div class="circuitos-public-badge">
+                <i class="fa-solid fa-route"></i>
+                <span>Red de Circuitos Municipales</span>
+            </div>
+            <h1 class="circuitos-public-title">
+                Circuitos y Carreras <br>
+                <span class="highlight-yellow">Oficiales de Malagueño</span>
+            </h1>
+            <p class="circuitos-public-desc">
+                Explora los trazados oficiales de nuestra ciudad. Puedes inscribirte a las carreras competitivas para disputar el podio municipal o realizar los circuitos recreativos de forma libre con seguimiento satelital GPS.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- --------------------------------------------------------------------------- -->
+<!-- 2. CATÁLOGO COMPLETO DE CIRCUITOS Y CARRERAS                                -->
+<!-- --------------------------------------------------------------------------- -->
+<section class="circuitos-page-body" id="circuitos-disponibles">
+    <div class="container">
+        <!-- Header de la grilla y filtros -->
+        <div class="all-circuits-header">
+            <div class="all-circuits-header-info">
+                <div class="all-circuits-badge">
+                    <i class="fa-solid fa-bicycle"></i>
+                    <span>Trazados Habilitados ({{ circuitos_activos|length }})</span>
+                </div>
+                <h2 class="all-circuits-title">Conoce Todos los Circuitos</h2>
+                <p class="all-circuits-desc">
+                    Filtra por carreras oficiales o circuitos de práctica libre y sumate al pelotón de Malagueño.
+                </p>
+            </div>
+
+            <!-- Filtros de Pestañas -->
+            <div class="circuits-filter-tabs">
+                <button type="button" class="circuit-tab-btn active" data-filter="todos">
+                    <span>Todos los Circuitos ({{ circuitos_activos|length }})</span>
+                </button>
+                {% if circuitos_eventos %}
+                <button type="button" class="circuit-tab-btn" data-filter="eventos">
+                    <i class="fa-solid fa-trophy"></i>
+                    <span>Carreras Oficiales ({{ circuitos_eventos|length }})</span>
+                </button>
+                {% endif %}
+                {% if circuitos_recreativos %}
+                <button type="button" class="circuit-tab-btn" data-filter="recreativos">
+                    <i class="fa-solid fa-person-biking"></i>
+                    <span>Rutas Recreativas ({{ circuitos_recreativos|length }})</span>
+                </button>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Grilla de Cards de Circuitos -->
+        <div class="circuits-cards-grid">
+            {% for c in circuitos_activos %}
+            <div class="circuit-single-card {% if c.id in inscriptos_ids %}card-is-current{% endif %}" data-tipo="{% if c.evento_vigente %}eventos{% else %}recreativos{% endif %}">
+                <!-- Topbar de la Card -->
+                <div class="circuit-card-topbar">
+                    {% if c.evento_vigente %}
+                        <span class="badge-circuit-event" title="Competencia Oficial Programada">
+                            <i class="fa-solid fa-trophy"></i> Carrera Oficial • {{ c.fecha_evento|date:"d/m/Y" }}
+                        </span>
+                    {% elif c.evento_concluido %}
+                        <span class="badge-circuit-finished" title="Carrera concluida. Recorrido 100% habilitado para entrenamiento y práctica libre.">
+                            <i class="fa-solid fa-flag-checkered"></i> Carrera Finalizada • Modo Libre
+                        </span>
+                    {% else %}
+                        <span class="badge-circuit-free" title="Trazado permanente para práctica libre">
+                            <i class="fa-solid fa-infinity"></i> Recreativo Permanente
+                        </span>
+                    {% endif %}
+
+                    {% if c.id in inscriptos_ids %}
+                        <span class="badge-circuit-current">
+                            <i class="fa-solid fa-circle-check"></i> Inscripto
+                        </span>
+                    {% endif %}
+                </div>
+
+                <!-- Título y Descripción -->
+                <div class="circuit-card-main-info">
+                    <h3 class="circuit-card-name">{{ c.nombre }}</h3>
+                    <p class="circuit-card-desc">
+                        {{ c.descripcion|default:"Trazado oficial habilitado por la Municipalidad de Malagueño con señalización, control satelital y paradas técnicas."|truncatewords:20 }}
+                    </p>
+                </div>
+
+                <!-- Chips de Métricas -->
+                <div class="circuit-stats-chips">
+                    <div class="stat-chip">
+                        <i class="fa-solid fa-road" style="color: #16a34a;"></i>
+                        <span><strong>{{ c.distancia_total_km|default:"0.0" }}</strong> km</span>
+                    </div>
+                    <div class="stat-chip">
+                        <i class="fa-solid fa-layer-group" style="color: #0284c7;"></i>
+                        <span><strong>{{ c.subcircuitos.all|length }}</strong> etapas</span>
+                    </div>
+                    <div class="stat-chip">
+                        <i class="fa-solid fa-store" style="color: #f59e0b;"></i>
+                        <span><strong>{{ c.comercios.all|length }}</strong> comercios</span>
+                    </div>
+                    <div class="stat-chip">
+                        <i class="fa-solid fa-bullseye" style="color: #7c3aed;"></i>
+                        <span>Radio <strong>{{ c.radio_largada_metros|default:20 }}m</strong></span>
+                    </div>
+                </div>
+
+                <!-- Mini Listado de Etapas si tiene -->
+                {% if c.subcircuitos.all %}
+                <div class="circuit-stages-pills">
+                    {% for sub in c.subcircuitos.all %}
+                    <span class="stage-mini-pill" style="border-left-color: {{ sub.color_capa|default:'#16a34a' }};">
+                        Etapa {{ sub.orden }}: {{ sub.nombre|truncatechars:18 }} ({{ sub.distancia_km|default:"--" }} km)
+                    </span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Acciones de la Card -->
+                <div class="circuit-card-actions">
+                    {% if c.evento_vigente %}
+                        <!-- Circuito con Carrera Oficial Programada -->
+                        <a href="{% url 'mapa_carrera' %}?circuito_id={{ c.id }}&modo=libre" class="btn-card-select" title="Hacer el recorrido libremente sin competir en la carrera">
+                            <i class="fa-solid fa-person-biking"></i>
+                            <span>Pedalear Libre</span>
+                        </a>
+
+                        {% if user.is_authenticated %}
+                            {% if c.id in inscriptos_carrera_ids %}
+                                <a href="{% url 'mi_progreso' %}?circuito_id={{ c.id }}" class="btn-card-primary" title="Inscripción activa a la carrera oficial" style="background: #15803d;">
+                                    <i class="fa-solid fa-id-badge"></i>
+                                    <span>Inscripto Oficial</span>
+                                </a>
+                            {% else %}
+                                <form method="POST" action="{% url 'inscribir_circuito' c.id %}" style="flex: 1; display: flex;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-card-primary" style="width: 100%;" title="Inscribirme para disputar el podio oficial">
+                                        <i class="fa-solid fa-trophy"></i>
+                                        <span>Inscribirme Oficial</span>
+                                    </button>
+                                </form>
+                            {% endif %}
+                        {% else %}
+                            <a href="{% url 'login' %}?next={% url 'circuitos_listado' %}" class="btn-card-primary" style="flex: 1;" title="Ingresar para anotarse a la carrera">
+                                <i class="fa-solid fa-trophy"></i>
+                                <span>Inscribirme (Login)</span>
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        <!-- Circuito Recreativo Permanente -->
+                        {% if c.id in inscriptos_ids %}
+                            <a href="{% url 'mi_progreso' %}?circuito_id={{ c.id }}" class="btn-card-select" title="Ver mi progreso en este circuito">
+                                <i class="fa-solid fa-chart-line"></i>
+                                <span>Mi Progreso</span>
+                            </a>
+                        {% else %}
+                            {% if user.is_authenticated %}
+                                <form method="POST" action="{% url 'inscribir_circuito' c.id %}" style="display: flex;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-card-select" title="Añadir a mis circuitos">
+                                        <i class="fa-solid fa-plus"></i>
+                                        <span>Agregar</span>
+                                    </button>
+                                </form>
+                            {% endif %}
+                        {% endif %}
+                        <a href="{% url 'mapa_carrera' %}?circuito_id={{ c.id }}" class="btn-card-primary" title="Iniciar recorrido satelital">
+                            <i class="fa-solid fa-location-crosshairs"></i>
+                            <span>Pedalear (GPS)</span>
+                        </a>
+                    {% endif %}
+                    <a href="{% url 'index' %}?circuito_id={{ c.id }}#circuito" class="btn-card-map" title="Ver en el mapa interactivo">
+                        <i class="fa-solid fa-map-location-dot"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const tabBtns = document.querySelectorAll('#circuitos-disponibles .circuit-tab-btn');
+        const circuitCards = document.querySelectorAll('#circuitos-disponibles .circuit-single-card');
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                tabBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const filter = btn.getAttribute('data-filter');
+                circuitCards.forEach(card => {
+                    const tipo = card.getAttribute('data-tipo') || '';
+                    if (filter === 'todos' || tipo.includes(filter)) {
+                        card.style.display = 'flex';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

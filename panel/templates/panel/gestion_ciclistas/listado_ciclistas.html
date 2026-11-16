@@ -42,7 +42,7 @@
         <div class="metric-box-card">
             <div class="metric-box-info">
                 <span class="metric-box-label">TOTAL REGISTRADOS</span>
-                <h2 class="metric-box-number">{{ total_registrados|default:"1,284" }}</h2>
+                <h2 class="metric-box-number">{{ total_registrados }}</h2>
             </div>
             <div class="metric-box-icon icon-box-green">
                 <i class="fa-solid fa-user-group"></i>
@@ -53,7 +53,7 @@
         <div class="metric-box-card">
             <div class="metric-box-info">
                 <span class="metric-box-label">PENDIENTES VALIDACIÓN</span>
-                <h2 class="metric-box-number">{{ pendientes_validacion|default:"42" }}</h2>
+                <h2 class="metric-box-number">{{ pendientes_validacion }}</h2>
             </div>
             <div class="metric-box-icon icon-box-amber">
                 <i class="fa-solid fa-shield-halved"></i>
@@ -64,7 +64,7 @@
         <div class="metric-box-card">
             <div class="metric-box-info">
                 <span class="metric-box-label">ACTIVOS HOY</span>
-                <h2 class="metric-box-number">{{ activos_hoy|default:"315" }}</h2>
+                <h2 class="metric-box-number">{{ activos_hoy }}</h2>
             </div>
             <div class="metric-box-icon icon-box-green">
                 <i class="fa-solid fa-circle-check"></i>
@@ -75,7 +75,7 @@
         <div class="metric-box-card">
             <div class="metric-box-info">
                 <span class="metric-box-label">NUEVOS (7 DÍAS)</span>
-                <h2 class="metric-box-number">+{{ nuevos_semana|default:"12" }}</h2>
+                <h2 class="metric-box-number">+{{ nuevos_semana }}</h2>
             </div>
             <div class="metric-box-icon icon-box-green">
                 <i class="fa-regular fa-calendar"></i>

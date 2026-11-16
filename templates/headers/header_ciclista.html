@@ -34,10 +34,10 @@
         <!-- Acciones y Circuito Activo -->
         <div class="topbar-actions">
             {% if circuito %}
-            <a href="{% if request.resolver_match.url_name == 'mapa_carrera' %}{% url 'mi_progreso' %}{% else %}{% url 'mapa_carrera' %}{% endif %}" class="badge-circuito-activo" title="Circuito Activo de Malagueño">
+            <div class="badge-circuito-activo" title="Circuito seleccionado: {{ circuito.nombre }}" style="cursor: default; user-select: none;">
                 <i class="fa-solid fa-location-dot"></i>
                 <span>{{ circuito.nombre }}</span>
-            </a>
+            </div>
             {% endif %}
             <a href="{% url 'logout' %}" class="btn-topbar-logout" title="Cerrar Sesión" aria-label="Cerrar Sesión">
                 <i class="fa-solid fa-arrow-right-from-bracket"></i>

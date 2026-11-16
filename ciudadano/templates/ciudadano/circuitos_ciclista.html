@@ -1,0 +1,321 @@
+{% extends "base/base_ciclista.html" %}
+{% load static %}
+
+{% block title %}Catálogo de Circuitos | Ciclismo Malagueño{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/circuitos_cards.css' %}">
+<style>
+.panel-ciclista-circuitos-wrapper {
+    background-color: #f8fafc;
+    min-height: 100vh;
+    padding-top: 1.5rem;
+    padding-bottom: 6rem; /* Margen garantizado para el bottom navigation bar móvil */
+}
+
+/* Header estilizado dentro del panel del ciclista */
+.ciclista-catalog-header {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 1.75rem 2rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 18px rgba(15, 23, 42, 0.04);
+    margin-bottom: 2rem;
+}
+
+.catalog-breadcrumb-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.btn-volver-progreso {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #16a34a;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.btn-volver-progreso:hover {
+    color: #15803d;
+    text-decoration: underline;
+}
+
+.catalog-user-badge {
+    background: #ecfdf5;
+    color: #059669;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    border: 1px solid #a7f3d0;
+}
+
+.catalog-title-group h1 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 0.4rem 0;
+    line-height: 1.25;
+}
+
+.catalog-title-group p {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    color: #64748b;
+    margin: 0;
+    max-width: 680px;
+    line-height: 1.5;
+}
+
+.catalog-stats-strip {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    margin-top: 1.25rem;
+    padding-top: 1.15rem;
+    border-top: 1px solid #f1f5f9;
+    flex-wrap: wrap;
+    font-size: 0.85rem;
+    color: #475569;
+}
+
+.catalog-stat-item strong {
+    color: #0f172a;
+    font-weight: 800;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="panel-ciclista-circuitos-wrapper">
+    <div class="container">
+
+        <!-- ------------------------------------------------------------------- -->
+        <!-- 1. HEADER DE CONTROL DEL PANEL DEL CICLISTA                         -->
+        <!-- ------------------------------------------------------------------- -->
+        <section class="ciclista-catalog-header">
+            <div class="catalog-breadcrumb-row">
+                <a href="{% url 'mi_progreso' %}" class="btn-volver-progreso">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>Volver a Mi Progreso</span>
+                </a>
+                <span class="catalog-user-badge">
+                    <i class="fa-solid fa-id-badge"></i> Panel Ciclista Acreditado
+                </span>
+            </div>
+
+            <div class="catalog-title-group">
+                <h1>Catálogo de Circuitos y Carreras Oficiales</h1>
+                <p>
+                    Suma nuevos circuitos a tu panel personal para consultar tu avance o inscríbete a las carreras oficiales para disputar el podio de Malagueño con telemetría GPS.
+                </p>
+            </div>
+
+            <div class="catalog-stats-strip">
+                <div class="catalog-stat-item">
+                    <i class="fa-solid fa-route" style="color: #16a34a; margin-right: 4px;"></i>
+                    Disponibles: <strong>{{ circuitos_activos|length }} circuitos</strong>
+                </div>
+                <div class="catalog-stat-item">
+                    <i class="fa-solid fa-trophy" style="color: #f59e0b; margin-right: 4px;"></i>
+                    Carreras Oficiales: <strong>{{ circuitos_eventos|length }}</strong>
+                </div>
+                <div class="catalog-stat-item">
+                    <i class="fa-solid fa-circle-check" style="color: #0284c7; margin-right: 4px;"></i>
+                    Tus Circuitos Inscriptos: <strong>{{ inscriptos_ids|length }}</strong>
+                </div>
+            </div>
+        </section>
+
+        <!-- ------------------------------------------------------------------- -->
+        <!-- 2. CATÁLOGO DE CARDS CON FILTRO POR PESTAÑAS                        -->
+        <!-- ------------------------------------------------------------------- -->
+        <section id="circuitos-disponibles" style="margin-bottom: 2rem;">
+            <!-- Header de filtros -->
+            <div class="all-circuits-header">
+                <div class="all-circuits-header-info">
+                    <h2 class="all-circuits-title" style="font-size: 1.45rem;">Todos los Circuitos Habilitados</h2>
+                    <p class="all-circuits-desc">
+                        Selecciona o agrega el circuito que deseas realizar hoy en Malagueño.
+                    </p>
+                </div>
+
+                <!-- Filtros de Pestañas -->
+                <div class="circuits-filter-tabs">
+                    <button type="button" class="circuit-tab-btn active" data-filter="todos">
+                        <span>Todos ({{ circuitos_activos|length }})</span>
+                    </button>
+                    {% if circuitos_eventos %}
+                    <button type="button" class="circuit-tab-btn" data-filter="eventos">
+                        <i class="fa-solid fa-trophy"></i>
+                        <span>Carreras Oficiales ({{ circuitos_eventos|length }})</span>
+                    </button>
+                    {% endif %}
+                    {% if circuitos_recreativos %}
+                    <button type="button" class="circuit-tab-btn" data-filter="recreativos">
+                        <i class="fa-solid fa-person-biking"></i>
+                        <span>Recreativos ({{ circuitos_recreativos|length }})</span>
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Grilla de Cards de Circuitos -->
+            <div class="circuits-cards-grid">
+                {% for c in circuitos_activos %}
+                <div class="circuit-single-card {% if c.id in inscriptos_ids %}card-is-current{% endif %}" data-tipo="{% if c.evento_vigente %}eventos{% else %}recreativos{% endif %}">
+                    <!-- Topbar de la Card -->
+                    <div class="circuit-card-topbar">
+                        {% if c.evento_vigente %}
+                            <span class="badge-circuit-event" title="Competencia Oficial Programada">
+                                <i class="fa-solid fa-trophy"></i> Carrera Oficial • {{ c.fecha_evento|date:"d/m/Y" }}
+                            </span>
+                        {% elif c.evento_concluido %}
+                            <span class="badge-circuit-finished" title="Carrera concluida. Recorrido 100% habilitado para entrenamiento y práctica libre.">
+                                <i class="fa-solid fa-flag-checkered"></i> Carrera Finalizada • Modo Libre
+                            </span>
+                        {% else %}
+                            <span class="badge-circuit-free" title="Trazado permanente para práctica libre">
+                                <i class="fa-solid fa-infinity"></i> Recreativo Permanente
+                            </span>
+                        {% endif %}
+
+                        {% if c.id in inscriptos_ids %}
+                            <span class="badge-circuit-current">
+                                <i class="fa-solid fa-circle-check"></i> En tu Panel
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Título y Descripción -->
+                    <div class="circuit-card-main-info">
+                        <h3 class="circuit-card-name">{{ c.nombre }}</h3>
+                        <p class="circuit-card-desc">
+                            {{ c.descripcion|default:"Trazado oficial habilitado por la Municipalidad de Malagueño con señalización, control satelital y paradas técnicas."|truncatewords:20 }}
+                        </p>
+                    </div>
+
+                    <!-- Chips de Métricas -->
+                    <div class="circuit-stats-chips">
+                        <div class="stat-chip">
+                            <i class="fa-solid fa-road" style="color: #16a34a;"></i>
+                            <span><strong>{{ c.distancia_total_km|default:"0.0" }}</strong> km</span>
+                        </div>
+                        <div class="stat-chip">
+                            <i class="fa-solid fa-layer-group" style="color: #0284c7;"></i>
+                            <span><strong>{{ c.subcircuitos.all|length }}</strong> etapas</span>
+                        </div>
+                        <div class="stat-chip">
+                            <i class="fa-solid fa-store" style="color: #f59e0b;"></i>
+                            <span><strong>{{ c.comercios.all|length }}</strong> comercios</span>
+                        </div>
+                        <div class="stat-chip">
+                            <i class="fa-solid fa-bullseye" style="color: #7c3aed;"></i>
+                            <span>Radio <strong>{{ c.radio_largada_metros|default:20 }}m</strong></span>
+                        </div>
+                    </div>
+
+                    <!-- Mini Listado de Etapas si tiene -->
+                    {% if c.subcircuitos.all %}
+                    <div class="circuit-stages-pills">
+                        {% for sub in c.subcircuitos.all %}
+                        <span class="stage-mini-pill" style="border-left-color: {{ sub.color_capa|default:'#16a34a' }};">
+                            Etapa {{ sub.orden }}: {{ sub.nombre|truncatechars:18 }} ({{ sub.distancia_km|default:"--" }} km)
+                        </span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Acciones de la Card -->
+                    <div class="circuit-card-actions">
+                        {% if c.evento_vigente %}
+                            <!-- Carrera Oficial Programada -->
+                            <a href="{% url 'mapa_carrera' %}?circuito_id={{ c.id }}&modo=libre" class="btn-card-select" title="Entrenar o recorrer en Modo Libre">
+                                <i class="fa-solid fa-person-biking"></i>
+                                <span>Pedalear Libre</span>
+                            </a>
+
+                            {% if c.id in inscriptos_carrera_ids %}
+                                <a href="{% url 'mi_progreso' %}?circuito_id={{ c.id }}" class="btn-card-primary" title="Inscripción activa a la carrera oficial" style="background: #15803d;">
+                                    <i class="fa-solid fa-id-badge"></i>
+                                    <span>Inscripto Oficial</span>
+                                </a>
+                            {% else %}
+                                <form method="POST" action="{% url 'inscribir_circuito' c.id %}" style="flex: 1; display: flex;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-card-primary" style="width: 100%;" title="Inscribirme formalmente a la carrera">
+                                        <i class="fa-solid fa-trophy"></i>
+                                        <span>Inscribirme Oficial</span>
+                                    </button>
+                                </form>
+                            {% endif %}
+                        {% else %}
+                            <!-- Circuito Recreativo Permanente -->
+                            {% if c.id in inscriptos_ids %}
+                                <a href="{% url 'mi_progreso' %}?circuito_id={{ c.id }}" class="btn-card-select" title="Ver mi progreso en este circuito">
+                                    <i class="fa-solid fa-chart-line"></i>
+                                    <span>Mi Progreso</span>
+                                </a>
+                            {% else %}
+                                <form method="POST" action="{% url 'inscribir_circuito' c.id %}" style="display: flex;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-card-select" title="Añadir a mis circuitos">
+                                        <i class="fa-solid fa-plus"></i>
+                                        <span>Agregar</span>
+                                    </button>
+                                </form>
+                            {% endif %}
+                            <a href="{% url 'mapa_carrera' %}?circuito_id={{ c.id }}" class="btn-card-primary" title="Iniciar recorrido satelital">
+                                <i class="fa-solid fa-location-crosshairs"></i>
+                                <span>Pedalear (GPS)</span>
+                            </a>
+                        {% endif %}
+                        <a href="{% url 'mapa_carrera' %}?circuito_id={{ c.id }}" class="btn-card-map" title="Ver trazado satelital">
+                            <i class="fa-solid fa-map"></i>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const tabBtns = document.querySelectorAll('#circuitos-disponibles .circuit-tab-btn');
+        const circuitCards = document.querySelectorAll('#circuitos-disponibles .circuit-single-card');
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                tabBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const filter = btn.getAttribute('data-filter');
+                circuitCards.forEach(card => {
+                    const tipo = card.getAttribute('data-tipo') || '';
+                    if (filter === 'todos' || tipo.includes(filter)) {
+                        card.style.display = 'flex';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}
+

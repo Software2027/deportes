@@ -448,11 +448,67 @@ body.carrera-mode {
    ------------------------------------------------------------------------------ */
 .carrera-hud-container {
     position: absolute;
-    top: 116px;
+    top: 114px;
     left: 12px;
     right: 12px;
     z-index: 450;
     pointer-events: none;
+}
+
+.carrera-modalidad-strip {
+    pointer-events: auto;
+    max-width: 640px;
+    margin: 0 auto 6px auto;
+    padding: 0.32rem 0.95rem;
+    border-radius: 9999px;
+    font-size: 0.76rem;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    text-align: center;
+}
+
+.carrera-modalidad-strip.strip-entreno {
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.carrera-modalidad-strip.strip-entreno i {
+    color: #7dd3fc;
+}
+
+.carrera-modalidad-strip.strip-oficial {
+    background: linear-gradient(135deg, #15803d 0%, #0b381e 100%);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.carrera-modalidad-strip.strip-oficial i {
+    color: #facc15;
+}
+
+.carrera-modalidad-strip.strip-libre {
+    background: rgba(15, 23, 42, 0.90);
+    backdrop-filter: blur(8px);
+    color: #f8fafc;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.carrera-modalidad-strip.strip-libre i {
+    color: #4ade80;
+}
+
+.desktop-text {
+    display: inline;
+}
+
+.mobile-text {
+    display: none;
 }
 
 .carrera-hud-card {
@@ -1135,74 +1191,144 @@ body.carrera-mode {
 }
 
 /* ------------------------------------------------------------------------------
-   9. RESPONSIVE QUERIES (TELÉFONOS SMARTPHONE)
+   9. RESPONSIVE QUERIES (TELÉFONOS SMARTPHONE Y DISPOSITIVOS MÓVILES)
    ------------------------------------------------------------------------------ */
 @media (max-width: 640px) {
-    .carrera-hud-container {
-        top: 112px;
+    /* Alternancia de textos larga vs corta para evitar saltos de línea */
+    .desktop-text {
+        display: none !important;
+    }
+
+    .mobile-text {
+        display: inline !important;
+    }
+
+    /* Topbar compacta flotante */
+    .carrera-topbar-floating {
+        top: 8px;
         left: 8px;
         right: 8px;
+        gap: 0.5rem;
     }
 
-    .carrera-hud-card {
-        padding: 0.65rem 0.45rem;
-        border-radius: 14px;
-        gap: 0.25rem;
-    }
-
-    .hud-value {
-        font-size: 1.2rem;
-    }
-
-    .hud-label {
-        font-size: 0.6rem;
-    }
-
-    .hud-unit {
-        font-size: 0.62rem;
-    }
-
-    .topbar-center-badge {
-        font-size: 0.76rem;
-        max-width: 140px;
+    .btn-toggle-etapas {
         padding: 0.35rem 0.65rem;
+        font-size: 0.78rem;
+        height: 36px;
     }
 
     .btn-etapas-text {
         display: none;
     }
 
-    .btn-toggle-etapas {
-        padding: 0.45rem 0.6rem;
+    .gps-signal-badge {
+        padding: 0.35rem 0.55rem;
+        height: 36px;
+        box-sizing: border-box;
     }
 
     .gps-text-label {
         display: none;
     }
 
-    .gps-signal-badge {
-        padding: 0.45rem 0.55rem;
+    .btn-toggle-fullscreen {
+        width: 36px;
+        height: 36px;
+        font-size: 0.9rem;
     }
 
+    /* Píldora de etapa / subcircuito */
     .subcircuito-floating-pill {
-        top: 60px;
+        top: 48px;
         left: 8px;
         right: 8px;
-        padding: 0.45rem 0.65rem;
+        padding: 0.35rem 0.65rem;
+        border-radius: 12px;
+        gap: 0.45rem;
+    }
+
+    .subcircuito-step-badge {
+        font-size: 0.68rem;
+        padding: 0.2rem 0.5rem;
     }
 
     .subcircuito-name-text {
-        max-width: 130px;
-        font-size: 0.78rem;
+        max-width: 125px;
+        font-size: 0.76rem;
     }
 
-    .subcircuito-stepper-bar {
-        top: 100px;
+    .subcircuito-dist-text {
+        font-size: 0.74rem;
+        font-weight: 700;
+    }
+
+    .btn-subcircuito-drawer-open {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.5rem;
+    }
+
+    /* Stepper progreso visual de etapas */
+    .subcircuitos-stepper-bar {
+        top: 86px;
         left: 12px;
         right: 12px;
+        gap: 4px;
     }
 
-    /* En móvil el drawer se convierte en Bottom Sheet */
+    .stepper-segment {
+        height: 3px;
+    }
+
+    /* HUD Container (Modalidad + Métricas Deportivas) */
+    .carrera-hud-container {
+        top: 94px;
+        left: 8px;
+        right: 8px;
+    }
+
+    /* Pastilla de Modalidad (Entrenamiento / Oficial / Libre) */
+    .carrera-modalidad-strip {
+        font-size: 0.72rem;
+        padding: 0.22rem 0.65rem;
+        margin-bottom: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+        letter-spacing: -0.2px;
+    }
+
+    /* Tarjeta de Métricas HUD */
+    .carrera-hud-card {
+        padding: 0.55rem 0.35rem;
+        border-radius: 14px;
+        gap: 0.2rem;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+    }
+
+    .hud-value {
+        font-size: 1.15rem;
+    }
+
+    #hud-tiempo {
+        font-size: 1.02rem !important;
+        letter-spacing: -0.5px;
+    }
+
+    .hud-label {
+        font-size: 0.58rem;
+        letter-spacing: 0.3px;
+    }
+
+    .hud-unit {
+        font-size: 0.62rem;
+    }
+
+    .hud-item:not(:last-child)::after {
+        height: 55%;
+    }
+
+    /* Drawer de Etapas como Bottom Sheet */
     .drawer-subcircuitos {
         top: auto;
         bottom: -100%;
@@ -1220,27 +1346,64 @@ body.carrera-mode {
         right: 0;
     }
 
+    /* Controles de Pedaleo / Carrera Inferiores */
     .carrera-controls-bar {
-        bottom: 12px;
-        padding: 0.6rem 0.75rem;
+        bottom: 10px;
+        left: 8px;
+        right: 8px;
+        padding: 0.55rem 0.75rem;
+        border-radius: 16px;
     }
 
     .btn-carrera-action {
         font-size: 0.95rem;
-        padding: 0.75rem 0.85rem;
+        padding: 0.7rem 0.85rem;
         min-height: 48px;
     }
 
-    .proximity-banner {
-        right: 16px;
-        bottom: 95px;
-    }
-
+    /* Botón flotante para recentrar posición GPS */
     .btn-recenter-gps {
-        bottom: 85px;
+        bottom: 74px;
         right: 12px;
         width: 44px;
         height: 44px;
         font-size: 1.1rem;
+    }
+
+    /* Banner de Proximidad a Comercio / Punto de Interés */
+    .proximity-banner {
+        bottom: 74px;
+        left: 8px;
+        right: 64px;
+        padding: 0.65rem 0.85rem;
+    }
+}
+
+/* Pantallas Extra Angostas (Smartphones compactos <= 380px) */
+@media (max-width: 380px) {
+    .subcircuito-name-text {
+        max-width: 90px;
+    }
+
+    .btn-subcircuito-drawer-open span {
+        display: none;
+    }
+
+    .carrera-modalidad-strip {
+        font-size: 0.66rem;
+        padding: 0.2rem 0.45rem;
+    }
+
+    .hud-value {
+        font-size: 1.05rem;
+    }
+
+    #hud-tiempo {
+        font-size: 0.94rem !important;
+        letter-spacing: -0.6px;
+    }
+
+    .hud-label {
+        font-size: 0.52rem;
     }
 }

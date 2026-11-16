@@ -38,17 +38,28 @@ from .utils import (
 
 class CircuitoActivoAPIView(APIView):
     """
-    GET /api/circuitos/activo/
-    Devuelve la geometría y datos del circuito activo actual para renderizado en Leaflet.
+    GET /api/circuitos/activo/?circuito_id=X
+    Devuelve la geometría y datos del circuito activo solicitado (o el principal si no se pasa ID)
+    para renderizado dinámico en Leaflet.
     Accesible públicamente sin autenticación.
     """
     permission_classes = [permissions.AllowAny]
 
     def get(self, request):
-        circuito = CircuitoGeneral.objects.filter(activo=True).prefetch_related(
-            'subcircuitos__trazado',
-            'comercios'
-        ).first()
+        circuito_id = request.query_params.get('circuito_id')
+        if circuito_id:
+            circuito = CircuitoGeneral.objects.filter(id=circuito_id, activo=True).prefetch_related(
+                'subcircuitos__trazado',
+                'comercios'
+            ).first()
+        else:
+            today = date.today()
+            circuitos_qs = CircuitoGeneral.objects.filter(activo=True).prefetch_related(
+                'subcircuitos__trazado',
+                'comercios'
+            )
+            # Priorizar evento oficial vigente o primer circuito activo
+            circuito = circuitos_qs.filter(fecha_evento__gte=today).order_by('fecha_evento').first() or circuitos_qs.first()
 
         if not circuito:
             return Response(
@@ -87,7 +98,7 @@ class IniciarRecorridoAPIView(APIView):
 
         # Validación del punto de largada si el circuito tiene trazado y se envían coordenadas
         punto_inicio = circuito.punto_largada
-        radio_maximo = circuito.radio_largada_metros or 80
+        radio_maximo = circuito.radio_largada_metros or 20
 
         if punto_inicio and latitud is not None and longitud is not None:
             distancia_a_largada = calcular_distancia_metros(
@@ -113,33 +124,46 @@ class IniciarRecorridoAPIView(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-        # Determinar modalidad del recorrido: OFICIAL si hoy es la fecha del evento, o LIBRE
-        modalidad = 'LIBRE'
-        if circuito.fecha_evento and circuito.fecha_evento == date.today():
-            modalidad = 'OFICIAL'
+        # Determinar si hoy es el día del evento oficial y modo solicitado
+        es_dia_carrera = bool(circuito.fecha_evento and circuito.fecha_evento == date.today())
+        modo_solicitado = (request.data.get('modo') or '').strip().lower()
 
-        # Buscar si ya tiene un recorrido EN_CURSO o PAUSADO para este circuito
-        recorrido = RecorridoCiclista.objects.filter(
+        # Verificar si el ciclista está inscripto a la carrera oficial
+        inscripcion_oficial = RecorridoCiclista.objects.filter(
             ciclista=request.user,
             circuito=circuito,
-            estado__in=['EN_CURSO', 'PAUSADO']
+            modalidad='OFICIAL'
         ).first()
 
-        if recorrido:
+        if es_dia_carrera and inscripcion_oficial and modo_solicitado != 'libre':
+            # Carrera Oficial: activar la manga de carrera del participante
+            modalidad = 'OFICIAL'
+            recorrido = inscripcion_oficial
             recorrido.estado = 'EN_CURSO'
-            # Si era libre y ahora es fecha de evento oficial, actualizar modalidad
-            if modalidad == 'OFICIAL':
-                recorrido.modalidad = 'OFICIAL'
             recorrido.save()
             creado = False
         else:
-            recorrido = RecorridoCiclista.objects.create(
+            # Modo Libre: práctica, reconocimiento o paseo recreativo sin alterar la inscripción
+            modalidad = 'LIBRE'
+            recorrido = RecorridoCiclista.objects.filter(
                 ciclista=request.user,
                 circuito=circuito,
-                estado='EN_CURSO',
-                modalidad=modalidad
-            )
-            creado = True
+                modalidad='LIBRE',
+                estado__in=['EN_CURSO', 'PAUSADO']
+            ).first()
+
+            if recorrido:
+                recorrido.estado = 'EN_CURSO'
+                recorrido.save()
+                creado = False
+            else:
+                recorrido = RecorridoCiclista.objects.create(
+                    ciclista=request.user,
+                    circuito=circuito,
+                    estado='EN_CURSO',
+                    modalidad='LIBRE'
+                )
+                creado = True
 
         serializer = RecorridoCiclistaSerializer(recorrido)
         return Response(
@@ -254,16 +278,54 @@ class FinalizarRecorridoAPIView(APIView):
     """
     POST /api/recorrido/finalizar/
     Finaliza el recorrido del ciclista registrando la fecha/hora de fin.
-    Payload: { "recorrido_id": 102 }
+    Verifica si se encuentra dentro del radio de tolerancia de 20 metros respecto a la Meta Oficial.
+    Payload: { "recorrido_id": 102, "latitud": -31.468, "longitud": -64.355, "forzar": false }
     """
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
         recorrido_id = request.data.get('recorrido_id')
+        latitud = request.data.get('latitud')
+        longitud = request.data.get('longitud')
+        forzar = request.data.get('forzar', False)
+
         if not recorrido_id:
             return Response({"error": "Debe especificar recorrido_id"}, status=status.HTTP_400_BAD_REQUEST)
 
-        recorrido = get_object_or_404(RecorridoCiclista, id=recorrido_id, ciclista=request.user)
+        recorrido = get_object_or_404(
+            RecorridoCiclista.objects.select_related('circuito'),
+            id=recorrido_id,
+            ciclista=request.user
+        )
+
+        # Validación de Meta (Llegada) con radio oficial de 20 metros
+        punto_meta = recorrido.circuito.punto_meta if recorrido.circuito else None
+        radio_meta = 20
+        distancia_a_meta = None
+        en_meta = True
+
+        if punto_meta and latitud is not None and longitud is not None:
+            distancia_a_meta = calcular_distancia_metros(latitud, longitud, punto_meta[0], punto_meta[1])
+            if distancia_a_meta > radio_meta:
+                en_meta = False
+                if not forzar:
+                    return Response(
+                        {
+                            "fuera_de_meta": True,
+                            "error": (
+                                f"Te encuentras a {int(distancia_a_meta)} metros de la Meta Oficial. "
+                                f"La tolerancia para cerrar carrera es de {radio_meta} metros."
+                            ),
+                            "distancia_metros": round(distancia_a_meta, 1),
+                            "radio_permitido": radio_meta,
+                            "punto_meta": {
+                                "lat": punto_meta[0],
+                                "lng": punto_meta[1]
+                            }
+                        },
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+
         recorrido.estado = 'FINALIZADO'
         recorrido.fin = timezone.now()
         recorrido.save()
@@ -272,7 +334,9 @@ class FinalizarRecorridoAPIView(APIView):
             {
                 "status": "ok",
                 "estado": "FINALIZADO",
-                "fin": recorrido.fin
+                "fin": recorrido.fin,
+                "en_meta_oficial": en_meta,
+                "distancia_meta_metros": round(distancia_a_meta, 1) if distancia_a_meta is not None else None
             },
             status=status.HTTP_200_OK
         )

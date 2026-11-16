@@ -227,14 +227,14 @@
 .circuit-map-section {
   background: #0b321a;
   color: #ffffff;
-  padding: 4.5rem 0 5rem 0;
+  padding: 4.5rem 0 3.5rem 0;
 }
 
 .section-top-flex {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   flex-wrap: wrap;
   gap: 1.5rem;
 }
@@ -302,10 +302,10 @@
   position: relative;
   width: 100%;
   height: 520px;
-  border-radius: 16px;
+  border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 #mapa-publico {
@@ -317,15 +317,19 @@
 /* Card Flotante de Estado del Circuito (Blanca en esquina inferior izquierda) */
 .floating-circuit-card {
   position: absolute;
-  bottom: 24px;
-  left: 24px;
-  z-index: 1000;
-  background: #ffffff;
+  bottom: 20px;
+  left: 20px;
+  z-index: 400;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   color: #1e293b;
-  border-radius: 12px;
-  padding: 1.25rem 1.4rem;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
-  width: 260px;
+  border-radius: 16px;
+  padding: 1.15rem 1.25rem;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+  width: 270px;
+  max-width: calc(100% - 40px);
+  border: 1px solid #e2e8f0;
   font-family: 'Inter', sans-serif;
 }
 
@@ -333,11 +337,11 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #1e293b;
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: #0f172a;
   text-transform: uppercase;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.45rem;
 }
 
 .status-dot-active {
@@ -354,7 +358,7 @@
   justify-content: space-between;
   border-bottom: 1px solid #f1f5f9;
   padding-bottom: 0.4rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.45rem;
 }
 
 .floating-distance-val {
@@ -368,9 +372,9 @@
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: #64748b;
-  margin-bottom: 1rem;
+  margin-bottom: 0.85rem;
 }
 
 .floating-meta-item {
@@ -380,29 +384,35 @@
 }
 
 .floating-meta-item b {
-  color: #1e293b;
+  color: #0f172a;
+  font-weight: 700;
 }
 
 .btn-open-gps {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
   width: 100%;
   text-align: center;
-  background-color: #f59e0b;
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
   color: #ffffff;
   font-family: 'Outfit', sans-serif;
   font-weight: 700;
-  font-size: 0.88rem;
+  font-size: 0.86rem;
   padding: 0.6rem 0;
-  border-radius: 8px;
+  border-radius: 10px;
   text-decoration: none;
   border: none;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.35);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
   transition: all 0.2s ease;
 }
 
 .btn-open-gps:hover {
-  background-color: #d97706;
+  background: #15803d;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(22, 163, 74, 0.4);
 }
 
 /* -------------------------------------------------------------------------

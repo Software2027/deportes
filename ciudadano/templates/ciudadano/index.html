@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="{% static 'css/pages/home.css' %}">
 <link rel="stylesheet" href="{% static 'css/pages/circuito.css' %}">
 <link rel="stylesheet" href="{% static 'css/pages/contacto.css' %}">
+<link rel="stylesheet" href="{% static 'css/pages/circuitos_cards.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -120,52 +121,251 @@
                     <span>Mapa del Circuito</span>
                 </div>
                 <h2 class="circuit-header-title">
-                    Explora el <span class="highlight-gold">{{ circuito.nombre|default:"Circuito Municipal" }}</span>
+                    Explora el <span class="highlight-gold" id="map-circuito-nombre">{{ circuito.nombre|default:"Circuito Municipal" }}</span>
                 </h2>
                 <p class="circuit-header-desc">
                     Visualiza los puntos de control, zonas de hidratación y comercios afiliados en tiempo real. Nuestra red de ciclovías está diseñada para tu seguridad y comodidad.
                 </p>
             </div>
             <div>
-                <a href="{% url 'mapa_carrera' %}" class="btn-fullscreen">
+                <a href="{% url 'mapa_carrera' %}{% if circuito %}?circuito_id={{ circuito.id }}{% endif %}" id="btn-fullscreen-map" class="btn-fullscreen">
                     <span>Ver en pantalla completa</span>
                     <i class="fa-solid fa-expand" style="margin-left: 5px;"></i>
                 </a>
             </div>
         </div>
 
+        <!-- Selector y Categorización de Circuitos Activos (Eventos Oficiales vs. Rutas Recreativas) -->
+        {% if circuitos_eventos or circuitos_recreativos %}
+        <div class="circuitos-tabs-container" style="display: flex; flex-wrap: wrap; gap: 1rem; margin: 1.25rem 0; padding: 0.75rem 1rem; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);">
+            {% if circuitos_eventos %}
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                <span style="font-size: 0.75rem; font-weight: 800; color: #15803d; text-transform: uppercase; letter-spacing: 0.5px;">
+                    <i class="fa-solid fa-trophy"></i> Carreras Oficiales:
+                </span>
+                {% for c in circuitos_eventos %}
+                <a href="?circuito_id={{ c.id }}#circuito" data-circuito-id="{{ c.id }}" class="btn-circuito-pill btn-ver-recorrido" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.85rem; border-radius: 999px; font-size: 0.82rem; font-weight: 700; text-decoration: none; border: 1.5px solid {% if c.id == circuito.id %}#16a34a{% else %}#cbd5e1{% endif %}; background: {% if c.id == circuito.id %}#16a34a{% else %}#ffffff{% endif %}; color: {% if c.id == circuito.id %}#ffffff{% else %}#334155{% endif %}; transition: all 0.2s;">
+                    <span>{{ c.nombre }}</span>
+                    {% if c.fecha_evento %}<small style="opacity: 0.85;">({{ c.fecha_evento|date:"d/m" }})</small>{% endif %}
+                </a>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if circuitos_recreativos %}
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                <span style="font-size: 0.75rem; font-weight: 800; color: #0284c7; text-transform: uppercase; letter-spacing: 0.5px;">
+                    <i class="fa-solid fa-person-biking"></i> Rutas Recreativas:
+                </span>
+                {% for c in circuitos_recreativos %}
+                <a href="?circuito_id={{ c.id }}#circuito" data-circuito-id="{{ c.id }}" class="btn-circuito-pill btn-ver-recorrido" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.85rem; border-radius: 999px; font-size: 0.82rem; font-weight: 700; text-decoration: none; border: 1.5px solid {% if c.id == circuito.id %}#0284c7{% else %}#cbd5e1{% endif %}; background: {% if c.id == circuito.id %}#0284c7{% else %}#ffffff{% endif %}; color: {% if c.id == circuito.id %}#ffffff{% else %}#334155{% endif %}; transition: all 0.2s;">
+                    <span>{{ c.nombre }}</span>
+                    <small style="opacity: 0.85;">(Libre)</small>
+                </a>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div style="margin-left: auto;">
+                <a href="{% url 'circuitos_listado' %}" style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; font-weight: 700; color: #16a34a; text-decoration: none; padding: 0.4rem 0.75rem; border-radius: 8px; background: #ffffff; border: 1px solid #bbf7d0;">
+                    <i class="fa-solid fa-compass"></i>
+                    <span>Explorar más</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Contenedor del Mapa con Card Flotante -->
         <div class="map-interactive-wrapper">
-            <div id="mapa-publico"></div>
+            <div id="mapa-publico" data-circuito-id="{{ circuito.id|default:'' }}"></div>
 
             <!-- Card Flotante en la esquina inferior izquierda del Mapa -->
             <div class="floating-circuit-card">
                 <div class="floating-card-status">
                     <span class="status-dot-active"></span>
-                    <span>Estado del Circuito ACTIVO</span>
+                    <span id="floating-circuito-nombre">{% if circuito %}Circuito: {{ circuito.nombre|truncatechars:18 }}{% else %}Circuito Oficial Activo{% endif %}</span>
                 </div>
 
                 <div class="floating-distance-row">
-                    <span style="font-size: 0.82rem; color: #64748b; font-weight: 600;">Distancia</span>
-                    <span class="floating-distance-val" id="floating-distancia">14.5 KM</span>
+                    <span style="font-size: 0.82rem; color: #64748b; font-weight: 600;">Distancia Total</span>
+                    <span class="floating-distance-val" id="floating-distancia">{{ circuito.distancia_total_km|default:"0.0" }} KM</span>
                 </div>
 
                 <div class="floating-card-meta">
                     <div class="floating-meta-item">
-                        <span>Puntos de Control</span>
-                        <b id="floating-controles">12 / 12</b>
+                        <span>Etapas del Recorrido</span>
+                        <b id="floating-controles">{{ total_subcircuitos|default:"0" }} etapas</b>
                     </div>
                     <div class="floating-meta-item">
-                        <span>Comercios Adheridos</span>
-                        <b id="floating-comercios">{{ total_comercios|default:"9" }}</b>
+                        <span>Comercios y Puntos</span>
+                        <b id="floating-comercios">{{ total_comercios|default:"0" }} puntos</b>
                     </div>
                 </div>
 
-                <a href="{% url 'login' %}" class="btn-open-gps">
-                    <i class="fa-solid fa-location-crosshairs" style="margin-right: 5px;"></i>
-                    <span>Abrir Navegador GPS</span>
+                <!-- Desglose de KM Reales por Tramo / Etapa -->
+                <div class="floating-tramos-wrap" id="floating-tramos-container" style="margin: 0.65rem 0; padding-top: 0.55rem; border-top: 1px dashed #e2e8f0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                        <span style="font-size: 0.74rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.4px;">
+                            <i class="fa-solid fa-layer-group" style="color: #16a34a;"></i> Distancia por Tramo
+                        </span>
+                    </div>
+                    <div class="floating-tramos-list" id="floating-tramos-list" style="display: flex; flex-direction: column; gap: 0.3rem; max-height: 105px; overflow-y: auto;">
+                        {% for sub in circuito.subcircuitos.all %}
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; background: #f8fafc; padding: 0.25rem 0.5rem; border-radius: 6px; border-left: 3px solid {{ sub.color_capa|default:'#16a34a' }};">
+                            <span style="color: #334155; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;" title="Etapa {{ sub.orden }}: {{ sub.nombre }}">E{{ sub.orden }}: {{ sub.nombre }}</span>
+                            <strong style="color: #0f172a; margin-left: 0.5rem;">{{ sub.distancia_km }} km</strong>
+                        </div>
+                        {% empty %}
+                        <span style="font-size: 0.74rem; color: #94a3b8; font-style: italic;">Sin tramos registrados</span>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <a href="{% if user.is_authenticated %}{% url 'mapa_carrera' %}{% if circuito %}?circuito_id={{ circuito.id }}{% endif %}{% else %}{% url 'login' %}?next={% url 'mapa_carrera' %}{% if circuito %}?circuito_id={{ circuito.id }}{% endif %}{% endif %}" id="btn-pedalear-gps" class="btn-open-gps">
+                    <i class="fa-solid fa-location-crosshairs"></i>
+                    <span>Pedalear con GPS</span>
                 </a>
             </div>
+        </div>
+    </div>
+</section>
+
+<!-- ----------------------------------------------------------------------- -->
+<!-- 3.1. SECCIÓN: CIRCUITOS DESTACADOS Y ACCESO A EXPLORAR MÁS              -->
+<!-- ----------------------------------------------------------------------- -->
+<section id="circuitos-disponibles" class="all-circuits-section" style="background: #0b321a; border-top: none; margin: 0; padding-top: 1.5rem; padding-bottom: 5rem;">
+    <div class="container">
+        <div class="all-circuits-header">
+            <div class="all-circuits-header-info">
+                <div class="all-circuits-badge" style="background: rgba(250, 204, 21, 0.15); color: #facc15; border: 1px solid rgba(250, 204, 21, 0.4);">
+                    <i class="fa-solid fa-bicycle"></i>
+                    <span>Red de Circuitos Municipales</span>
+                </div>
+                <h2 class="all-circuits-title" style="color: #ffffff;">Circuitos y Carreras Destacadas</h2>
+                <p class="all-circuits-desc" style="color: #cbd5e1;">
+                    Conoce tres de los trazados oficiales de Malagueño o explora el catálogo completo para inscribirte o pedalear en modo libre con telemetría GPS.
+                </p>
+            </div>
+
+            <!-- Botón en Cabecera: Explorar Más -->
+            <div>
+                <a href="{% url 'circuitos_listado' %}" class="btn-fullscreen" style="display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none;">
+                    <i class="fa-solid fa-compass" style="color: #16a34a;"></i>
+                    <span>Explorar Más Circuitos</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Grilla limitada a exactamente 3 cards destacadas -->
+        <div class="circuits-cards-grid">
+            {% for c in circuitos_activos|slice:":3" %}
+            <div class="circuit-single-card {% if c.id == circuito.id %}card-is-current{% endif %}" data-circuito-id="{{ c.id }}" data-tipo="{% if c.evento_vigente %}eventos{% else %}recreativos{% endif %}">
+                <!-- Topbar de la Card -->
+                <div class="circuit-card-topbar">
+                    {% if c.evento_vigente %}
+                        <span class="badge-circuit-event" title="Competencia Oficial Programada">
+                            <i class="fa-solid fa-trophy"></i> Carrera Oficial • {{ c.fecha_evento|date:"d/m/Y" }}
+                        </span>
+                    {% elif c.evento_concluido %}
+                        <span class="badge-circuit-finished" title="Carrera concluida. Recorrido 100% habilitado para entrenamiento y práctica libre.">
+                            <i class="fa-solid fa-flag-checkered"></i> Carrera Finalizada • Modo Libre
+                        </span>
+                    {% else %}
+                        <span class="badge-circuit-free" title="Trazado permanente para práctica libre">
+                            <i class="fa-solid fa-infinity"></i> Recreativo Permanente
+                        </span>
+                    {% endif %}
+
+                    {% if c.id == circuito.id %}
+                        <span class="badge-circuit-current">
+                            <i class="fa-solid fa-map-pin"></i> En Pantalla
+                        </span>
+                    {% elif c.id in inscriptos_ids %}
+                        <span class="badge-circuit-current" style="background: #e0f2fe; color: #0369a1;">
+                            <i class="fa-solid fa-check"></i> Inscripto
+                        </span>
+                    {% endif %}
+                </div>
+
+                <!-- Título y Descripción -->
+                <div class="circuit-card-main-info">
+                    <h3 class="circuit-card-name">{{ c.nombre }}</h3>
+                    <p class="circuit-card-desc">
+                        {{ c.descripcion|default:"Trazado oficial habilitado por la Municipalidad de Malagueño con señalización, control satelital y paradas técnicas."|truncatewords:20 }}
+                    </p>
+                </div>
+
+                <!-- Chips de Métricas -->
+                <div class="circuit-stats-chips">
+                    <div class="stat-chip">
+                        <i class="fa-solid fa-road" style="color: #16a34a;"></i>
+                        <span><strong>{{ c.distancia_total_km|default:"0.0" }}</strong> km</span>
+                    </div>
+                    <div class="stat-chip">
+                        <i class="fa-solid fa-layer-group" style="color: #0284c7;"></i>
+                        <span><strong>{{ c.subcircuitos.all|length }}</strong> etapas</span>
+                    </div>
+                    <div class="stat-chip">
+                        <i class="fa-solid fa-store" style="color: #f59e0b;"></i>
+                        <span><strong>{{ c.comercios.all|length }}</strong> comercios</span>
+                    </div>
+                    <div class="stat-chip">
+                        <i class="fa-solid fa-bullseye" style="color: #7c3aed;"></i>
+                        <span>Radio <strong>{{ c.radio_deteccion_metros|default:20 }}m</strong></span>
+                    </div>
+                </div>
+
+                <!-- Mini Listado de Etapas si tiene -->
+                {% if c.subcircuitos.all %}
+                <div class="circuit-stages-pills">
+                    {% for sub in c.subcircuitos.all %}
+                    <span class="stage-mini-pill" style="border-left-color: {{ sub.color_capa|default:'#16a34a' }};">
+                        Etapa {{ sub.orden }}: {{ sub.nombre|truncatechars:18 }} ({{ sub.distancia_km|default:"--" }} km)
+                    </span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Acciones Solicitadas de la Card: "Ver Recorrido" e "Iniciar Recorrido" -->
+                <div class="circuit-card-actions">
+                    <!-- 1. Ver Recorrido: muestra el trazado en el mapa superior -->
+                    <a href="?circuito_id={{ c.id }}#circuito" data-circuito-id="{{ c.id }}" class="btn-card-select btn-ver-recorrido" title="Ver este recorrido en el mapa superior">
+                        <i class="fa-solid fa-map-location-dot"></i>
+                        <span>Ver Recorrido</span>
+                    </a>
+
+                    <!-- 2. Iniciar Recorrido: lleva al login para ingresar a su panel -->
+                    <a href="{% if user.is_authenticated %}{% url 'mi_progreso' %}?circuito_id={{ c.id }}{% else %}{% url 'login' %}?next={% url 'mi_progreso' %}?circuito_id={{ c.id }}{% endif %}" class="btn-card-primary" title="Iniciar sesión para acceder al panel de ciclista">
+                        <i class="fa-solid fa-person-biking"></i>
+                        <span>Iniciar Recorrido</span>
+                    </a>
+                </div>
+            </div>
+            {% empty %}
+            <div style="grid-column: 1 / -1; text-align: center; padding: 3rem 1.5rem; background: rgba(255, 255, 255, 0.06); border: 1.5px dashed rgba(255, 255, 255, 0.2); border-radius: 16px;">
+                <i class="fa-solid fa-route" style="font-size: 2.5rem; color: #cbd5e1; margin-bottom: 0.75rem; display: block;"></i>
+                <h3 style="font-size: 1.15rem; font-weight: 700; color: #ffffff; margin-bottom: 0.35rem;">Próximamente nuevos circuitos habilitados</h3>
+                <p style="font-size: 0.88rem; color: #cbd5e1; margin-bottom: 1.25rem;">El municipio está diagramando los nuevos trazados para la comunidad.</p>
+                <a href="{% url 'circuitos_listado' %}" class="btn-fullscreen" style="display: inline-flex; width: auto; padding: 0.6rem 1.4rem;">
+                    <i class="fa-solid fa-compass" style="color: #16a34a;"></i>
+                    <span>Ver Directorio de Circuitos</span>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Botón Central de Explorar Más -->
+        <div class="explorar-mas-circuitos-row" style="text-align: center; margin-top: 2.75rem;">
+            <a href="{% url 'circuitos_listado' %}" class="btn-explorar-mas-circuitos" style="display: inline-flex; align-items: center; gap: 0.75rem; background: linear-gradient(135deg, #facc15 0%, #eab308 100%); color: #0f172a; padding: 0.95rem 2.25rem; border-radius: 999px; font-family: 'Outfit', sans-serif; font-size: 1rem; font-weight: 800; text-decoration: none; box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35); transition: transform 0.2s, box-shadow 0.2s;">
+                <i class="fa-solid fa-compass" style="font-size: 1.1rem; color: #0f172a;"></i>
+                <span>Explorar Más Circuitos y Carreras</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </a>
+            <span style="display: block; font-size: 0.82rem; color: #cbd5e1; margin-top: 0.65rem;">
+                Consulta la red completa de circuitos oficiales, altimetrías y puntos de asistencia de Malagueño.
+            </span>
         </div>
     </div>
 </section>
@@ -295,4 +495,27 @@
 
 {% block extra_js %}
 <script src="{% static 'js/ciudadano/mapa_publico.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const tabBtns = document.querySelectorAll('#circuitos-disponibles .circuit-tab-btn');
+        const circuitCards = document.querySelectorAll('#circuitos-disponibles .circuit-single-card');
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                tabBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const filter = btn.getAttribute('data-filter');
+                circuitCards.forEach(card => {
+                    const tipo = card.getAttribute('data-tipo') || '';
+                    if (filter === 'todos' || tipo.includes(filter)) {
+                        card.style.display = 'flex';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+    });
+</script>
 {% endblock %}

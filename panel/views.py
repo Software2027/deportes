@@ -10,7 +10,7 @@ from functools import wraps
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from django.core.paginator import Paginator
-from django.db.models import Q, Sum, Count
+from django.db.models import Q, Sum, Count, Max, Avg
 from datetime import timedelta, date
 from django.utils import timezone
 from django.db import transaction
@@ -233,20 +233,12 @@ def dashboard_view(request):
     km_acumulados = 0.0
 
     for r in recorridos_todos:
-        dist_circuito = 0.0
-        if r.circuito:
-            try:
-                dist_circuito = float(getattr(r.circuito, 'distancia_total_km', 0.0) or 0.0)
-            except Exception:
-                dist_circuito = 0.0
-        if r.estado == 'FINALIZADO':
-            km_acumulados += dist_circuito if dist_circuito > 0 else 5.0
-        else:
-            puntos_cnt = r.puntos.count()
-            if puntos_cnt > 0:
-                km_acumulados += min(dist_circuito if dist_circuito > 0 else 50.0, round(puntos_cnt * 0.03, 1))
-            elif dist_circuito > 0:
-                km_acumulados += round(dist_circuito * 0.3, 1)
+        dist_real = float(r.distancia_km or 0.0)
+        if dist_real > 0:
+            km_acumulados += dist_real
+        elif r.circuito and r.circuito.distancia_total_km:
+            if r.estado == 'FINALIZADO':
+                km_acumulados += float(r.circuito.distancia_total_km)
 
     if km_acumulados >= 1000:
         km_totales_str = f"{km_acumulados / 1000.0:.1f}k"
@@ -957,6 +949,7 @@ def circuitos_list_view(request):
     circuitos = CircuitoGeneral.objects.all().prefetch_related('subcircuitos', 'comercios')
 
     total_circuitos = circuitos.count()
+    circuitos_activos = circuitos.filter(activo=True).count()
     circuito_activo = circuitos.filter(activo=True).first()
     total_subcircuitos = SubCircuito.objects.count()
     total_comercios_en_circuito = ComercioAdherido.objects.filter(circuito_general__isnull=False).count()
@@ -964,6 +957,7 @@ def circuitos_list_view(request):
     context = {
         'circuitos': circuitos,
         'total_circuitos': total_circuitos,
+        'circuitos_activos': circuitos_activos,
         'circuito_activo': circuito_activo,
         'total_subcircuitos': total_subcircuitos,
         'total_comercios_en_circuito': total_comercios_en_circuito,
@@ -1059,10 +1053,6 @@ def circuito_guardar_api_view(request):
                     radio_largada_metros=radio_largada_metros
                 )
 
-            # Si se marca como activo, desactivar los demás
-            if activo:
-                CircuitoGeneral.objects.exclude(id=circuito.id).update(activo=False)
-
             # 2. Guardar Etapas / Subcircuitos
             etapas_ids_vigentes = []
             etapa_id_map = {} # mapping temp_id -> SubCircuito real
@@ -1154,13 +1144,18 @@ def circuito_guardar_api_view(request):
 @requiere_staff
 def circuito_activar_view(request, pk):
     """
-    Fija el circuito seleccionado como el oficial activo para toda la plataforma y app ciclista.
+    Alterna o activa el estado del circuito seleccionado para publicarlo o pausarlo en la plataforma,
+    permitiendo la coexistencia de múltiples circuitos habilitados simultáneamente.
     """
     circuito = get_object_or_404(CircuitoGeneral, pk=pk)
-    CircuitoGeneral.objects.exclude(id=pk).update(activo=False)
-    circuito.activo = True
-    circuito.save()
-    messages.success(request, f"¡El circuito '{circuito.nombre}' ha sido activado como el circuito oficial de la ciudad!")
+    if circuito.activo:
+        circuito.activo = False
+        circuito.save()
+        messages.info(request, f"El circuito '{circuito.nombre}' ha sido pausado y ocultado del portal ciclista.")
+    else:
+        circuito.activo = True
+        circuito.save()
+        messages.success(request, f"¡El circuito '{circuito.nombre}' ha sido activado y publicado para los ciclistas!")
     return redirect('panel_circuitos_listado')
 
 
@@ -1213,7 +1208,7 @@ def noticias_list_view(request):
     total_borradores = Noticia.objects.filter(estado='Borrador').count()
     total_archivadas = Noticia.objects.filter(estado='Archivado').count()
     vistas_sum = Noticia.objects.aggregate(total=Sum('vistas'))['total'] or 0
-    lecturas_hoy = f"{vistas_sum:,}".replace(',', '.') if vistas_sum > 0 else "1.452"
+    lecturas_hoy = f"{vistas_sum:,}".replace(',', '.') if vistas_sum > 0 else "0"
 
     # Paginación
     total_resultados = noticias_qs.count()
@@ -1336,6 +1331,150 @@ def noticia_cambiar_estado_view(request, pk, nuevo_estado):
         noticia.save()
         messages.success(request, f"Estado de '{noticia.titulo}' cambiado a {nuevo_estado}.")
     return redirect('panel_noticias_listado')
+
+
+@requiere_staff
+def ranking_evento_view(request, circuito_id=None):
+    """
+    Vista de Ranking Oficial y Estadísticas de Carrera / Eventos para el Panel Municipal.
+    Permite filtrar por circuito, alternar entre modalidad OFICIAL (competencia) y LIBRE (práctica),
+    y visualizar métricas avanzadas: podio, mejores marcas, velocidad máxima, paradas en comercios y tiempos por tramo.
+    """
+    # 1. Obtener circuitos disponibles (priorizando eventos oficiales)
+    circuitos_eventos = CircuitoGeneral.objects.filter(activo=True, fecha_evento__isnull=False).order_by('-fecha_evento')
+    circuitos_libres = CircuitoGeneral.objects.filter(activo=True, fecha_evento__isnull=True).order_by('nombre')
+    todos_circuitos = CircuitoGeneral.objects.filter(activo=True).order_by('-fecha_evento', 'nombre')
+
+    # Seleccionar circuito actual
+    if not circuito_id:
+        circuito_id = request.GET.get('circuito_id')
+
+    circuito_actual = None
+    if circuito_id:
+        circuito_actual = CircuitoGeneral.objects.filter(id=circuito_id).first()
+
+    if not circuito_actual:
+        circuito_actual = circuitos_eventos.first() or todos_circuitos.first()
+
+    # Modalidad seleccionada (OFICIAL, LIBRE o TODAS)
+    modalidad_filtro = request.GET.get('modalidad', 'OFICIAL' if (circuito_actual and circuito_actual.es_evento) else 'TODAS')
+
+    # 2. Filtrar recorridos finalizados del circuito
+    recorridos_qs = RecorridoCiclista.objects.filter(
+        circuito=circuito_actual,
+        estado='FINALIZADO'
+    ).select_related('ciclista')
+
+    if modalidad_filtro in ['OFICIAL', 'LIBRE']:
+        recorridos_qs = recorridos_qs.filter(modalidad=modalidad_filtro)
+
+    # 3. Procesar datos de participantes y telemetría
+    participantes_data = []
+
+    for r in recorridos_qs:
+        # Tiempo total transcurrido
+        segundos = 0
+        tiempo_formateado = "--:--:--"
+        if r.inicio and r.fin:
+            delta = (r.fin - r.inicio).total_seconds()
+            if delta > 0:
+                segundos = int(delta)
+                horas = segundos // 3600
+                minutos = (segundos % 3600) // 60
+                segs = segundos % 60
+                tiempo_formateado = f"{horas:02d}:{minutos:02d}:{segs:02d}"
+
+        # Perfil del ciclista
+        ciclista_obj = Ciclista.objects.filter(user=r.ciclista).first()
+        nombre_completo = f"{r.ciclista.first_name} {r.ciclista.last_name}".strip() or r.ciclista.username
+        if ciclista_obj:
+            nombre_completo = ciclista_obj.nombre_completo or nombre_completo
+            dni = ciclista_obj.dni
+            nivel = ciclista_obj.categoria_experiencia or ciclista_obj.nivel or 'Recreativo'
+            club = ciclista_obj.club_entidad or 'Independiente'
+        else:
+            dni = r.ciclista.username
+            nivel = 'Recreativo'
+            club = 'Independiente'
+
+        # Velocidad máxima de la telemetría GPS
+        vel_max_rec = RegistroGPS.objects.filter(recorrido=r).aggregate(Max('velocidad'))['velocidad__max'] or 0.0
+        vel_max_kmh = round(float(vel_max_rec), 1)
+
+        # Distancia y velocidad promedio
+        distancia_km = float(r.distancia_km or 0.0)
+        velocidad_prom_kmh = 0.0
+        if segundos > 0 and distancia_km > 0:
+            velocidad_prom_kmh = round((distancia_km / (segundos / 3600.0)), 1)
+
+        # Cantidad de paradas y comercios validados
+        paradas_count = ParadaRecorrido.objects.filter(recorrido=r).count()
+        comercios_count = ParadaRecorrido.objects.filter(recorrido=r, es_comercio_adherido=True).count()
+
+        participantes_data.append({
+            'recorrido': r,
+            'ciclista_nombre': nombre_completo,
+            'dni': dni,
+            'nivel': nivel,
+            'club': club,
+            'dorsal_str': f"#{r.id:04d}" if r.modalidad == 'OFICIAL' else "--",
+            'segundos': segundos,
+            'tiempo_str': tiempo_formateado,
+            'distancia_km': distancia_km,
+            'velocidad_prom': velocidad_prom_kmh,
+            'velocidad_max': vel_max_kmh,
+            'paradas': paradas_count,
+            'comercios': comercios_count,
+            'modalidad': r.modalidad,
+            'fecha': r.inicio.strftime("%d/%m/%Y %H:%M") if r.inicio else ""
+        })
+
+    # 4. Ordenar participantes por tiempo de menor a mayor (ranking oficial)
+    participantes_data.sort(key=lambda x: (x['segundos'] == 0, x['segundos']))
+
+    # Asignar posición en el ranking
+    for idx, p in enumerate(participantes_data, start=1):
+        p['posicion'] = idx
+
+    # 5. Podio (Top 3)
+    podio = participantes_data[:3] if len(participantes_data) >= 1 else []
+
+    # 6. Estadísticas Generales del Evento y Uso Ciudadano
+    total_finalizados = len(participantes_data)
+    total_iniciados = RecorridoCiclista.objects.filter(circuito=circuito_actual).count() if circuito_actual else 0
+    total_inscriptos_oficiales = RecorridoCiclista.objects.filter(circuito=circuito_actual, modalidad='OFICIAL').values('ciclista').distinct().count() if circuito_actual else 0
+    total_finalizados_oficial = RecorridoCiclista.objects.filter(circuito=circuito_actual, modalidad='OFICIAL', estado='FINALIZADO').count() if circuito_actual else 0
+    total_sesiones_libres = RecorridoCiclista.objects.filter(circuito=circuito_actual, modalidad='LIBRE').count() if circuito_actual else 0
+    ciclistas_libres_unicos = RecorridoCiclista.objects.filter(circuito=circuito_actual, modalidad='LIBRE').values('ciclista').distinct().count() if circuito_actual else 0
+
+    mejor_tiempo = participantes_data[0]['tiempo_str'] if participantes_data and participantes_data[0]['segundos'] > 0 else "--:--:--"
+    velocidad_max_evento = max([p['velocidad_max'] for p in participantes_data], default=0.0)
+    velocidad_prom_evento = round(sum([p['velocidad_prom'] for p in participantes_data]) / total_finalizados, 1) if total_finalizados > 0 else 0.0
+
+    # Subcircuitos / Tramos del circuito actual
+    subcircuitos = SubCircuito.objects.filter(circuito_general=circuito_actual).order_by('orden') if circuito_actual else []
+
+    context = {
+        'circuito': circuito_actual,
+        'circuitos_eventos': circuitos_eventos,
+        'circuitos_libres': circuitos_libres,
+        'todos_circuitos': todos_circuitos,
+        'modalidad_filtro': modalidad_filtro,
+        'participantes': participantes_data,
+        'podio': podio,
+        'total_iniciados': total_iniciados,
+        'total_finalizados': total_finalizados,
+        'total_inscriptos_oficiales': total_inscriptos_oficiales,
+        'total_finalizados_oficial': total_finalizados_oficial,
+        'total_sesiones_libres': total_sesiones_libres,
+        'ciclistas_libres_unicos': ciclistas_libres_unicos,
+        'mejor_tiempo': mejor_tiempo,
+        'velocidad_max_evento': velocidad_max_evento,
+        'velocidad_prom_evento': velocidad_prom_evento,
+        'subcircuitos': subcircuitos,
+    }
+    return render(request, 'panel/ranking_evento.html', context)
+
 
 
 

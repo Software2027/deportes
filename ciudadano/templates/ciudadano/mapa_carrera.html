@@ -92,6 +92,23 @@
     <!-- 3. HUD DE TELEMETRÍA DEPORTIVA (ALTA VISIBILIDAD)                       -->
     <!-- ----------------------------------------------------------------------- -->
     <div class="carrera-hud-container">
+        <!-- Badge Superior de Modalidad y Estado de Sesión -->
+        <div class="carrera-modalidad-strip {% if tipo_sesion == 'CARRERA_OFICIAL' %}strip-oficial{% elif tipo_sesion == 'ENTRENAMIENTO_PREVIO' %}strip-entreno{% else %}strip-libre{% endif %}">
+            {% if tipo_sesion == 'CARRERA_OFICIAL' %}
+                <i class="fa-solid fa-flag-checkered"></i>
+                <span class="desktop-text">Manga Oficial • Dorsal <strong>{{ dorsal_oficial }}</strong> • Clasificación en Vivo</span>
+                <span class="mobile-text">Manga Oficial • Dorsal <strong>{{ dorsal_oficial }}</strong></span>
+            {% elif tipo_sesion == 'ENTRENAMIENTO_PREVIO' %}
+                <i class="fa-solid fa-stopwatch"></i>
+                <span class="desktop-text">Modo Entrenamiento • Carrera oficial: <strong>{{ circuito.fecha_evento|date:"d/m/Y" }}</strong> (Dorsal {{ dorsal_oficial }})</span>
+                <span class="mobile-text">Entrenamiento (Dorsal {{ dorsal_oficial }}) • Carrera: <strong>{{ circuito.fecha_evento|date:"d/m" }}</strong></span>
+            {% else %}
+                <i class="fa-solid fa-person-biking"></i>
+                <span class="desktop-text">Modo Libre Recreativo • Pedalea a tu propio ritmo</span>
+                <span class="mobile-text">Modo Libre Recreativo</span>
+            {% endif %}
+        </div>
+
         <div class="carrera-hud-card">
             <!-- Velocidad Actual -->
             <div class="hud-item">
@@ -162,7 +179,7 @@
         <!-- Botón Iniciar Carrera -->
         <button type="button" class="btn-carrera-action btn-action-start" id="btn-carrera-start">
             <i class="fa-solid fa-play"></i>
-            <span>INICIAR CARRERA</span>
+            <span>{% if tipo_sesion == 'CARRERA_OFICIAL' %}INICIAR CARRERA OFICIAL{% elif tipo_sesion == 'ENTRENAMIENTO_PREVIO' %}INICIAR ENTRENAMIENTO{% else %}INICIAR PEDALEO{% endif %}</span>
         </button>
 
         <!-- Botón Detener / Parada Táctica (Visible durante la marcha) -->

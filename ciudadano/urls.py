@@ -14,6 +14,9 @@ urlpatterns = [
     path('noticia/<int:pk>/', views.noticia_detalle, name='noticia_detalle'),
     path('comercios/', views.comercios_ciudadano_list, name='comercios_listado'),
     path('comercio/<int:pk>/', views.comercio_detalle, name='comercio_detalle'),
+    path('circuitos/', views.circuitos_ciudadano_list, name='circuitos_listado'),
+    path('circuitos/<int:circuito_id>/inscribirse/', views.inscribir_circuito_view, name='inscribir_circuito'),
+    path('circuitos/inscribirse/', views.inscribir_circuito_view, name='inscribir_circuito_post'),
     path('contacto/', views.contacto_view, name='contacto'),
     path('contacto/enviar/', views.contacto_submit, name='contacto_submit'),
     path('inscripcion/', views.contacto_view, name='inscripcion'),
@@ -25,6 +28,7 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('mapa-carrera/', views.mapa_carrera_view, name='mapa_carrera'),
     path('mi-progreso/', views.mi_progreso_view, name='mi_progreso'),
+    path('mis-circuitos/', views.circuitos_ciclista_view, name='circuitos_ciclista'),
 
     # -------------------------------------------------------------------------
     # Endpoints de API REST (Telemetría, Circuitos y Monitoreo)
