@@ -143,6 +143,7 @@ class IniciarRecorridoAPIView(APIView):
             modalidad = 'OFICIAL'
             recorrido = inscripcion_oficial
             recorrido.estado = 'EN_CURSO'
+            recorrido.inicio = timezone.now()
             recorrido.save()
             creado = False
         else:
@@ -152,10 +153,12 @@ class IniciarRecorridoAPIView(APIView):
                 ciclista=request.user,
                 circuito=circuito,
                 modalidad='LIBRE',
-                estado__in=['EN_CURSO', 'PAUSADO']
+                estado__in=['LISTO', 'EN_CURSO', 'PAUSADO']
             ).first()
 
             if recorrido:
+                if recorrido.estado == 'LISTO':
+                    recorrido.inicio = timezone.now()
                 recorrido.estado = 'EN_CURSO'
                 recorrido.save()
                 creado = False
@@ -164,7 +167,8 @@ class IniciarRecorridoAPIView(APIView):
                     ciclista=request.user,
                     circuito=circuito,
                     estado='EN_CURSO',
-                    modalidad='LIBRE'
+                    modalidad='LIBRE',
+                    inicio=timezone.now()
                 )
                 creado = True
 

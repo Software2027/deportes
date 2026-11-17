@@ -180,6 +180,11 @@
                             <span class="badge-circuit-event" title="Competencia Oficial Programada">
                                 <i class="fa-solid fa-trophy"></i> Carrera Oficial • {{ c.fecha_evento|date:"d/m/Y" }}
                             </span>
+                            {% if c.fecha_limite_inscripcion %}
+                                <span class="badge-circuit-info" style="background: {% if c.inscripciones_abiertas %}#fef3c7; color: #b45309;{% else %}#fee2e2; color: #b91c1c;{% endif %} font-size: 0.73rem; padding: 3px 8px; border-radius: 999px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                                    <i class="fa-regular fa-clock"></i> Inscr. hasta {{ c.fecha_limite_inscripcion|date:"d/m/Y" }}
+                                </span>
+                            {% endif %}
                         {% elif c.evento_concluido %}
                             <span class="badge-circuit-finished" title="Carrera concluida. Recorrido 100% habilitado para entrenamiento y práctica libre.">
                                 <i class="fa-solid fa-flag-checkered"></i> Carrera Finalizada • Modo Libre
@@ -240,10 +245,21 @@
                     <div class="circuit-card-actions">
                         {% if c.evento_vigente %}
                             <!-- Carrera Oficial Programada -->
-                            <a href="{% url 'mapa_carrera' %}?circuito_id={{ c.id }}&modo=libre" class="btn-card-select" title="Entrenar o recorrer en Modo Libre">
-                                <i class="fa-solid fa-person-biking"></i>
-                                <span>Pedalear Libre</span>
-                            </a>
+                            {% if c.id in inscriptos_libres_ids %}
+                                <a href="{% url 'mi_progreso' %}?circuito_id={{ c.id }}" class="btn-card-select" title="Ver mi progreso libre en este circuito">
+                                    <i class="fa-solid fa-chart-line"></i>
+                                    <span>Mi Progreso</span>
+                                </a>
+                            {% else %}
+                                <form method="POST" action="{% url 'inscribir_circuito' c.id %}" style="display: flex;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="modo" value="libre">
+                                    <button type="submit" class="btn-card-select" title="Añadir a mi panel en modo Libre">
+                                        <i class="fa-solid fa-plus"></i>
+                                        <span>Agregar Libre</span>
+                                    </button>
+                                </form>
+                            {% endif %}
 
                             {% if c.id in inscriptos_carrera_ids %}
                                 <a href="{% url 'mi_progreso' %}?circuito_id={{ c.id }}" class="btn-card-primary" title="Inscripción activa a la carrera oficial" style="background: #15803d;">
@@ -251,14 +267,25 @@
                                     <span>Inscripto Oficial</span>
                                 </a>
                             {% else %}
-                                <form method="POST" action="{% url 'inscribir_circuito' c.id %}" style="flex: 1; display: flex;">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn-card-primary" style="width: 100%;" title="Inscribirme formalmente a la carrera">
-                                        <i class="fa-solid fa-trophy"></i>
-                                        <span>Inscribirme Oficial</span>
+                                {% if c.inscripciones_abiertas %}
+                                    <form method="POST" action="{% url 'inscribir_circuito' c.id %}" style="flex: 1; display: flex;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="modo" value="oficial">
+                                        <button type="submit" class="btn-card-primary" style="width: 100%;" title="Inscribirme formalmente a la carrera">
+                                            <i class="fa-solid fa-trophy"></i>
+                                            <span>Inscribirme Oficial</span>
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <button type="button" class="btn-card-primary" style="flex: 1; opacity: 0.65; cursor: not-allowed; background: #64748b;" disabled title="Las inscripciones para esta carrera ya cerraron">
+                                        <i class="fa-solid fa-lock"></i>
+                                        <span>Inscripción Cerrada</span>
                                     </button>
-                                </form>
+                                {% endif %}
                             {% endif %}
+                            <a href="{% url 'mapa_carrera' %}?circuito_id={{ c.id }}&modo=libre" class="btn-card-map" title="Pedalear libre en el mapa satelital">
+                                <i class="fa-solid fa-location-crosshairs"></i>
+                            </a>
                         {% else %}
                             <!-- Circuito Recreativo Permanente -->
                             {% if c.id in inscriptos_ids %}
@@ -269,6 +296,7 @@
                             {% else %}
                                 <form method="POST" action="{% url 'inscribir_circuito' c.id %}" style="display: flex;">
                                     {% csrf_token %}
+                                    <input type="hidden" name="modo" value="libre">
                                     <button type="submit" class="btn-card-select" title="Añadir a mis circuitos">
                                         <i class="fa-solid fa-plus"></i>
                                         <span>Agregar</span>

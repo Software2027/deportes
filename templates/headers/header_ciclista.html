@@ -34,10 +34,10 @@
         <!-- Acciones y Circuito Activo -->
         <div class="topbar-actions">
             {% if circuito %}
-            <div class="badge-circuito-activo" title="Circuito seleccionado: {{ circuito.nombre }}" style="cursor: default; user-select: none;">
+            <a href="{% url 'mapa_carrera' %}?circuito_id={{ circuito.id }}" class="badge-circuito-activo" title="Ver en el mapa satelital: {{ circuito.nombre }}" style="text-decoration: none; cursor: pointer;">
                 <i class="fa-solid fa-location-dot"></i>
                 <span>{{ circuito.nombre }}</span>
-            </div>
+            </a>
             {% endif %}
             <a href="{% url 'logout' %}" class="btn-topbar-logout" title="Cerrar Sesión" aria-label="Cerrar Sesión">
                 <i class="fa-solid fa-arrow-right-from-bracket"></i>

@@ -145,31 +145,39 @@
                 <!-- Barra de Acción Rápida: Inscribirme vs Iniciar GPS -->
                 <div class="hero-circuit-actions-bar">
                     {% if not esta_inscripto %}
-                        {% if circuito.inscripcion_abierta %}
-                            <div class="circuit-action-msg">
+                        <div class="circuit-action-msg">
+                            {% if circuito.inscripciones_abiertas %}
                                 <i class="fa-solid fa-circle-info"></i>
-                                <span>Inscripción abierta al evento oficial. ¡Asegura tu dorsal y puesto de salida!</span>
-                            </div>
+                                <span>Inscripción abierta al evento oficial, o puedes sumarlo a tu panel en modo Libre para entrenar.</span>
+                            {% else %}
+                                <i class="fa-solid fa-person-biking"></i>
+                                <span>Inscripción oficial cerrada. Puedes sumarlo a tu panel en <strong>Modo Libre</strong> para pedalearlo cuando quieras.</span>
+                            {% endif %}
+                        </div>
+                        <div style="display: flex; gap: 0.65rem; align-items: center; flex-wrap: wrap;">
                             <form method="POST" action="{% url 'mi_progreso' %}">
                                 {% csrf_token %}
                                 <input type="hidden" name="accion" value="inscribir">
                                 <input type="hidden" name="circuito_id" value="{{ circuito.id }}">
-                                <button type="submit" class="btn-inscribir-circuito">
-                                    <i class="fa-solid fa-user-plus"></i>
-                                    <span>Inscribirme al Circuito Oficial</span>
+                                <input type="hidden" name="modo" value="libre">
+                                <button type="submit" class="btn-inscribir-circuito" style="background: #0284c7;">
+                                    <i class="fa-solid fa-plus"></i>
+                                    <span>Agregar en Modo Libre</span>
                                 </button>
                             </form>
-                        {% else %}
-                            <div class="circuit-action-msg">
-                                <i class="fa-solid fa-person-biking"></i>
-                                <span>Inscripción al evento oficial cerrada. Puedes pedalear el trazado en <strong>Modo Libre / Práctica</strong>.</span>
-                            </div>
-                            <a href="{% url 'mapa_carrera' %}?circuito_id={{ circuito.id }}" class="btn-start-gps-race">
-                                <i class="fa-solid fa-play"></i>
-                                <span>Iniciar Recorrido Libre</span>
-                                <i class="fa-solid fa-arrow-right" style="font-size: 0.85rem;"></i>
-                            </a>
-                        {% endif %}
+                            {% if circuito.inscripciones_abiertas %}
+                            <form method="POST" action="{% url 'mi_progreso' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="accion" value="inscribir">
+                                <input type="hidden" name="circuito_id" value="{{ circuito.id }}">
+                                <input type="hidden" name="modo" value="oficial">
+                                <button type="submit" class="btn-inscribir-circuito">
+                                    <i class="fa-solid fa-trophy"></i>
+                                    <span>Inscribirme Oficial</span>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
                     {% else %}
                         <div class="circuit-action-msg">
                             <i class="fa-solid fa-circle-check" style="color: #16a34a;"></i>

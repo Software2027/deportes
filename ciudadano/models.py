@@ -83,6 +83,19 @@ class CircuitoGeneral(models.Model):
         return self.fecha_evento >= date.today()
 
     @property
+    def inscripciones_abiertas(self):
+        """Indica si el período de inscripción a la carrera oficial está activo según la fecha límite configurada."""
+        if not self.fecha_evento:
+            return False
+        from datetime import date
+        today = date.today()
+        # Si tiene fecha límite de inscripción explícita, se respeta estrictamente
+        if self.fecha_limite_inscripcion:
+            return today <= self.fecha_limite_inscripcion
+        # Si no se configuró fecha límite, cierra el mismo día del evento oficial
+        return today <= self.fecha_evento
+
+    @property
     def evento_concluido(self):
         """Indica si la fecha programada de la carrera ya transcurrió pero el circuito continúa disponible para uso libre."""
         if not self.fecha_evento:
@@ -329,6 +342,7 @@ class RecorridoCiclista(models.Model):
     Sesión de actividad o carrera de un ciclista registrado sobre un circuito general.
     """
     ESTADOS = [
+        ('LISTO', 'Inscripto / Listo para Iniciar'),
         ('EN_CURSO', 'En Curso'),
         ('PAUSADO', 'Pausado'),
         ('FINALIZADO', 'Finalizado'),
@@ -355,7 +369,7 @@ class RecorridoCiclista(models.Model):
     estado = models.CharField(
         max_length=20,
         choices=ESTADOS,
-        default='EN_CURSO',
+        default='LISTO',
         verbose_name="Estado del Recorrido"
     )
     modalidad = models.CharField(
