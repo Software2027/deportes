@@ -76,7 +76,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Elementos Fuera de Ruta
     const alertaFueraRutaBanner = document.getElementById('alerta-fuera-ruta-banner');
     const fueraRutaDistVal = document.getElementById('fuera-ruta-dist-val');
+    const fueraRutaBadge = document.getElementById('fuera-ruta-badge');
+    const fueraRutaDesc = document.getElementById('fuera-ruta-desc');
     const btnCentrarDesvio = document.getElementById('btn-centrar-desvio-retorno');
+    const btnCerrarDesvio = document.getElementById('btn-cerrar-desvio');
+    let desvioSilenciado = false;
+    let lecturasDesviadoConsecutivas = 0;
 
     // Elementos Modal Fuera de Meta
     const modalFueraMeta = document.getElementById('modal-fuera-meta');
@@ -349,18 +354,29 @@ document.addEventListener('DOMContentLoaded', () => {
         iconAnchor: [11, 11]
     });
 
-    let cyclistMarker = L.marker([MALAGUENO_LAT, MALAGUENO_LNG], {
+    const posInicialCiclista = coordSalida || [MALAGUENO_LAT, MALAGUENO_LNG];
+
+    let cyclistMarker = L.marker(posInicialCiclista, {
         icon: cyclistIcon,
         zIndexOffset: 1000
     }).addTo(map);
 
     // Círculo de precisión del GPS
-    let accuracyCircle = L.circle([MALAGUENO_LAT, MALAGUENO_LNG], {
+    let accuracyCircle = L.circle(posInicialCiclista, {
         radius: 10,
         color: '#16a34a',
         fillColor: '#16a34a',
         fillOpacity: 0.15,
         weight: 1
+    }).addTo(map);
+
+    // 4.1. Polilínea del Rastro GPS en Vivo (Traza azul vibrante visible del pedaleo)
+    const rastroGPSLayer = L.polyline([], {
+        color: '#0284c7',
+        weight: 6,
+        opacity: 0.95,
+        lineCap: 'round',
+        lineJoin: 'round'
     }).addTo(map);
 
     // 5. Utilidad Matemática: Distancia Haversine en metros
@@ -525,8 +541,11 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // 5. Notificación Toast animada
+        // 5. Notificación Toast animada y sonido de etapa
         mostrarAlertaAvanceEtapa(etapaAnterior, etapaNueva);
+        if (window.AudioCarrera) {
+            window.AudioCarrera.playEtapaCompletada();
+        }
     }
 
     function mostrarAlertaAvanceEtapa(etapaAnt, etapaSig) {
@@ -561,6 +580,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (distancia <= radioTolerancia && !comerciosNotificados.has(com.id)) {
                 comerciosNotificados.add(com.id);
                 mostrarBannerProximidad(com);
+
+                if (window.AudioCarrera) {
+                    window.AudioCarrera.playComercioAdherido();
+                }
 
                 // Vibración táctil si el dispositivo lo soporta
                 if (navigator.vibrate) {
@@ -598,6 +621,9 @@ document.addEventListener('DOMContentLoaded', () => {
         accuracyCircle.setLatLng([lat, lng]);
         if (precision) accuracyCircle.setRadius(Math.max(5, precision));
 
+        // Dibujar el rastro GPS pedaleado en vivo sobre el mapa
+        rastroGPSLayer.addLatLng([lat, lng]);
+
         if (autoCentrarGPS) {
             map.panTo([lat, lng], { animate: true, duration: 0.8 });
         }
@@ -610,8 +636,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 lat,
                 lng
             );
-            // Filtro de ruido GPS (descartar saltos irrazonables > 150m en 1s)
-            if (deltaM > 1 && deltaM < 150) {
+            // Filtro de ruido GPS (descartar saltos irrazonables > 180m en 1s salvo simulación)
+            if (deltaM > 1 && (deltaM < 180 || window.modoSimuladorActivo)) {
                 distanciaTotalMetros += deltaM;
             }
         }
@@ -669,6 +695,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Verificar desvío fuera de ruta (geofencing)
         verificarDesvioFueraDeRuta(lat, lng);
+
+        // Verificar llegada a meta oficial (auto-corte por geofence)
+        verificarLlegadaAMeta(lat, lng);
 
         // Agregar al búfer de telemetría (compatible con lat/lng y latitud/longitud)
         lotePuntosGPS.push({
@@ -891,32 +920,57 @@ document.addEventListener('DOMContentLoaded', () => {
         const { distancia, puntoCercano } = calcularDistanciaMinimaACircuito(lat, lng);
         puntoMasCercanoRuta = puntoCercano;
 
-        const UMBRAL_DESVIO = 35; // Umbral de tolerancia: 35 metros
-        const UMBRAL_RETORNO = 22; // Distancia para considerar retorno seguro
+        // Corredor de tolerancia ampliado (65m en modo libre, 50m en oficial)
+        const UMBRAL_DESVIO = (modalidadRecorrido === 'LIBRE') ? 65 : 50;
+        const UMBRAL_RETORNO = (modalidadRecorrido === 'LIBRE') ? 40 : 30;
 
         if (distancia > UMBRAL_DESVIO) {
-            fueraDeRuta = true;
-            if (alertaFueraRutaBanner) alertaFueraRutaBanner.style.display = 'block';
-            if (fueraRutaDistVal) fueraRutaDistVal.textContent = Math.round(distancia);
+            lecturasDesviadoConsecutivas++;
 
-            if (puntoCercano) {
-                if (!lineaRetornoCircuito) {
-                    lineaRetornoCircuito = L.polyline([[lat, lng], puntoCercano], {
-                        color: '#ef4444',
-                        weight: 3.5,
-                        dashArray: '5, 8',
-                        opacity: 0.95
-                    }).addTo(map);
-                } else {
-                    lineaRetornoCircuito.setLatLngs([[lat, lng], puntoCercano]);
+            // Filtro de persistencia: confirmar al menos 2 lecturas consecutivas para evitar falsos positivos
+            if (lecturasDesviadoConsecutivas >= 2) {
+                if (!fueraDeRuta && window.AudioCarrera && !desvioSilenciado) {
+                    window.AudioCarrera.playDesvioAlerta();
                 }
-            }
+                fueraDeRuta = true;
 
-            if (navigator.vibrate) {
-                navigator.vibrate([250, 100, 250]);
+                if (alertaFueraRutaBanner && !desvioSilenciado) {
+                    alertaFueraRutaBanner.style.display = 'block';
+                }
+                if (fueraRutaDistVal) fueraRutaDistVal.textContent = Math.round(distancia);
+
+                // Adaptación de mensaje según modalidad
+                if (fueraRutaBadge && fueraRutaDesc) {
+                    if (modalidadRecorrido === 'LIBRE') {
+                        fueraRutaBadge.textContent = 'VARIANTE / FUERA DE RUTA';
+                        fueraRutaDesc.textContent = 'Pedaleando fuera del trazado oficial. Línea de retorno en el mapa.';
+                    } else {
+                        fueraRutaBadge.textContent = 'DESVÍO DE CARRERA';
+                        fueraRutaDesc.textContent = 'Fuera del trazado oficial. Reincorpórate para registrar tiempos válidos.';
+                    }
+                }
+
+                if (puntoCercano) {
+                    if (!lineaRetornoCircuito) {
+                        lineaRetornoCircuito = L.polyline([[lat, lng], puntoCercano], {
+                            color: '#f59e0b',
+                            weight: 4,
+                            dashArray: '6, 8',
+                            opacity: 0.95
+                        }).addTo(map);
+                    } else {
+                        lineaRetornoCircuito.setLatLngs([[lat, lng], puntoCercano]);
+                    }
+                }
+
+                if (navigator.vibrate) {
+                    navigator.vibrate([250, 100, 250]);
+                }
             }
         } else if (distancia <= UMBRAL_RETORNO && fueraDeRuta) {
             fueraDeRuta = false;
+            lecturasDesviadoConsecutivas = 0;
+            desvioSilenciado = false;
             if (alertaFueraRutaBanner) alertaFueraRutaBanner.style.display = 'none';
             if (lineaRetornoCircuito) {
                 map.removeLayer(lineaRetornoCircuito);
@@ -932,8 +986,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 map.fitBounds([
                     [ultimaCoordenada.lat, ultimaCoordenada.lng],
                     puntoMasCercanoRuta
-                ], { padding: [80, 80], maxZoom: 17 });
+                ], { padding: [90, 90], maxZoom: 17 });
             }
+        });
+    }
+
+    if (btnCerrarDesvio) {
+        btnCerrarDesvio.addEventListener('click', () => {
+            desvioSilenciado = true;
+            if (alertaFueraRutaBanner) alertaFueraRutaBanner.style.display = 'none';
         });
     }
 
@@ -1009,13 +1070,14 @@ document.addEventListener('DOMContentLoaded', () => {
         desactivarWakeLock();
     }
 
-    // Iniciar Carrera / Recorrido con Validación de Largada
+    // Iniciar Carrera / Recorrido con Validación de Largada y Tolerancia Satelital
     function intentarIniciarRecorrido(lat, lng) {
-        // Validación client-side inmediata si hay punto de largada o coordenada de salida del trazado
+        // Validación client-side con margen de cortesía satelital para smartphones (mínimo 45m o radio + 25m)
         const refLargada = coordSalida || puntoLargada;
         if (refLargada && refLargada.length === 2) {
             const dist = calcularHaversineMetros(lat, lng, refLargada[0], refLargada[1]);
-            if (dist > radioLargadaMetros) {
+            const radioToleranciaCliente = Math.max(radioLargadaMetros + 25, 45);
+            if (dist > radioToleranciaCliente) {
                 mostrarModalFueraLargada(dist, radioLargadaMetros);
                 return;
             }
@@ -1054,6 +1116,8 @@ document.addEventListener('DOMContentLoaded', () => {
             btnPause.style.display = 'inline-flex';
             btnFinish.style.display = 'inline-flex';
 
+            if (window.AudioCarrera) window.AudioCarrera.playLargada();
+
             iniciarCronometro();
             iniciarSeguimientoGPS();
         })
@@ -1064,6 +1128,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btnStart.style.display = 'none';
             btnPause.style.display = 'inline-flex';
             btnFinish.style.display = 'inline-flex';
+            if (window.AudioCarrera) window.AudioCarrera.playLargada();
             iniciarCronometro();
             iniciarSeguimientoGPS();
         });
@@ -1298,16 +1363,142 @@ document.addEventListener('DOMContentLoaded', () => {
         autoCentrarGPS = false;
     });
 
-    // 13. Pantalla Completa
+    // 12.1. Detección Automática de Llegada a Meta (Auto-Corte Geofence)
+    let metaAutoFinalizada = false;
+    function verificarLlegadaAMeta(lat, lng) {
+        if (metaAutoFinalizada || estadoCarrera !== 'EN_CURSO') return;
+        const refMeta = coordMeta || puntoMeta;
+        if (!refMeta || refMeta.length !== 2) return;
+
+        const distMeta = calcularHaversineMetros(lat, lng, refMeta[0], refMeta[1]);
+        const radioToleranciaMeta = Math.max(radioMetaMetros + 25, 45);
+
+        // Auto-corte si ingresa al radio de meta habiendo recorrido al menos 400m
+        if (distMeta <= radioToleranciaMeta && distanciaTotalMetros >= 400) {
+            metaAutoFinalizada = true;
+            console.log(`[Meta] ¡Llegada triunfal detectada a ${distMeta.toFixed(1)}m! Ejecutando auto-corte...`);
+            autoFinalizarRecorridoPorMeta();
+        }
+    }
+
+    function autoFinalizarRecorridoPorMeta() {
+        if (window.AudioCarrera) window.AudioCarrera.playMetaVictoria();
+
+        estadoCarrera = 'FINALIZADO';
+        detenerSeguimientoGPS();
+        pausarCronometro();
+        desactivarWakeLock();
+
+        const modalMeta = document.getElementById('modal-meta-alcanzada');
+        if (modalMeta) {
+            modalMeta.style.display = 'flex';
+        }
+
+        const btnIrProgreso = document.getElementById('btn-ir-mi-progreso-meta');
+        if (btnIrProgreso) {
+            btnIrProgreso.addEventListener('click', () => {
+                ejecutarFinalizacionRecorrido(true);
+            });
+        }
+
+        // Redirección suave a los 4.5 segundos si no se presiona el botón
+        setTimeout(() => {
+            ejecutarFinalizacionRecorrido(true);
+        }, 4500);
+    }
+
+    // 13. Pantalla Completa Aislada en Contenedor (Sin Tapar Botones Inferiores)
+    const carreraWrapper = document.querySelector('.carrera-wrapper') || document.documentElement;
     if (btnFullscreen) {
         btnFullscreen.addEventListener('click', () => {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => console.log(err));
+            const isFull = document.fullscreenElement || document.webkitFullscreenElement;
+            if (!isFull) {
+                if (carreraWrapper.requestFullscreen) {
+                    carreraWrapper.requestFullscreen().catch(() => {
+                        document.documentElement.requestFullscreen().catch(err => console.log(err));
+                    });
+                } else if (carreraWrapper.webkitRequestFullscreen) {
+                    carreraWrapper.webkitRequestFullscreen();
+                }
             } else {
-                document.exitFullscreen().catch(err => console.log(err));
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(err => console.log(err));
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
             }
         });
     }
+
+    // 14. Integración y Control del Módulo Simulador GPS
+    window.forzarInicioCarreraSimulada = function() {
+        if (estadoCarrera !== 'EN_CURSO') {
+            estadoCarrera = 'EN_CURSO';
+            if (btnStart) btnStart.style.display = 'none';
+            if (btnPause) btnPause.style.display = 'inline-flex';
+            if (btnFinish) btnFinish.style.display = 'inline-flex';
+            iniciarCronometro();
+            if (window.AudioCarrera) window.AudioCarrera.playLargada();
+        }
+    };
+
+    window.resetearCarreraSimulada = function() {
+        estadoCarrera = 'LISTO';
+        detenerSeguimientoGPS();
+        pausarCronometro();
+        desactivarWakeLock();
+
+        segundosTranscurridos = 0;
+        distanciaTotalMetros = 0;
+        ultimaCoordenada = null;
+        metaAutoFinalizada = false;
+        subcircuitoActivoIndex = 0;
+        acumuladoPausasMs = 0;
+        timestampInicioMs = null;
+        timestampUltimaPausaMs = null;
+
+        // Limpiar rastro dibujado en el mapa
+        rastroGPSLayer.setLatLngs([]);
+
+        // Restablecer HUD
+        if (hudTiempo) hudTiempo.textContent = '00:00:00';
+        if (hudDistancia) hudDistancia.textContent = '0.00';
+        if (hudVelocidad) hudVelocidad.textContent = '0.0';
+        if (hudRitmo) hudRitmo.textContent = '0.0';
+
+        // Reposicionar ciclista en la largada Km 0
+        const posSalida = coordSalida || [MALAGUENO_LAT, MALAGUENO_LNG];
+        cyclistMarker.setLatLng(posSalida);
+        accuracyCircle.setLatLng(posSalida);
+        map.setView(posSalida, 16);
+
+        // Restablecer visibilidad de botones
+        if (btnStart) btnStart.style.display = 'inline-flex';
+        if (btnPause) btnPause.style.display = 'none';
+        if (btnResume) btnResume.style.display = 'none';
+        if (btnFinish) btnFinish.style.display = 'none';
+
+        // Cerrar modal de meta si estuviera abierto
+        const modalMeta = document.getElementById('modal-meta-alcanzada');
+        if (modalMeta) modalMeta.style.display = 'none';
+
+        // Restablecer etapa a Etapa 1
+        actualizarEtapaActiva(0);
+    };
+
+    window.procesarNuevaPosicionGPSMock = function(lat, lng, vel, acc) {
+        if (estadoCarrera !== 'EN_CURSO') {
+            window.forzarInicioCarreraSimulada();
+        }
+        procesarNuevaPosicion(lat, lng, vel || 5.2, acc || 7);
+    };
+
+    window.inyectarPosicionGPS = function(lat, lng, vel, acc) {
+        if (estadoCarrera !== 'EN_CURSO') {
+            window.forzarInicioCarreraSimulada();
+        }
+        procesarNuevaPosicion(lat, lng, vel || 5.2, acc || 7);
+    };
 
     // Función auxiliar para obtener cookie CSRF
     function getCookie(name) {

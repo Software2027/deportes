@@ -173,6 +173,35 @@
     </div>
 
     <!-- ----------------------------------------------------------------------- -->
+    <!-- 5.1. BANNER DE ASISTENCIA FUERA DE RUTA / DESVÍO                        -->
+    <!-- ----------------------------------------------------------------------- -->
+    <div class="alerta-fuera-ruta-banner" id="alerta-fuera-ruta-banner" style="display: none;">
+        <div class="fuera-ruta-flex">
+            <div class="fuera-ruta-icon-wrap">
+                <i class="fa-solid fa-route"></i>
+            </div>
+            <div class="fuera-ruta-info">
+                <div class="fuera-ruta-header">
+                    <span class="fuera-ruta-badge" id="fuera-ruta-badge">DESVÍO DEL CIRCUITO</span>
+                    <span class="fuera-ruta-dist"><strong id="fuera-ruta-dist-val">--</strong> m</span>
+                </div>
+                <p class="fuera-ruta-desc" id="fuera-ruta-desc">
+                    Estás fuera del trazado oficial. Sigue la línea punteada en el mapa para retornar.
+                </p>
+            </div>
+            <div class="fuera-ruta-actions">
+                <button type="button" class="btn-centrar-desvio" id="btn-centrar-desvio-retorno" title="Ver cómo volver al circuito">
+                    <i class="fa-solid fa-arrows-to-dot"></i>
+                    <span>Ver Retorno</span>
+                </button>
+                <button type="button" class="btn-cerrar-desvio" id="btn-cerrar-desvio" title="Ignorar aviso">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ----------------------------------------------------------------------- -->
     <!-- 6. BARRA INFERIOR DE CONTROLES TÁCTILES GIGANTES                        -->
     <!-- ----------------------------------------------------------------------- -->
     <div class="carrera-controls-bar">
@@ -219,6 +248,31 @@
                 </button>
                 <button type="button" class="btn-modal-confirm" id="btn-modal-confirm">
                     Sí, Finalizar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 7.0. MODAL META ALCANZADA (AUTO-CORTE TRIUNFAL)                          -->
+    <!-- ----------------------------------------------------------------------- -->
+    <div class="modal-confirm-backdrop" id="modal-meta-alcanzada" style="display: none; z-index: 999999;">
+        <div class="modal-confirm-card" style="text-align: center; max-width: 440px; border: 2px solid #22c55e;">
+            <div style="background: #f0fdf4; color: #16a34a; margin: 0 auto 1rem auto; width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);">
+                <i class="fa-solid fa-trophy"></i>
+            </div>
+            <span style="display: inline-block; padding: 0.25rem 0.85rem; border-radius: 999px; font-size: 0.78rem; font-weight: 800; text-transform: uppercase; margin-bottom: 0.5rem; background: #dcfce7; color: #15803d;">
+                ¡CIRCUITO COMPLETADO!
+            </span>
+            <h3 class="modal-confirm-title" style="font-size: 1.4rem; font-weight: 800; margin-bottom: 0.5rem; color: #0f172a;">
+                ¡Cruzaste la Meta Oficial!
+            </h3>
+            <p class="modal-confirm-desc" style="font-size: 0.92rem; color: #475569; line-height: 1.5; margin-bottom: 1.25rem;">
+                Has llegado al punto final de <strong>{{ circuito.nombre }}</strong>. Tu tiempo y telemetría han quedado registrados oficialmente.
+            </p>
+            <div class="modal-actions-row">
+                <button type="button" class="btn-modal-confirm" id="btn-ir-mi-progreso-meta" style="background: #16a34a; width: 100%;">
+                    <i class="fa-solid fa-chart-line"></i> Ver Mi Progreso y Podio
                 </button>
             </div>
         </div>
@@ -371,5 +425,6 @@
     window.carreraPuntoMeta = {% if punto_meta_json %}{{ punto_meta_json|safe }}{% else %}null{% endif %};
     window.carreraRadioLargadaMetros = {{ radio_largada_metros|default:80 }};
 </script>
+<script src="{% static 'js/ciudadano/audio_carrera.js' %}"></script>
 <script src="{% static 'js/ciudadano/mapa_carrera_gps.js' %}"></script>
 {% endblock %}

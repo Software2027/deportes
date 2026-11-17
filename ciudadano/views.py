@@ -727,6 +727,8 @@ def mi_progreso_view(request):
     porcentaje_total = 0
     if total_km_circuito > 0 and distancia_acumulada_km > 0:
         porcentaje_total = min(100, int(round((distancia_acumulada_km / total_km_circuito) * 100)))
+    if recorrido_actual and recorrido_actual.estado == 'FINALIZADO':
+        porcentaje_total = 100
 
     # 3. Checkpoints y Comercios Validados
     total_comercios_circuito = circuito_activo.comercios.count() if circuito_activo else 0
@@ -753,11 +755,15 @@ def mi_progreso_view(request):
             km_fin_etapa = km_recorridos_acum + dist_sub_km
             km_recorridos_acum = km_fin_etapa
 
+            es_recorrido_finalizado = bool(recorrido_actual and recorrido_actual.estado == 'FINALIZADO')
+            es_ultima_etapa = (idx == len(subs) - 1)
+            casi_alcanzado = (es_ultima_etapa and distancia_acumulada_km >= (km_fin_etapa * 0.95))
+
             if not esta_inscripto or distancia_acumulada_km == 0:
                 estado_sub = 'en-curso' if (idx == 0 and esta_inscripto) else 'pendiente'
                 pct = 0
                 validados_texto = f"0 de {checkpoints_sub or len(pts)} puntos"
-            elif distancia_acumulada_km >= km_fin_etapa:
+            elif distancia_acumulada_km >= km_fin_etapa or es_recorrido_finalizado or casi_alcanzado:
                 estado_sub = 'completado'
                 pct = 100
                 validados_texto = f"Etapa completada ({dist_sub_km} km)"

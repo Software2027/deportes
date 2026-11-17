@@ -96,9 +96,11 @@ class IniciarRecorridoAPIView(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-        # Validación del punto de largada si el circuito tiene trazado y se envían coordenadas
+        # Validación del punto de largada con margen de cortesía satelital para smartphones
         punto_inicio = circuito.punto_largada
-        radio_maximo = circuito.radio_largada_metros or 20
+        radio_base = circuito.radio_largada_metros or 20
+        # Tolerancia de precisión satelital móvil: margen de cortesía (mínimo 45m o radio_base + 25m)
+        radio_maximo = max(radio_base + 25, 45)
 
         if punto_inicio and latitud is not None and longitud is not None:
             distancia_a_largada = calcular_distancia_metros(
@@ -112,10 +114,11 @@ class IniciarRecorridoAPIView(APIView):
                         "fuera_de_radio": True,
                         "error": (
                             f"Estás a {int(distancia_a_largada)} metros del punto de largada. "
-                            f"Debes acercarte a menos de {radio_maximo} metros del Km 0 para iniciar."
+                            f"Debes acercarte a menos de {radio_base} metros del Km 0 para iniciar."
                         ),
                         "distancia_metros": round(distancia_a_largada, 1),
-                        "radio_permitido": radio_maximo,
+                        "radio_permitido": radio_base,
+                        "radio_tolerancia": radio_maximo,
                         "punto_largada": {
                             "lat": punto_inicio[0],
                             "lng": punto_inicio[1]
