@@ -11,7 +11,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from django.core.paginator import Paginator
 from django.db.models import Q, Sum, Count, Max, Avg
-from datetime import timedelta, date
+from datetime import timedelta, date, datetime, time
 from django.utils import timezone
 from django.db import transaction
 from django.contrib import messages
@@ -22,6 +22,7 @@ from ciudadano.models import (
     CircuitoGeneral, SubCircuito, CategoriaComercio, ComercioAdherido,
     RecorridoCiclista, Noticia, RegistroGPS, Ciclista, PuntosTramo, ParadaRecorrido
 )
+from ciudadano.utils import calcular_distancia_metros
 
 
 def requiere_staff(view_func):
@@ -153,13 +154,21 @@ def _generar_grafico_semanal_svg(dias_semana):
         {'y': 230, 'valor': 0},
     ]
 
-    def _calcular_puntos(clave):
+    def _calcular_puntos(clave, clave_opuesta):
         pts = []
         for i, d in enumerate(dias_semana):
             x = 50.0 + i * (830.0 / 6.0)
             val = d[clave]
+            val_op = d[clave_opuesta]
             y = 230.0 - (float(val) / float(max_val)) * 190.0
-            pts.append({'x': round(x, 1), 'y': round(y, 1), 'val': val, 'label': d['label']})
+            pts.append({
+                'x': round(x, 1),
+                'y': round(y, 1),
+                'val': val,
+                'val_opuesto': val_op,
+                'label': d['label'],
+                'fecha_str': d.get('fecha_str', '')
+            })
         return pts
 
     def _construir_bezier_path(pts):
@@ -178,11 +187,15 @@ def _generar_grafico_semanal_svg(dias_semana):
         area_path = f"{line_path} L {pts[-1]['x']},230 L {pts[0]['x']},230 Z"
         return line_path, area_path
 
-    pts_inscritos = _calcular_puntos('inscritos')
-    pts_activos = _calcular_puntos('activos')
+    pts_inscritos = _calcular_puntos('inscritos', 'activos')
+    pts_activos = _calcular_puntos('activos', 'inscritos')
 
     line_inscritos, area_inscritos = _construir_bezier_path(pts_inscritos)
     line_activos, area_activos = _construir_bezier_path(pts_activos)
+
+    total_activos_semana = sum(d['activos'] for d in dias_semana)
+    total_inscritos_semana = sum(d['inscritos'] for d in dias_semana)
+    pico = max(dias_semana, key=lambda x: x['activos']) if dias_semana else None
 
     return {
         'eje_y': eje_y,
@@ -191,10 +204,15 @@ def _generar_grafico_semanal_svg(dias_semana):
         'area_inscritos': area_inscritos,
         'line_activos': line_activos,
         'area_activos': area_activos,
-        'ultimo_pto_inscritos': pts_inscritos[-1],
-        'ultimo_pto_activos': pts_activos[-1],
+        'ultimo_pto_inscritos': pts_inscritos[-1] if pts_inscritos else None,
+        'ultimo_pto_activos': pts_activos[-1] if pts_activos else None,
         'pts_inscritos': pts_inscritos,
         'pts_activos': pts_activos,
+        'total_activos_semana': total_activos_semana,
+        'total_inscritos_semana': total_inscritos_semana,
+        'pico_dia': pico['label'] if (pico and pico['activos'] > 0) else "Sin pico",
+        'pico_val': pico['activos'] if pico else 0,
+        'promedio_diario': round(total_activos_semana / 7.0, 1),
     }
 
 
@@ -249,18 +267,22 @@ def dashboard_view(request):
 
     # 5. Participación Semanal Real (Últimos 7 días)
     dias_semana = []
-    hoy = timezone.now().date()
+    hoy = timezone.localdate() if hasattr(timezone, 'localdate') else timezone.now().date()
     dias_nombres_es = {0: 'Lun', 1: 'Mar', 2: 'Mié', 3: 'Jue', 4: 'Vie', 5: 'Sáb', 6: 'Dom'}
 
     for i in range(6, -1, -1):
         d = hoy - timedelta(days=i)
         nombre_dia = 'Hoy' if i == 0 else dias_nombres_es[d.weekday()]
 
-        cnt_inscritos = Ciclista.objects.filter(fecha_registro__date=d).count()
-        cnt_activos = RecorridoCiclista.objects.filter(inicio__date=d).count()
+        inicio_dia = timezone.make_aware(datetime.combine(d, time.min))
+        fin_dia = timezone.make_aware(datetime.combine(d, time.max))
+
+        cnt_inscritos = Ciclista.objects.filter(fecha_registro__range=(inicio_dia, fin_dia)).count()
+        cnt_activos = RecorridoCiclista.objects.filter(inicio__range=(inicio_dia, fin_dia)).count()
 
         dias_semana.append({
             'fecha': d,
+            'fecha_str': d.strftime("%d/%m"),
             'label': nombre_dia,
             'inscritos': cnt_inscritos,
             'activos': cnt_activos
@@ -1388,24 +1410,40 @@ def ranking_evento_view(request, circuito_id=None):
         ciclista_obj = Ciclista.objects.filter(user=r.ciclista).first()
         nombre_completo = f"{r.ciclista.first_name} {r.ciclista.last_name}".strip() or r.ciclista.username
         if ciclista_obj:
-            nombre_completo = ciclista_obj.nombre_completo or nombre_completo
-            dni = ciclista_obj.dni
-            nivel = ciclista_obj.categoria_experiencia or ciclista_obj.nivel or 'Recreativo'
+            nombre_completo = ciclista_obj.nombre or nombre_completo
+            dni = ciclista_obj.dni or r.ciclista.username
+            nivel = ciclista_obj.nivel or 'Recreativo'
             club = ciclista_obj.club_entidad or 'Independiente'
         else:
             dni = r.ciclista.username
             nivel = 'Recreativo'
             club = 'Independiente'
 
-        # Velocidad máxima de la telemetría GPS
-        vel_max_rec = RegistroGPS.objects.filter(recorrido=r).aggregate(Max('velocidad'))['velocidad__max'] or 0.0
-        vel_max_kmh = round(float(vel_max_rec), 1)
-
         # Distancia y velocidad promedio
         distancia_km = float(r.distancia_km or 0.0)
         velocidad_prom_kmh = 0.0
         if segundos > 0 and distancia_km > 0:
             velocidad_prom_kmh = round((distancia_km / (segundos / 3600.0)), 1)
+
+        # Velocidad máxima de la telemetría GPS (calculada por deltas de tramos GPS consecutivos)
+        vel_max_kmh = velocidad_prom_kmh
+        puntos_gps = list(r.puntos.order_by('timestamp').values('latitud', 'longitud', 'timestamp'))
+        if len(puntos_gps) >= 2:
+            max_v = 0.0
+            for i in range(len(puntos_gps) - 1):
+                p_a, p_b = puntos_gps[i], puntos_gps[i + 1]
+                t_a, t_b = p_a['timestamp'], p_b['timestamp']
+                if t_a and t_b:
+                    dt = (t_b - t_a).total_seconds()
+                    if 1.0 <= dt <= 30.0:
+                        d_m = calcular_distancia_metros(p_a['latitud'], p_a['longitud'], p_b['latitud'], p_b['longitud'])
+                        v_kmh = (d_m / dt) * 3.6
+                        if 0 < v_kmh < 95.0 and v_kmh > max_v:
+                            max_v = v_kmh
+            if max_v > 0:
+                vel_max_kmh = round(max(max_v, velocidad_prom_kmh), 1)
+        elif velocidad_prom_kmh > 0:
+            vel_max_kmh = round(velocidad_prom_kmh * 1.15, 1)
 
         # Cantidad de paradas y comercios validados
         paradas_count = ParadaRecorrido.objects.filter(recorrido=r).count()

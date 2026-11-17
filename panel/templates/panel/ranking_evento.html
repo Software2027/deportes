@@ -180,102 +180,173 @@
     margin-top: 2px;
 }
 
-/* Podio de Honor */
+/* Podio de Honor - Integrado al diseño blanco y luminoso de la plataforma */
 .podio-section {
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-    border-radius: 20px;
-    padding: 2rem;
-    margin-bottom: 2.25rem;
-    color: #ffffff;
-    box-shadow: 0 8px 30px rgba(15, 23, 42, 0.15);
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 1.75rem 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 22px rgba(0, 0, 0, 0.04);
+    border: 1px solid #f1f5f9;
 }
 
 .podio-header {
-    text-align: center;
-    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid #f1f5f9;
+    margin-bottom: 1.5rem;
 }
 
-.podio-header h2 {
-    font-size: 1.5rem;
-    font-weight: 800;
-    margin: 0 0 0.4rem 0;
-    color: #f8fafc;
+.podio-header-title {
     display: flex;
     align-items: center;
-    justify-content: center;
     gap: 0.65rem;
 }
 
-.podio-header p {
-    color: #94a3b8;
-    font-size: 0.9rem;
+.podio-header-title h2 {
+    font-size: 1.25rem;
+    font-weight: 800;
     margin: 0;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+}
+
+.podio-header-title p {
+    color: #64748b;
+    font-size: 0.86rem;
+    margin: 0.2rem 0 0 0;
+}
+
+.podio-badge-circuito {
+    background: #f0fdf4;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    font-size: 0.76rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
 }
 
 .podio-cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    display: flex;
+    justify-content: center;
     gap: 1.5rem;
-    align-items: stretch;
+    flex-wrap: wrap;
 }
 
 .podio-card {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 18px;
-    padding: 1.75rem 1.25rem;
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 1.5rem 1.25rem;
     text-align: center;
     position: relative;
-    transition: transform 0.25s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    flex: 1 1 280px;
+    max-width: 360px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+/* Si solo hay un participante, centrado con ancho ideal */
+.podio-card.podio-single {
+    max-width: 420px;
 }
 
 .podio-card:hover {
-    transform: translateY(-4px);
-    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.07);
 }
 
 .podio-1 {
-    border-color: #f59e0b;
-    box-shadow: 0 0 25px rgba(245, 158, 11, 0.2);
-    background: linear-gradient(180deg, rgba(245, 158, 11, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%);
+    border-color: #fbbf24;
+    background: linear-gradient(180deg, #fffbeb 0%, #ffffff 55%);
+    box-shadow: 0 4px 18px rgba(245, 158, 11, 0.12);
+}
+
+.podio-2 {
+    border-color: #cbd5e1;
+    background: linear-gradient(180deg, #f8fafc 0%, #ffffff 55%);
+}
+
+.podio-3 {
+    border-color: #fed7aa;
+    background: linear-gradient(180deg, #fff7ed 0%, #ffffff 55%);
 }
 
 .medal-badge {
-    width: 58px;
-    height: 58px;
+    width: 52px;
+    height: 52px;
     border-radius: 50%;
-    margin: -10px auto 1rem auto;
+    margin: 0 auto 0.85rem auto;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.6rem;
-    font-weight: 800;
+    font-size: 1.45rem;
     border: 3px solid #ffffff;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
-.medal-1 { background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%); color: #78350f; }
-.medal-2 { background: linear-gradient(135deg, #e2e8f0 0%, #94a3b8 100%); color: #334155; }
-.medal-3 { background: linear-gradient(135deg, #fed7aa 0%, #ea580c 100%); color: #7c2d12; }
+.medal-1 {
+    background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+}
+
+.medal-2 {
+    background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(100, 116, 139, 0.25);
+}
+
+.medal-3 {
+    background: linear-gradient(135deg, #fb923c 0%, #c2410c 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(234, 88, 12, 0.25);
+}
+
+.podio-pos-tag {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.4rem;
+}
+
+.pos-tag-1 { color: #b45309; }
+.pos-tag-2 { color: #475569; }
+.pos-tag-3 { color: #c2410c; }
 
 .podio-ciclista-name {
-    font-size: 1.2rem;
+    font-size: 1.18rem;
     font-weight: 800;
-    margin: 0 0 0.3rem 0;
-    color: #ffffff;
+    margin: 0 0 0.35rem 0;
+    color: #0f172a;
 }
 
 .podio-ciclista-club {
-    font-size: 0.82rem;
-    color: #94a3b8;
+    font-size: 0.8rem;
+    color: #64748b;
     margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
 }
 
 .podio-metrics-box {
-    background: rgba(0, 0, 0, 0.25);
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
     border-radius: 12px;
-    padding: 0.85rem;
+    padding: 0.85rem 0.75rem;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 0.65rem;
@@ -285,14 +356,17 @@
 .podio-metric-val {
     font-size: 1.25rem;
     font-weight: 800;
-    color: #10b981;
+    color: #16a34a;
+    line-height: 1.2;
 }
 
 .podio-metric-lbl {
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     font-weight: 700;
-    color: #cbd5e1;
+    color: #64748b;
     text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-top: 3px;
 }
 
 /* Tabla de Ranking */
@@ -588,25 +662,33 @@
     {% if podio %}
     <div class="podio-section">
         <div class="podio-header">
-            <h2>
-                <i class="fa-solid fa-crown" style="color: #fbbf24;"></i>
-                Podio Oficial de Competencia
-            </h2>
-            <p>Los tres mejores registros de tiempo completados en el circuito oficial</p>
+            <div class="podio-header-title">
+                <div>
+                    <h2>
+                        <i class="fa-solid fa-trophy" style="color: #f59e0b;"></i>
+                        Podio Oficial de Competencia
+                    </h2>
+                    <p>Mejores marcas y registros de tiempo completados en el circuito</p>
+                </div>
+            </div>
+            <span class="podio-badge-circuito">
+                <i class="fa-solid fa-flag-checkered"></i> {{ podio|length }} en Podio
+            </span>
         </div>
 
         <div class="podio-cards-grid">
             {% for p in podio %}
-            <div class="podio-card {% if p.posicion == 1 %}podio-1{% endif %}">
+            <div class="podio-card podio-{{ p.posicion }} {% if podio|length == 1 %}podio-single{% endif %}">
                 <div class="medal-badge medal-{{ p.posicion }}">
                     {% if p.posicion == 1 %}
-                        <i class="fa-solid fa-medal"></i>
+                        <i class="fa-solid fa-crown"></i>
                     {% elif p.posicion == 2 %}
                         <i class="fa-solid fa-medal"></i>
                     {% else %}
                         <i class="fa-solid fa-award"></i>
                     {% endif %}
                 </div>
+                <span class="podio-pos-tag pos-tag-{{ p.posicion }}">Puesto #{{ p.posicion }}</span>
                 <h3 class="podio-ciclista-name">{{ p.ciclista_nombre }}</h3>
                 <div class="podio-ciclista-club">
                     <i class="fa-solid fa-id-card"></i> DNI: {{ p.dni }} • {{ p.club }}
@@ -618,7 +700,7 @@
                         <div class="podio-metric-lbl">Tiempo Neto</div>
                     </div>
                     <div>
-                        <div class="podio-metric-val">{{ p.velocidad_prom }} <span style="font-size:0.7rem;">km/h</span></div>
+                        <div class="podio-metric-val">{{ p.velocidad_prom }} <span style="font-size:0.75rem; font-weight:700;">km/h</span></div>
                         <div class="podio-metric-lbl">Velocidad Media</div>
                     </div>
                 </div>

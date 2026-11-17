@@ -606,6 +606,11 @@ class Ciclista(models.Model):
         return f"CIC-{self.id:03d}"
 
     @property
+    def nombre_completo(self):
+        """Retorna el nombre y apellido del ciclista para compatibilidad."""
+        return self.nombre
+
+    @property
     def edad(self):
         """Retorna la edad en años si la fecha de nacimiento está registrada."""
         if not self.fecha_nacimiento:

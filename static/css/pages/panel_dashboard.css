@@ -245,6 +245,51 @@
     margin: 0;
 }
 
+.chart-quick-stats {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.stat-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: 9999px;
+    font-size: 0.74rem;
+    font-family: 'Inter', sans-serif;
+    line-height: 1.2;
+}
+
+.stat-chip-val {
+    font-weight: 800;
+}
+
+.stat-chip-lbl {
+    font-weight: 600;
+    opacity: 0.85;
+}
+
+.chip-green {
+    background-color: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #15803d;
+}
+
+.chip-yellow {
+    background-color: #fefce8;
+    border: 1px solid #fef08a;
+    color: #a16207;
+}
+
+.chip-purple {
+    background-color: #faf5ff;
+    border: 1px solid #e9d5ff;
+    color: #7e22ce;
+}
+
 .badge-live-stream {
     display: inline-flex;
     align-items: center;
@@ -284,6 +329,34 @@
     height: 270px;
     display: block;
     overflow: visible;
+}
+
+.chart-point-group {
+    cursor: pointer;
+}
+
+.chart-dot {
+    transition: r 0.2s cubic-bezier(0.16, 1, 0.3, 1), stroke-width 0.2s ease;
+}
+
+.chart-point-group:hover .chart-dot {
+    r: 6.5px;
+    stroke-width: 2.5px;
+}
+
+.chart-val-text {
+    font-family: 'Outfit', sans-serif;
+    font-size: 11px;
+    font-weight: 800;
+    pointer-events: none;
+}
+
+.text-val-inscrito {
+    fill: #15803d;
+}
+
+.text-val-activo {
+    fill: #b45309;
 }
 
 .axis-y-label {

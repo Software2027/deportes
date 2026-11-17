@@ -215,14 +215,31 @@
         <div class="chart-main-card">
             <div class="chart-card-header">
                 <div class="chart-header-left">
-                    <h2 class="chart-card-title">Participación Semanal</h2>
-                    <p class="chart-card-subtitle">Comparativa entre usuarios inscritos y actividad real de los últimos 7 días</p>
+                    <h2 class="chart-card-title">
+                        <i class="fa-solid fa-chart-area" style="color: #16a34a; margin-right: 0.35rem;"></i>
+                        Participación Semanal
+                    </h2>
+                    <p class="chart-card-subtitle">Comparativa entre inscripciones y actividad de pedaleo de los últimos 7 días</p>
                 </div>
                 <div class="chart-header-right">
-                    <span class="badge-live-stream">
-                        <span class="live-dot-pulse"></span>
-                        <span>En Vivo</span>
-                    </span>
+                    <div class="chart-quick-stats">
+                        <div class="stat-chip chip-green" title="Total de recorridos en los últimos 7 días">
+                            <span class="stat-chip-val">{{ grafico.total_activos_semana }}</span>
+                            <span class="stat-chip-lbl">Actividades</span>
+                        </div>
+                        <div class="stat-chip chip-yellow" title="Nuevos ciclistas en los últimos 7 días">
+                            <span class="stat-chip-val">{{ grafico.total_inscritos_semana }}</span>
+                            <span class="stat-chip-lbl">Inscritos</span>
+                        </div>
+                        <div class="stat-chip chip-purple" title="Pico de actividad semanal">
+                            <span class="stat-chip-val">{{ grafico.pico_dia }}</span>
+                            <span class="stat-chip-lbl">Mayor actividad</span>
+                        </div>
+                        <span class="badge-live-stream">
+                            <span class="live-dot-pulse"></span>
+                            <span>En Vivo</span>
+                        </span>
+                    </div>
                 </div>
             </div>
 
@@ -232,13 +249,13 @@
                     <defs>
                         <!-- Gradiente Área Inscritos (Verde Institucional) -->
                         <linearGradient id="gradInscritos" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stop-color="#15803d" stop-opacity="0.35" />
+                            <stop offset="0%" stop-color="#15803d" stop-opacity="0.32" />
                             <stop offset="100%" stop-color="#15803d" stop-opacity="0.02" />
                         </linearGradient>
 
                         <!-- Gradiente Área Activos (Amarillo / Dorado Suave) -->
                         <linearGradient id="gradActivos" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stop-color="#eab308" stop-opacity="0.3" />
+                            <stop offset="0%" stop-color="#eab308" stop-opacity="0.30" />
                             <stop offset="100%" stop-color="#eab308" stop-opacity="0.02" />
                         </linearGradient>
                     </defs>
@@ -261,21 +278,32 @@
                     {% if grafico.area_activos %}
                     <!-- 2. Curva Activos (Área y Trazo Amarillo/Dorado) -->
                     <path d="{{ grafico.area_activos }}" fill="url(#gradActivos)" />
-                    <path d="{{ grafico.line_activos }}" fill="none" stroke="#ca8a04" stroke-width="2" stroke-linecap="round" />
+                    <path d="{{ grafico.line_activos }}" fill="none" stroke="#ca8a04" stroke-width="2.2" stroke-linecap="round" />
                     {% endif %}
 
-                    <!-- Puntos clave interactivos finales -->
-                    {% if grafico.ultimo_pto_inscritos %}
-                    <circle cx="{{ grafico.ultimo_pto_inscritos.x }}" cy="{{ grafico.ultimo_pto_inscritos.y }}" r="4.5" fill="#15803d" stroke="#ffffff" stroke-width="2">
-                        <title>Inscritos: {{ grafico.ultimo_pto_inscritos.val }}</title>
-                    </circle>
-                    {% endif %}
+                    <!-- Puntos clave interactivos para cada día de la semana (Inscritos) -->
+                    {% for pto in grafico.pts_inscritos %}
+                    <g class="chart-point-group">
+                        <circle cx="{{ pto.x }}" cy="{{ pto.y }}" r="4.5" fill="#15803d" stroke="#ffffff" stroke-width="2" class="chart-dot dot-svg-inscrito">
+                            <title>{{ pto.label }} ({{ pto.fecha_str }}): {{ pto.val }} nuevo(s) inscrito(s)</title>
+                        </circle>
+                        {% if pto.val > 0 %}
+                        <text x="{{ pto.x }}" y="{{ pto.y|add:-9 }}" text-anchor="middle" class="chart-val-text text-val-inscrito">{{ pto.val }}</text>
+                        {% endif %}
+                    </g>
+                    {% endfor %}
 
-                    {% if grafico.ultimo_pto_activos %}
-                    <circle cx="{{ grafico.ultimo_pto_activos.x }}" cy="{{ grafico.ultimo_pto_activos.y }}" r="4" fill="#ca8a04" stroke="#ffffff" stroke-width="2">
-                        <title>Activos: {{ grafico.ultimo_pto_activos.val }}</title>
-                    </circle>
-                    {% endif %}
+                    <!-- Puntos clave interactivos para cada día de la semana (Activos) -->
+                    {% for pto in grafico.pts_activos %}
+                    <g class="chart-point-group">
+                        <circle cx="{{ pto.x }}" cy="{{ pto.y }}" r="4" fill="#ca8a04" stroke="#ffffff" stroke-width="2" class="chart-dot dot-svg-activo">
+                            <title>{{ pto.label }} ({{ pto.fecha_str }}): {{ pto.val }} actividad(es) de pedaleo</title>
+                        </circle>
+                        {% if pto.val > 0 %}
+                        <text x="{{ pto.x }}" y="{% if pto.val == pto.val_opuesto %}{{ pto.y|add:16 }}{% else %}{{ pto.y|add:-9 }}{% endif %}" text-anchor="middle" class="chart-val-text text-val-activo">{{ pto.val }}</text>
+                        {% endif %}
+                    </g>
+                    {% endfor %}
                 </svg>
 
                 <!-- Etiquetas del Eje X (Días Reales de la Semana) -->
@@ -290,11 +318,15 @@
             <div class="chart-legend-bottom">
                 <div class="legend-point-item">
                     <span class="legend-dot dot-inscritos"></span>
-                    <span class="legend-text">Nuevos Inscritos</span>
+                    <span class="legend-text">Nuevos Inscritos ({{ grafico.total_inscritos_semana }})</span>
                 </div>
                 <div class="legend-point-item">
                     <span class="legend-dot dot-activos"></span>
-                    <span class="legend-text">Actividades / Recorridos</span>
+                    <span class="legend-text">Actividades / Recorridos ({{ grafico.total_activos_semana }})</span>
+                </div>
+                <div class="legend-point-item" style="color: #64748b;">
+                    <i class="fa-solid fa-gauge" style="font-size: 0.85rem; color: #16a34a;"></i>
+                    <span class="legend-text">Promedio Diario: <strong>{{ grafico.promedio_diario }}</strong> pedaleos</span>
                 </div>
             </div>
         </div>
