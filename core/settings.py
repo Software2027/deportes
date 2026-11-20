@@ -134,6 +134,11 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'mapa_carrera'
 LOGOUT_REDIRECT_URL = 'index'
 
+# Seguridad y Expiración de Sesión por Inactividad (1 Hora = 3600 segundos)
+SESSION_COOKIE_AGE = 3600
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
 
 # Configuración de Django REST Framework
 REST_FRAMEWORK = {

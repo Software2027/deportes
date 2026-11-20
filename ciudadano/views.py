@@ -2,8 +2,9 @@
 Vistas de renderizado de plantillas para el Portal Ciudadano y App Ciclista.
 """
 
-from datetime import date
+from datetime import date, datetime
 import json
+import re
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.utils import timezone
@@ -12,7 +13,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from django.db.models import Q
-from .models import CircuitoGeneral, SubCircuito, Noticia, ComercioAdherido, RecorridoCiclista, Ciclista
+from .models import CircuitoGeneral, SubCircuito, Noticia, ComercioAdherido, RecorridoCiclista, Ciclista, TIPOS_MOVILIDAD
 from .utils import calcular_distancia_total_puntos
 
 
@@ -50,9 +51,19 @@ def index(request):
         Q(estado='Publicado') | Q(estado__isnull=True) | Q(estado='')
     ).order_by('-fecha_publicacion')[:6]
 
-    # Estadísticas para el Hero
+    # Estadísticas para el Hero y Cards de Métricas Reales
     total_comercios = circuito_activo.comercios.count() if circuito_activo else 0
     total_subcircuitos = circuito_activo.subcircuitos.count() if circuito_activo else 0
+
+    stat_ciclistas = Ciclista.objects.filter(estado='Validado').count()
+    if stat_ciclistas == 0:
+        stat_ciclistas = Ciclista.objects.count()
+
+    stat_km_rutas = round(sum(float(c.distancia_total_km or 0.0) for c in circuitos_activos), 1)
+    stat_negocios = ComercioAdherido.objects.filter(
+        Q(estado='Activo') | Q(estado__isnull=True) | Q(estado='')
+    ).count()
+    stat_circuitos = len(circuitos_activos)
 
     # Circuitos en los que el usuario ya está inscripto
     inscriptos_ids = set()
@@ -70,6 +81,10 @@ def index(request):
         'noticias': noticias,
         'total_comercios': total_comercios,
         'total_subcircuitos': total_subcircuitos,
+        'stat_ciclistas': stat_ciclistas,
+        'stat_km_rutas': stat_km_rutas,
+        'stat_negocios': stat_negocios,
+        'stat_circuitos': stat_circuitos,
     }
     return render(request, 'ciudadano/index.html', context)
 
@@ -243,6 +258,37 @@ def contacto_view(request):
             messages.error(request, "Por favor completa todos los campos obligatorios: Nombre, DNI y Correo Electrónico.")
             return render(request, 'ciudadano/contacto.html', {'datos': request.POST})
 
+        # Validación de Fecha de Nacimiento (límite entre 10 y 90 años)
+        if fecha_nacimiento:
+            try:
+                fn_date = datetime.strptime(fecha_nacimiento, '%Y-%m-%d').date()
+                hoy = date.today()
+                edad = hoy.year - fn_date.year - ((hoy.month, hoy.day) < (fn_date.month, fn_date.day))
+                if edad < 10 or edad > 90:
+                    messages.error(
+                        request,
+                        f"La edad para inscribirse debe estar comprendida entre 10 y 90 años (edad calculada: {edad} años)."
+                    )
+                    return render(request, 'ciudadano/contacto.html', {'datos': request.POST})
+            except (ValueError, TypeError):
+                messages.error(request, "Por favor ingresa una fecha de nacimiento válida (AAAA-MM-DD).")
+                return render(request, 'ciudadano/contacto.html', {'datos': request.POST})
+        else:
+            messages.error(request, "Por favor ingresa tu fecha de nacimiento.")
+            return render(request, 'ciudadano/contacto.html', {'datos': request.POST})
+
+        # Validación de Teléfono de Emergencia vs. Teléfono Personal
+        tel_digitos = re.sub(r'\D', '', telefono)
+        emerg_digitos = re.sub(r'\D', '', contacto_emergencia)
+        if tel_digitos and emerg_digitos:
+            # Si coinciden exactamente o uno es sufijo exacto del otro (ej. con o sin código de área)
+            if tel_digitos == emerg_digitos or (len(tel_digitos) >= 7 and len(emerg_digitos) >= 7 and (tel_digitos.endswith(emerg_digitos) or emerg_digitos.endswith(tel_digitos))):
+                messages.error(
+                    request,
+                    "El número de teléfono de contacto de emergencia debe ser distinto a tu número de teléfono personal."
+                )
+                return render(request, 'ciudadano/contacto.html', {'datos': request.POST})
+
         # Verificar duplicados por DNI (no repetidos en Ciclista ni en User)
         if Ciclista.objects.filter(dni__iexact=dni).exists() or User.objects.filter(username__iexact=dni).exists():
             messages.error(
@@ -389,7 +435,11 @@ def login_view(request):
 
 def logout_view(request):
     """Cierre de sesión del ciclista."""
+    por_inactividad = request.GET.get('inactividad') == '1'
     logout(request)
+    if por_inactividad:
+        messages.info(request, "Tu sesión ha expirado tras 1 hora de inactividad por seguridad. Por favor ingresa nuevamente.")
+        return redirect('login')
     return redirect('index')
 
 
@@ -551,6 +601,8 @@ def mapa_carrera_view(request):
         'distancia_total_km': distancia_total_km,
         'trazado_json': trazado_geojson,
         'comercios_json': comercios_geojson,
+        'movilidades_permitidas': circuito_activo.movilidades_lista if circuito_activo else ['BICICLETA'],
+        'tipos_movilidad_catalogo': TIPOS_MOVILIDAD,
     }
     return render(request, 'ciudadano/mapa_carrera.html', context)
 
@@ -875,6 +927,72 @@ def mi_progreso_view(request):
     )
     modalidad_display = 'Evento Oficial' if (recorrido_actual and recorrido_actual.modalidad == 'OFICIAL') else 'Libre / Práctica'
 
+    # 7. Historial de Recorridos / Sesiones del Ciclista en este Circuito Específico
+    historial_recorridos_data = []
+    if circuito_activo:
+        from .utils import calcular_distancia_metros
+        historial_qs = RecorridoCiclista.objects.filter(
+            ciclista=user,
+            circuito=circuito_activo
+        ).prefetch_related('puntos', 'paradas_registradas').order_by('-inicio')
+
+        for rec in historial_qs:
+            segundos_rec = 0
+            duracion_formateada = "--:--:--"
+            if rec.inicio and rec.fin:
+                delta = (rec.fin - rec.inicio).total_seconds()
+                if delta > 0:
+                    segundos_rec = int(delta)
+                    horas = segundos_rec // 3600
+                    minutos = (segundos_rec % 3600) // 60
+                    segs = segundos_rec % 60
+                    duracion_formateada = f"{horas:02d}:{minutos:02d}:{segs:02d}"
+
+            dist_km = float(rec.distancia_km or 0.0)
+            vel_prom = 0.0
+            if segundos_rec > 0 and dist_km > 0:
+                vel_prom = round(dist_km / (segundos_rec / 3600.0), 1)
+
+            # Velocidad máxima por deltas GPS
+            vel_max = vel_prom
+            puntos_rec = list(rec.puntos.order_by('timestamp').values('latitud', 'longitud', 'timestamp'))
+            if len(puntos_rec) >= 2:
+                max_v = 0.0
+                for i in range(len(puntos_rec) - 1):
+                    p_a, p_b = puntos_rec[i], puntos_rec[i + 1]
+                    t_a, t_b = p_a['timestamp'], p_b['timestamp']
+                    if t_a and t_b:
+                        dt = (t_b - t_a).total_seconds()
+                        if 1.0 <= dt <= 30.0:
+                            d_m = calcular_distancia_metros(p_a['latitud'], p_a['longitud'], p_b['latitud'], p_b['longitud'])
+                            v_kmh = (d_m / dt) * 3.6
+                            if 0 < v_kmh < 95.0 and v_kmh > max_v:
+                                max_v = v_kmh
+                if max_v > 0:
+                    vel_max = round(max(max_v, vel_prom), 1)
+            elif vel_prom > 0:
+                vel_max = round(vel_prom * 1.15, 1)
+
+            paradas_count = rec.paradas_registradas.count()
+
+            historial_recorridos_data.append({
+                'id': rec.id,
+                'inicio': rec.inicio,
+                'fecha_str': rec.inicio.strftime("%d/%m/%Y %H:%M") if rec.inicio else "--",
+                'modalidad': rec.modalidad,
+                'modalidad_display': rec.get_modalidad_display(),
+                'tipo_movilidad': rec.tipo_movilidad or 'BICICLETA',
+                'tipo_movilidad_display': rec.get_tipo_movilidad_display() if hasattr(rec, 'get_tipo_movilidad_display') else (rec.tipo_movilidad or 'Bicicleta'),
+                'estado': rec.estado,
+                'estado_display': rec.get_estado_display(),
+                'finalizado': rec.estado == 'FINALIZADO',
+                'duracion_str': duracion_formateada,
+                'distancia_km': dist_km,
+                'vel_prom': vel_prom,
+                'vel_max': vel_max,
+                'paradas_count': paradas_count,
+            })
+
     context = {
         'ciclista': ciclista,
         'circuito': circuito_activo,
@@ -902,6 +1020,7 @@ def mi_progreso_view(request):
         'cronograma': cronograma,
         'trazado_json': trazado_geojson,
         'comercios_json': comercios_geojson,
+        'historial_recorridos': historial_recorridos_data,
     }
     return render(request, 'ciudadano/mi_progreso.html', context)
 

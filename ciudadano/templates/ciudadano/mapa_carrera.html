@@ -29,8 +29,12 @@
             <span class="btn-etapas-text">Etapas ({{ total_subcircuitos|default:3 }})</span>
         </button>
 
-        <!-- Indicador de Señal GPS y Fullscreen -->
+        <!-- Indicador de Señal GPS, SOS Emergencias y Fullscreen -->
         <div class="topbar-right-controls">
+            <button type="button" class="btn-emergency-sos-top" id="btn-emergency-sos" title="Llamada de Emergencia Médica y Auxilio (107)" aria-label="Emergencia SOS">
+                <i class="fa-solid fa-phone-volume"></i>
+                <span>SOS 107</span>
+            </button>
             <div class="gps-signal-badge" title="Precisión del GPS en tiempo real">
                 <span class="gps-dot-pulse"></span>
                 <span class="gps-text-label">GPS Activo</span>
@@ -100,11 +104,11 @@
                 <span class="mobile-text">Manga Oficial • Dorsal <strong>{{ dorsal_oficial }}</strong></span>
             {% elif tipo_sesion == 'ENTRENAMIENTO_PREVIO' %}
                 <i class="fa-solid fa-stopwatch"></i>
-                <span class="desktop-text">Modo Entrenamiento • Carrera oficial: <strong>{{ circuito.fecha_evento|date:"d/m/Y" }}</strong> (Dorsal {{ dorsal_oficial }})</span>
-                <span class="mobile-text">Entrenamiento (Dorsal {{ dorsal_oficial }}) • Carrera: <strong>{{ circuito.fecha_evento|date:"d/m" }}</strong></span>
+                <span class="desktop-text">Modo Entrenamiento • Carrera oficial: <strong>{{ circuito.fecha_evento|date:"d/m/Y" }}{% if circuito.hora_evento %} {{ circuito.hora_evento|time:"H:i" }} hs{% endif %}</strong> (Dorsal {{ dorsal_oficial }})</span>
+                <span class="mobile-text">Entrenamiento (Dorsal {{ dorsal_oficial }}) • Carrera: <strong>{{ circuito.fecha_evento|date:"d/m" }}{% if circuito.hora_evento %} {{ circuito.hora_evento|time:"H:i" }}hs{% endif %}</strong></span>
             {% else %}
-                <i class="fa-solid fa-person-biking"></i>
-                <span class="desktop-text">Modo Libre Recreativo • Pedalea a tu propio ritmo</span>
+                <i class="fa-solid fa-person-walking-dashed-line-arrow-right"></i>
+                <span class="desktop-text">Modo Libre Recreativo • Recorre a tu propio ritmo</span>
                 <span class="mobile-text">Modo Libre Recreativo</span>
             {% endif %}
         </div>
@@ -148,11 +152,13 @@
     </div>
 
     <!-- ----------------------------------------------------------------------- -->
-    <!-- 4. BOTÓN FLOTANTE "CENTRAR GPS EN MÍ"                                   -->
+    <!-- 4. BOTONES FLOTANTES: CENTRAR GPS                                       -->
     <!-- ----------------------------------------------------------------------- -->
-    <button type="button" class="btn-recenter-gps" id="btn-recenter-gps" title="Centrar el mapa en mi posición GPS" aria-label="Centrar en mi ubicación">
-        <i class="fa-solid fa-location-crosshairs"></i>
-    </button>
+    <div class="mapa-floating-actions-col">
+        <button type="button" class="btn-recenter-gps" id="btn-recenter-gps" title="Centrar el mapa en mi posición GPS" aria-label="Centrar en mi ubicación">
+            <i class="fa-solid fa-location-crosshairs"></i>
+        </button>
+    </div>
 
     <!-- ----------------------------------------------------------------------- -->
     <!-- 5. BANNER EMERGENTE DE PROXIMIDAD A COMERCIO O PARADA                   -->
@@ -208,7 +214,7 @@
         <!-- Botón Iniciar Carrera -->
         <button type="button" class="btn-carrera-action btn-action-start" id="btn-carrera-start">
             <i class="fa-solid fa-play"></i>
-            <span>{% if tipo_sesion == 'CARRERA_OFICIAL' %}INICIAR CARRERA OFICIAL{% elif tipo_sesion == 'ENTRENAMIENTO_PREVIO' %}INICIAR ENTRENAMIENTO{% else %}INICIAR PEDALEO{% endif %}</span>
+            <span>{% if tipo_sesion == 'CARRERA_OFICIAL' %}INICIAR CARRERA OFICIAL{% elif tipo_sesion == 'ENTRENAMIENTO_PREVIO' %}INICIAR ENTRENAMIENTO{% else %}INICIAR RECORRIDO{% endif %}</span>
         </button>
 
         <!-- Botón Detener / Parada Táctica (Visible durante la marcha) -->
@@ -244,10 +250,81 @@
             </p>
             <div class="modal-actions-row">
                 <button type="button" class="btn-modal-cancel" id="btn-modal-cancel">
-                    Continuar Pedaleando
+                    Continuar Recorrido
                 </button>
                 <button type="button" class="btn-modal-confirm" id="btn-modal-confirm">
                     Sí, Finalizar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 7.0. MODAL DE CONFIRMACIÓN DE EMERGENCIA SOS 107                        -->
+    <!-- ----------------------------------------------------------------------- -->
+    <div class="modal-confirm-backdrop" id="modal-confirm-sos" style="display: none; z-index: 9999999;">
+        <div class="modal-confirm-card" style="text-align: center; max-width: 420px; border: 2px solid #ef4444;">
+            <div style="background: #fef2f2; color: #dc2626; margin: 0 auto 1rem auto; width: 68px; height: 68px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem;">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 class="modal-confirm-title" style="color: #991b1b; font-size: 1.3rem; font-weight: 800; margin-bottom: 0.5rem;">
+                ¿Confirmar Llamada de Emergencia?
+            </h3>
+            <p class="modal-confirm-desc" style="font-size: 0.9rem; color: #475569; line-height: 1.5; margin-bottom: 1.25rem;">
+                Estás a punto de comunicarte con la <strong>Central de Emergencias Médicas y Guardia Municipal (107)</strong>. Usa este botón solo en situaciones de urgencia médica o accidente.
+            </p>
+            <div class="modal-actions-row">
+                <button type="button" class="btn-modal-cancel" id="btn-cancelar-sos" style="background: #f1f5f9; color: #334155;">
+                    Cancelar
+                </button>
+                <a href="tel:107" class="btn-modal-confirm" id="btn-ejecutar-sos" style="background: #dc2626; color: #fff; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                    <i class="fa-solid fa-phone-volume"></i> Sí, Llamar al 107
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 7.0. MODAL SELECCIÓN DE MOVILIDAD (MULTIMODAL)                          -->
+    <!-- ----------------------------------------------------------------------- -->
+    <div class="modal-confirm-backdrop" id="modal-seleccion-movilidad" style="display: none; z-index: 999999;">
+        <div class="modal-confirm-card modal-movilidad-card">
+            <div class="modal-movilidad-icon">
+                <i class="fa-solid fa-person-walking-dashed-line-arrow-right"></i>
+            </div>
+            <h3 class="modal-confirm-title modal-movilidad-title">
+                ¿Cómo harás el recorrido?
+            </h3>
+            <p class="modal-confirm-desc modal-movilidad-desc">
+                Selecciona tu medio de transporte o desplazamiento para registrar tu telemetría en <strong>{{ circuito.nombre }}</strong>.
+            </p>
+
+            <div class="movilidades-grid-selector" id="movilidades-grid-selector">
+                {% for cod, nom in tipos_movilidad_catalogo %}
+                    {% if cod in movilidades_permitidas %}
+                    <button type="button" class="btn-opcion-movilidad {% if cod == 'BICICLETA' or forloop.first %}seleccionado{% endif %}" data-movilidad="{{ cod }}">
+                        <span class="opcion-movilidad-ico">
+                            {% if cod == 'BICICLETA' %}<i class="fa-solid fa-person-biking"></i>
+                            {% elif cod == 'A_PIE' %}<i class="fa-solid fa-person-walking"></i>
+                            {% elif cod == 'MOTO' %}<i class="fa-solid fa-motorcycle"></i>
+                            {% elif cod == 'AUTO' %}<i class="fa-solid fa-car"></i>
+                            {% elif cod == 'CABALLO' %}<i class="fa-solid fa-horse"></i>
+                            {% elif cod == 'PATINES' %}<i class="fa-solid fa-person-skating"></i>
+                            {% else %}<i class="fa-solid fa-compass"></i>
+                            {% endif %}
+                        </span>
+                        <span class="opcion-movilidad-txt">{{ nom }}</span>
+                    </button>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            <div class="modal-actions-row modal-movilidad-actions">
+                <button type="button" class="btn-modal-cancel" id="btn-cancelar-movilidad">
+                    Cancelar
+                </button>
+                <button type="button" class="btn-modal-confirm btn-modal-confirm-movilidad" id="btn-confirmar-movilidad">
+                    <i class="fa-solid fa-play"></i> <span>Continuar e Iniciar</span>
                 </button>
             </div>
         </div>
@@ -344,6 +421,36 @@
     </div>
 
     <!-- ----------------------------------------------------------------------- -->
+    <!-- 7.3. MODAL ANTI-TRAMPA: DESPLAZAMIENTO DETECTADO EN PAUSA               -->
+    <!-- ----------------------------------------------------------------------- -->
+    <div class="modal-confirm-backdrop" id="modal-desplazamiento-pausa" style="display: none;">
+        <div class="modal-confirm-card" style="text-align: center; max-width: 440px;">
+            <div style="background: #fef3c7; color: #d97706; margin: 0 auto 1rem auto; width: 68px; height: 68px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.85rem; border: 2px solid #fde68a;">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <span style="display: inline-block; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; margin-bottom: 0.5rem; background: #fee2e2; color: #dc2626;">
+                CONTROL ANTI-TRAMPA GPS
+            </span>
+            <h3 class="modal-confirm-title" style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; color: #0f172a;">
+                Desplazamiento en Pausa Detectado
+            </h3>
+            <p class="modal-confirm-desc" style="font-size: 0.9rem; color: #475569; line-height: 1.5; margin-bottom: 1.25rem;">
+                Te has desplazado <strong id="desplazamiento-pausa-metros" style="color: #d97706; font-size: 1.05rem;">0 m</strong> mientras el cronómetro estaba detenido. Para garantizar una competencia justa, elige cómo continuar:
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 0.5rem;">
+                <button type="button" class="btn-modal-confirm" id="btn-reanudar-con-penalizacion" style="background: #15803d; width: 100%; padding: 0.85rem 1rem; font-size: 0.92rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                    <i class="fa-solid fa-stopwatch"></i>
+                    <span>Reanudar Sumando Tiempo de Pausa</span>
+                </button>
+                <button type="button" class="btn-modal-cancel" id="btn-volver-punto-pausa" style="background: #ffffff; border: 1.5px solid #d97706; color: #b45309; width: 100%; padding: 0.85rem 1rem; font-size: 0.92rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                    <i class="fa-solid fa-location-arrow"></i>
+                    <span>Volver al Punto Donde Pausé</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ----------------------------------------------------------------------- -->
     <!-- 8. DRAWER LATERAL / BOTTOM SHEET DE SUBCIRCUITOS                        -->
     <!-- ----------------------------------------------------------------------- -->
     <div class="drawer-subcircuitos-backdrop" id="drawer-subcircuitos-backdrop"></div>
@@ -424,6 +531,7 @@
     window.carreraPuntoLargada = {% if punto_largada_json %}{{ punto_largada_json|safe }}{% else %}null{% endif %};
     window.carreraPuntoMeta = {% if punto_meta_json %}{{ punto_meta_json|safe }}{% else %}null{% endif %};
     window.carreraRadioLargadaMetros = {{ radio_largada_metros|default:80 }};
+    window.carreraMovilidadesPermitidas = {{ movilidades_permitidas|safe }};
 </script>
 <script src="{% static 'js/ciudadano/audio_carrera.js' %}"></script>
 <script src="{% static 'js/ciudadano/mapa_carrera_gps.js' %}"></script>

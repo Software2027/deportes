@@ -6,6 +6,7 @@ Control de acceso interno, dashboard operativo y monitoreo en tiempo real.
 import os
 import csv
 import json
+import re
 from functools import wraps
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
@@ -20,7 +21,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from ciudadano.models import (
     CircuitoGeneral, SubCircuito, CategoriaComercio, ComercioAdherido,
-    RecorridoCiclista, Noticia, RegistroGPS, Ciclista, PuntosTramo, ParadaRecorrido
+    RecorridoCiclista, Noticia, RegistroGPS, Ciclista, PuntosTramo, ParadaRecorrido,
+    TIPOS_MOVILIDAD
 )
 from ciudadano.utils import calcular_distancia_metros
 
@@ -460,8 +462,12 @@ def logout_admin_view(request):
     """
     Cierre de sesión administrativo y redirección al login interno.
     """
+    por_inactividad = request.GET.get('inactividad') == '1'
     logout(request)
-    messages.info(request, "Has cerrado sesión correctamente del Sistema Interno de Gestión.")
+    if por_inactividad:
+        messages.info(request, "Tu sesión administrativa ha expirado tras 1 hora de inactividad por motivos de seguridad.")
+    else:
+        messages.info(request, "Has cerrado sesión correctamente del Sistema Interno de Gestión.")
     return redirect('panel_login')
 
 
@@ -541,14 +547,49 @@ def ciclista_create_view(request):
         foto = request.FILES.get('foto')
         clave_asignada = request.POST.get('clave_asignada', '').strip()
 
+        # Validaciones de campos obligatorios
+        if not nombre or not dni or not email:
+            messages.error(request, "Por favor completa todos los campos obligatorios: Nombre, DNI y Correo Electrónico.")
+            return render(request, 'panel/gestion_ciclistas/form_ciclistas.html', {'modo': 'crear', 'ciclista': request.POST})
+
+        # Validación de Fecha de Nacimiento (límite entre 10 y 90 años)
+        if fecha_nacimiento:
+            try:
+                fn_date = datetime.strptime(fecha_nacimiento, '%Y-%m-%d').date()
+                hoy = date.today()
+                edad = hoy.year - fn_date.year - ((hoy.month, hoy.day) < (fn_date.month, fn_date.day))
+                if edad < 10 or edad > 90:
+                    messages.error(
+                        request,
+                        f"La edad del participante debe estar comprendida entre 10 y 90 años (edad calculada: {edad} años)."
+                    )
+                    return render(request, 'panel/gestion_ciclistas/form_ciclistas.html', {'modo': 'crear', 'ciclista': request.POST})
+            except (ValueError, TypeError):
+                messages.error(request, "Por favor ingresa una fecha de nacimiento válida (AAAA-MM-DD).")
+                return render(request, 'panel/gestion_ciclistas/form_ciclistas.html', {'modo': 'crear', 'ciclista': request.POST})
+        else:
+            messages.error(request, "Por favor ingresa la fecha de nacimiento del participante.")
+            return render(request, 'panel/gestion_ciclistas/form_ciclistas.html', {'modo': 'crear', 'ciclista': request.POST})
+
+        # Validación de Teléfono de Emergencia vs. Teléfono Personal
+        tel_digitos = re.sub(r'\D', '', telefono)
+        emerg_digitos = re.sub(r'\D', '', contacto_emergencia)
+        if tel_digitos and emerg_digitos:
+            if tel_digitos == emerg_digitos or (len(tel_digitos) >= 7 and len(emerg_digitos) >= 7 and (tel_digitos.endswith(emerg_digitos) or emerg_digitos.endswith(tel_digitos))):
+                messages.error(
+                    request,
+                    "El número de teléfono de contacto de emergencia debe ser distinto al teléfono personal del ciclista."
+                )
+                return render(request, 'panel/gestion_ciclistas/form_ciclistas.html', {'modo': 'crear', 'ciclista': request.POST})
+
         # Validaciones de duplicados
         if Ciclista.objects.filter(email__iexact=email).exists():
             messages.error(request, f"Ya existe un ciclista registrado con el correo {email}.")
-            return render(request, 'panel/gestion_ciclistas/form_ciclistas.html', {'modo': 'crear'})
+            return render(request, 'panel/gestion_ciclistas/form_ciclistas.html', {'modo': 'crear', 'ciclista': request.POST})
 
         if Ciclista.objects.filter(dni__iexact=dni).exists():
             messages.error(request, f"Ya existe un ciclista registrado con el DNI {dni}.")
-            return render(request, 'panel/gestion_ciclistas/form_ciclistas.html', {'modo': 'crear'})
+            return render(request, 'panel/gestion_ciclistas/form_ciclistas.html', {'modo': 'crear', 'ciclista': request.POST})
 
         nuevo_ciclista = Ciclista.objects.create(
             nombre=nombre,
@@ -602,13 +643,63 @@ def ciclista_edit_view(request, pk):
     ciclista = get_object_or_404(Ciclista, pk=pk)
 
     if request.method == 'POST':
-        ciclista.nombre = request.POST.get('nombre', ciclista.nombre).strip()
-        ciclista.email = request.POST.get('email', ciclista.email).strip()
-        ciclista.dni = request.POST.get('dni', ciclista.dni).strip()
+        nombre = request.POST.get('nombre', '').strip()
+        email = request.POST.get('email', '').strip()
+        dni = request.POST.get('dni', '').strip()
         fecha_nac = request.POST.get('fecha_nacimiento', '').strip()
-        ciclista.fecha_nacimiento = fecha_nac if fecha_nac else None
-        ciclista.telefono = request.POST.get('telefono', ciclista.telefono).strip()
-        ciclista.contacto_emergencia = request.POST.get('contacto_emergencia', ciclista.contacto_emergencia).strip()
+        telefono = request.POST.get('telefono', '').strip()
+        contacto_emergencia = request.POST.get('contacto_emergencia', '').strip()
+
+        # Validaciones de campos obligatorios
+        if not nombre or not dni or not email:
+            messages.error(request, "Por favor completa todos los campos obligatorios: Nombre, DNI y Correo Electrónico.")
+            return render(request, 'panel/gestion_ciclistas/form_ciclistas.html', {'ciclista': ciclista, 'modo': 'editar'})
+
+        # Validación de Fecha de Nacimiento (límite entre 10 y 90 años)
+        if fecha_nac:
+            try:
+                fn_date = datetime.strptime(fecha_nac, '%Y-%m-%d').date()
+                hoy = date.today()
+                edad = hoy.year - fn_date.year - ((hoy.month, hoy.day) < (fn_date.month, fn_date.day))
+                if edad < 10 or edad > 90:
+                    messages.error(
+                        request,
+                        f"La edad del participante debe estar comprendida entre 10 y 90 años (edad calculada: {edad} años)."
+                    )
+                    return render(request, 'panel/gestion_ciclistas/form_ciclistas.html', {'ciclista': ciclista, 'modo': 'editar'})
+            except (ValueError, TypeError):
+                messages.error(request, "Por favor ingresa una fecha de nacimiento válida (AAAA-MM-DD).")
+                return render(request, 'panel/gestion_ciclistas/form_ciclistas.html', {'ciclista': ciclista, 'modo': 'editar'})
+        else:
+            messages.error(request, "Por favor ingresa la fecha de nacimiento del participante.")
+            return render(request, 'panel/gestion_ciclistas/form_ciclistas.html', {'ciclista': ciclista, 'modo': 'editar'})
+
+        # Validación de Teléfono de Emergencia vs. Personal
+        tel_digitos = re.sub(r'\D', '', telefono)
+        emerg_digitos = re.sub(r'\D', '', contacto_emergencia)
+        if tel_digitos and emerg_digitos:
+            if tel_digitos == emerg_digitos or (len(tel_digitos) >= 7 and len(emerg_digitos) >= 7 and (tel_digitos.endswith(emerg_digitos) or emerg_digitos.endswith(tel_digitos))):
+                messages.error(
+                    request,
+                    "El número de teléfono de contacto de emergencia debe ser distinto al teléfono personal del ciclista."
+                )
+                return render(request, 'panel/gestion_ciclistas/form_ciclistas.html', {'ciclista': ciclista, 'modo': 'editar'})
+
+        # Validaciones de duplicados excluyendo el propio ciclista
+        if Ciclista.objects.filter(email__iexact=email).exclude(pk=ciclista.pk).exists():
+            messages.error(request, f"Ya existe otro ciclista registrado con el correo {email}.")
+            return render(request, 'panel/gestion_ciclistas/form_ciclistas.html', {'ciclista': ciclista, 'modo': 'editar'})
+
+        if Ciclista.objects.filter(dni__iexact=dni).exclude(pk=ciclista.pk).exists():
+            messages.error(request, f"Ya existe otro ciclista registrado con el DNI {dni}.")
+            return render(request, 'panel/gestion_ciclistas/form_ciclistas.html', {'ciclista': ciclista, 'modo': 'editar'})
+
+        ciclista.nombre = nombre
+        ciclista.email = email
+        ciclista.dni = dni
+        ciclista.fecha_nacimiento = fn_date
+        ciclista.telefono = telefono
+        ciclista.contacto_emergencia = contacto_emergencia
         ciclista.club_entidad = request.POST.get('club_entidad', ciclista.club_entidad).strip()
         ciclista.nivel = request.POST.get('nivel', ciclista.nivel)
         ciclista.estado = request.POST.get('estado', ciclista.estado)
@@ -1027,6 +1118,7 @@ def circuito_editor_view(request, pk=None):
         'circuito': circuito,
         'subcircuitos_json': json.dumps(subcircuitos_data),
         'comercios_json': json.dumps(comercios_data),
+        'tipos_movilidad': TIPOS_MOVILIDAD,
     }
     return render(request, 'panel/gestion_circuitos/editor_circuito.html', context)
 
@@ -1046,8 +1138,19 @@ def circuito_guardar_api_view(request):
         descripcion = data.get('descripcion', '').strip()
         activo = bool(data.get('activo', False))
         fecha_evento = data.get('fecha_evento') or None
+        hora_evento = data.get('hora_evento') or None
         fecha_limite_inscripcion = data.get('fecha_limite_inscripcion') or None
         radio_largada_metros = int(data.get('radio_largada_metros') or 80)
+        movilidades_raw = data.get('movilidades_permitidas', [])
+        if isinstance(movilidades_raw, list):
+            movilidades_str = ",".join([m for m in movilidades_raw if m])
+        elif isinstance(movilidades_raw, str):
+            movilidades_str = movilidades_raw
+        else:
+            movilidades_str = "BICICLETA"
+        if not movilidades_str:
+            movilidades_str = "BICICLETA"
+
         etapas_data = data.get('etapas', [])
         comercios_adheridos = data.get('comercios_adheridos', [])
 
@@ -1062,8 +1165,10 @@ def circuito_guardar_api_view(request):
                 circuito.descripcion = descripcion
                 circuito.activo = activo
                 circuito.fecha_evento = fecha_evento
+                circuito.hora_evento = hora_evento
                 circuito.fecha_limite_inscripcion = fecha_limite_inscripcion
                 circuito.radio_largada_metros = radio_largada_metros
+                circuito.movilidades_permitidas = movilidades_str
                 circuito.save()
             else:
                 circuito = CircuitoGeneral.objects.create(
@@ -1071,8 +1176,10 @@ def circuito_guardar_api_view(request):
                     descripcion=descripcion,
                     activo=activo,
                     fecha_evento=fecha_evento,
+                    hora_evento=hora_evento,
                     fecha_limite_inscripcion=fecha_limite_inscripcion,
-                    radio_largada_metros=radio_largada_metros
+                    radio_largada_metros=radio_largada_metros,
+                    movilidades_permitidas=movilidades_str
                 )
 
             # 2. Guardar Etapas / Subcircuitos
@@ -1390,8 +1497,8 @@ def ranking_evento_view(request, circuito_id=None):
     if modalidad_filtro in ['OFICIAL', 'LIBRE']:
         recorridos_qs = recorridos_qs.filter(modalidad=modalidad_filtro)
 
-    # 3. Procesar datos de participantes y telemetría
-    participantes_data = []
+    # 3. Procesar datos de participantes y telemetría agrupando por el MEJOR TIEMPO único de cada participante
+    mejores_por_ciclista = {}
 
     for r in recorridos_qs:
         # Tiempo total transcurrido
@@ -1405,6 +1512,15 @@ def ranking_evento_view(request, circuito_id=None):
                 minutos = (segundos % 3600) // 60
                 segs = segundos % 60
                 tiempo_formateado = f"{horas:02d}:{minutos:02d}:{segs:02d}"
+
+        ciclista_id = r.ciclista_id
+
+        # Si el ciclista ya tiene un récord registrado, conservar el de menor tiempo > 0
+        if ciclista_id in mejores_por_ciclista:
+            anterior = mejores_por_ciclista[ciclista_id]
+            es_mejor = (anterior['segundos'] == 0 and segundos > 0) or (segundos > 0 and segundos < anterior['segundos'])
+            if not es_mejor:
+                continue
 
         # Perfil del ciclista
         ciclista_obj = Ciclista.objects.filter(user=r.ciclista).first()
@@ -1449,8 +1565,9 @@ def ranking_evento_view(request, circuito_id=None):
         paradas_count = ParadaRecorrido.objects.filter(recorrido=r).count()
         comercios_count = ParadaRecorrido.objects.filter(recorrido=r, es_comercio_adherido=True).count()
 
-        participantes_data.append({
+        mejores_por_ciclista[ciclista_id] = {
             'recorrido': r,
+            'ciclista_id': ciclista_id,
             'ciclista_nombre': nombre_completo,
             'dni': dni,
             'nivel': nivel,
@@ -1464,8 +1581,12 @@ def ranking_evento_view(request, circuito_id=None):
             'paradas': paradas_count,
             'comercios': comercios_count,
             'modalidad': r.modalidad,
+            'tipo_movilidad': r.tipo_movilidad or 'BICICLETA',
+            'tipo_movilidad_display': r.get_tipo_movilidad_display() if hasattr(r, 'get_tipo_movilidad_display') else (r.tipo_movilidad or 'Bicicleta'),
             'fecha': r.inicio.strftime("%d/%m/%Y %H:%M") if r.inicio else ""
-        })
+        }
+
+    participantes_data = list(mejores_por_ciclista.values())
 
     # 4. Ordenar participantes por tiempo de menor a mayor (ranking oficial)
     participantes_data.sort(key=lambda x: (x['segundos'] == 0, x['segundos']))

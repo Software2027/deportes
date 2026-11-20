@@ -93,11 +93,18 @@
                     </div>
 
                     <div class="form-group" style="display: flex; flex-direction: column; gap: 0.35rem;">
-                        <label style="font-size: 0.8rem; font-weight: 700; color: #0f172a;" for="circuitoFechaLimite">
-                            <i class="fa-solid fa-hourglass-half"></i> Límite Inscripción
+                        <label style="font-size: 0.8rem; font-weight: 700; color: #0f172a;" for="circuitoHoraEvento">
+                            <i class="fa-regular fa-clock"></i> Hora de Largada
                         </label>
-                        <input type="date" id="circuitoFechaLimite" class="form-control-input" style="padding: 0.55rem; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.82rem;" value="{{ circuito.fecha_limite_inscripcion|date:'Y-m-d'|default:'' }}">
+                        <input type="time" id="circuitoHoraEvento" class="form-control-input" style="padding: 0.55rem; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.82rem;" value="{{ circuito.hora_evento|time:'H:i'|default:'' }}">
                     </div>
+                </div>
+
+                <div class="form-group" style="display: flex; flex-direction: column; gap: 0.35rem; margin-top: 0.2rem;">
+                    <label style="font-size: 0.8rem; font-weight: 700; color: #0f172a;" for="circuitoFechaLimite">
+                        <i class="fa-solid fa-hourglass-half"></i> Límite Inscripción
+                    </label>
+                    <input type="date" id="circuitoFechaLimite" class="form-control-input" style="padding: 0.55rem; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.82rem;" value="{{ circuito.fecha_limite_inscripcion|date:'Y-m-d'|default:'' }}">
                 </div>
 
                 <div class="form-group" style="display: flex; flex-direction: column; gap: 0.35rem; margin-top: 0.2rem;">
@@ -118,6 +125,24 @@
                             Se mostrará automáticamente a los ciclistas en el mapa y progreso.
                         </span>
                     </label>
+                </div>
+
+                <!-- Selección de Movilidades y Medios Aptos -->
+                <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem; margin-top: 0.5rem; background: #f8fafc; padding: 0.85rem; border-radius: 10px; border: 1px solid #e2e8f0;">
+                    <label style="font-size: 0.82rem; font-weight: 700; color: #0f172a;">
+                        <i class="fa-solid fa-person-walking-dashed-line-arrow-right"></i> Medios de Transporte y Movilidad Aptos
+                    </label>
+                    <span style="font-size: 0.72rem; color: #64748b; margin-bottom: 0.25rem;">
+                        Indica qué vehículos o formas de marcha están permitidas en este circuito:
+                    </span>
+                    <div style="display: flex; flex-direction: column; gap: 0.45rem;">
+                        {% for cod, nombre_mov in tipos_movilidad %}
+                        <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; color: #334155; cursor: pointer; padding: 0.35rem 0.5rem; background: #fff; border: 1px solid #e2e8f0; border-radius: 6px;">
+                            <input type="checkbox" class="chk-movilidad" value="{{ cod }}" style="accent-color: #0284c7; width: 16px; height: 16px;" {% if not circuito or cod in circuito.movilidades_lista %}checked{% endif %}>
+                            <span>{{ nombre_mov }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
                 </div>
 
                 <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 0.85rem; margin-top: 0.5rem;">
@@ -734,8 +759,16 @@ function guardarCircuitoCompleto() {
     }
 
     const fechaEvento = document.getElementById('circuitoFechaEvento').value || null;
+    const horaEvento = document.getElementById('circuitoHoraEvento').value || null;
     const fechaLimite = document.getElementById('circuitoFechaLimite').value || null;
     const radioLargada = parseInt(document.getElementById('circuitoRadioLargada').value) || 80;
+    const movilidadesPermitidas = Array.from(document.querySelectorAll('.chk-movilidad:checked')).map(cb => cb.value);
+
+    if (movilidadesPermitidas.length === 0) {
+        alert("Debes seleccionar al menos un medio de transporte o movilidad apto para el circuito.");
+        cambiarTabEditor('tabGeneral');
+        return;
+    }
 
     const payload = {
         circuito_id: circuitoId || null,
@@ -743,8 +776,10 @@ function guardarCircuitoCompleto() {
         descripcion: descripcion,
         activo: activo,
         fecha_evento: fechaEvento,
+        hora_evento: horaEvento,
         fecha_limite_inscripcion: fechaLimite,
         radio_largada_metros: radioLargada,
+        movilidades_permitidas: movilidadesPermitidas,
         etapas: etapas.map((e, idx) => ({
             id: String(e.id).startsWith('temp_') ? null : e.id,
             nombre: e.nombre,

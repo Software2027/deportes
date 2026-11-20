@@ -32,6 +32,18 @@ def ruta_foto_ciclista(instance, filename):
 # 1. CIRCUITO GENERAL Y SUBCIRCUITOS
 # ==============================================================================
 
+# Tipos de Movilidad y Transporte Habilitados en la Plataforma
+TIPOS_MOVILIDAD = [
+    ('BICICLETA', 'Bicicleta / Ciclismo'),
+    ('A_PIE', 'A Pie (Caminata / Running / Trekking)'),
+    ('MOTO', 'Motocicleta / Enduro'),
+    ('AUTO', 'Automóvil / Vehículo'),
+    ('CABALLO', 'A Caballo / Cabalgata'),
+    ('PATINES', 'Rollers / Patines / Skate'),
+    ('OTRO', 'Otro Medio'),
+]
+
+
 class CircuitoGeneral(models.Model):
     """
     Representa el evento o circuito maestro de la ciudad (ej: 'Circuito Costanera 2026').
@@ -49,6 +61,12 @@ class CircuitoGeneral(models.Model):
         verbose_name="Fecha del Evento Oficial",
         help_text="Fecha programada para la largada de la competencia oficial."
     )
+    hora_evento = models.TimeField(
+        null=True,
+        blank=True,
+        verbose_name="Hora de Largada Oficial",
+        help_text="Hora programada para la largada de la competencia oficial (ej: 09:30)."
+    )
     fecha_limite_inscripcion = models.DateField(
         null=True,
         blank=True,
@@ -60,6 +78,12 @@ class CircuitoGeneral(models.Model):
         verbose_name="Radio de Largada (metros)",
         help_text="Distancia máxima de tolerancia (20 m recomendados) respecto al Km 0 para validar la largada oficial."
     )
+    movilidades_permitidas = models.CharField(
+        max_length=200,
+        default='BICICLETA,A_PIE',
+        verbose_name="Movilidades Permitidas",
+        help_text="Tipos de transporte o movilidad aptos en este circuito, separados por coma (ej: BICICLETA,A_PIE,MOTO,AUTO,CABALLO)."
+    )
 
     class Meta:
         verbose_name = "Circuito General"
@@ -68,6 +92,13 @@ class CircuitoGeneral(models.Model):
 
     def __str__(self):
         return f"{self.nombre} {'(ACTIVO)' if self.activo else ''}"
+
+    @property
+    def movilidades_lista(self):
+        """Retorna la lista de códigos de movilidad autorizados en este circuito."""
+        if not self.movilidades_permitidas:
+            return ['BICICLETA', 'A_PIE']
+        return [m.strip().upper() for m in self.movilidades_permitidas.split(',') if m.strip()]
 
     @property
     def es_evento(self):
@@ -377,6 +408,12 @@ class RecorridoCiclista(models.Model):
         choices=MODALIDADES,
         default='LIBRE',
         verbose_name="Modalidad del Recorrido"
+    )
+    tipo_movilidad = models.CharField(
+        max_length=20,
+        choices=TIPOS_MOVILIDAD,
+        default='BICICLETA',
+        verbose_name="Tipo de Movilidad / Transporte"
     )
 
     class Meta:

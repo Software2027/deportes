@@ -98,7 +98,7 @@
         {% endif %}
 
         <!-- Formulario Principal -->
-        <form method="POST" action="" enctype="multipart/form-data">
+        <form id="formCiclistaPrincipal" method="POST" action="" enctype="multipart/form-data">
             {% csrf_token %}
 
             <div class="form-grid-fields">
@@ -123,18 +123,21 @@
                 <!-- Fecha de Nacimiento -->
                 <div class="form-group">
                     <label class="form-label" for="id_fecha_nacimiento">
-                        Fecha de Nacimiento
+                        Fecha de Nacimiento *
                         {% if ciclista.edad is not None %}
                             <span style="font-size: 0.75rem; color: #15803d; font-weight: 600; margin-left: 0.35rem;">({{ ciclista.edad }} años)</span>
                         {% endif %}
                     </label>
-                    <input type="date" id="id_fecha_nacimiento" name="fecha_nacimiento" value="{{ ciclista.fecha_nacimiento|date:'Y-m-d'|default:'' }}" class="form-control-input" {% if modo == 'ver' %}disabled{% endif %}>
+                    <input type="date" id="id_fecha_nacimiento" name="fecha_nacimiento" value="{{ ciclista.fecha_nacimiento|date:'Y-m-d'|default:'' }}" class="form-control-input" required {% if modo == 'ver' %}disabled{% endif %}>
+                    <small style="display: block; color: #64748b; font-size: 0.74rem; margin-top: 0.25rem;">
+                        Obligatorio. Permitido para participantes de 10 a 90 años.
+                    </small>
                 </div>
 
                 <!-- Teléfono -->
                 <div class="form-group">
-                    <label class="form-label" for="id_telefono">Teléfono de Contacto</label>
-                    <input type="text" id="id_telefono" name="telefono" value="{{ ciclista.telefono|default:'' }}" class="form-control-input" {% if modo == 'ver' %}disabled{% endif %} placeholder="Ej: +54 9 351 1234567">
+                    <label class="form-label" for="id_telefono">Teléfono de Contacto *</label>
+                    <input type="tel" id="id_telefono" name="telefono" value="{{ ciclista.telefono|default:'' }}" class="form-control-input" required {% if modo == 'ver' %}disabled{% endif %} placeholder="Ej: +54 9 351 1234567">
                 </div>
 
                 <!-- Club / Entidad -->
@@ -165,8 +168,11 @@
 
                 <!-- Contacto de Emergencia -->
                 <div class="form-group">
-                    <label class="form-label" for="id_contacto_emergencia">Contacto de Emergencia</label>
-                    <input type="text" id="id_contacto_emergencia" name="contacto_emergencia" value="{{ ciclista.contacto_emergencia|default:'' }}" class="form-control-input" {% if modo == 'ver' %}disabled{% endif %} placeholder="Nombre y Teléfono de familiar">
+                    <label class="form-label" for="id_contacto_emergencia">Contacto de Emergencia (Nombre y Teléfono) *</label>
+                    <input type="text" id="id_contacto_emergencia" name="contacto_emergencia" value="{{ ciclista.contacto_emergencia|default:'' }}" class="form-control-input" required {% if modo == 'ver' %}disabled{% endif %} placeholder="Ej: Laura Carrera (Madre) - 351 7654321">
+                    <small style="display: block; color: #64748b; font-size: 0.74rem; margin-top: 0.25rem;">
+                        Debe ser un número distinto al teléfono personal del participante.
+                    </small>
                 </div>
 
                 <!-- Foto de Perfil -->
@@ -263,7 +269,7 @@
 
                 {% if modo != 'ver' %}
                 <div>
-                    <button type="submit" class="btn-primary-save">
+                    <button type="button" class="btn-primary-save" onclick="abrirModalConfirmarGuardado()">
                         <i class="fa-solid fa-floppy-disk"></i>
                         <span>{% if ciclista.id %}Guardar Cambios{% else %}Registrar Ciclista{% endif %}</span>
                     </button>
@@ -383,7 +389,167 @@
     </div>
 </div>
 
+<!-- ======================================================================= -->
+<!-- MODAL DE CONFIRMACIÓN ANTES DE GUARDAR O REGISTRAR                      -->
+<!-- ======================================================================= -->
+<div id="modalConfirmarGuardarCiclista" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center; padding: 1rem;">
+    <div style="background: #ffffff; border-radius: 18px; width: 100%; max-width: 480px; box-shadow: 0 25px 35px -5px rgba(0, 0, 0, 0.25); overflow: hidden; animation: modalPop 0.2s ease-out;">
+        <!-- Header del Modal -->
+        <div style="background: #0b381e; color: #ffffff; padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 38px; height: 38px; border-radius: 50%; background: rgba(34, 197, 94, 0.2); display: flex; align-items: center; justify-content: center; color: #4ade80; font-size: 1.15rem;">
+                    <i class="fa-solid fa-user-check"></i>
+                </div>
+                <div>
+                    <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: #ffffff;">
+                        {% if ciclista.id %}¿Confirmar Cambios?{% else %}¿Confirmar Registro?{% endif %}
+                    </h3>
+                    <span style="font-size: 0.8rem; color: #cbd5e1;">Verifica los datos del participante antes de guardar</span>
+                </div>
+            </div>
+            <button type="button" onclick="cerrarModalConfirmarGuardado()" style="background: none; border: none; color: #94a3b8; font-size: 1.2rem; cursor: pointer;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div style="padding: 1.5rem;">
+            <!-- Ficha Resumen -->
+            <div style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 1rem; margin-bottom: 1.25rem;">
+                <h4 id="confNombre" style="margin: 0 0 0.5rem 0; font-size: 1.05rem; font-weight: 800; color: #0f172a;">--</h4>
+                <div style="font-size: 0.84rem; color: #475569; display: grid; grid-template-columns: 1fr; gap: 0.35rem;">
+                    <div><i class="fa-regular fa-id-card" style="width: 18px; color: #16a34a;"></i> <strong>DNI:</strong> <span id="confDni">--</span></div>
+                    <div><i class="fa-regular fa-envelope" style="width: 18px; color: #16a34a;"></i> <strong>Email:</strong> <span id="confEmail">--</span></div>
+                    <div><i class="fa-regular fa-calendar-days" style="width: 18px; color: #16a34a;"></i> <strong>Nacimiento:</strong> <span id="confFechaNac">--</span> (<span id="confEdad">--</span>)</div>
+                    <div><i class="fa-solid fa-phone" style="width: 18px; color: #16a34a;"></i> <strong>Teléfono Personal:</strong> <span id="confTel">--</span></div>
+                    <div><i class="fa-solid fa-heart-pulse" style="width: 18px; color: #dc2626;"></i> <strong>Contacto Emergencia:</strong> <span id="confEmerg">--</span></div>
+                    <div><i class="fa-solid fa-shield-halved" style="width: 18px; color: #16a34a;"></i> <strong>Estado:</strong> <span id="confEstado" style="font-weight: 700;">--</span></div>
+                </div>
+            </div>
+
+            <p style="font-size: 0.84rem; color: #64748b; line-height: 1.45; margin: 0 0 1.25rem 0;">
+                {% if ciclista.id %}
+                    Se actualizarán las acreditaciones y credenciales del participante en la plataforma municipal.
+                {% else %}
+                    El participante será registrado en el padrón oficial de movilidad de Malagueño.
+                {% endif %}
+            </p>
+
+            <!-- Botones -->
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+                <button type="button" onclick="cerrarModalConfirmarGuardado()" class="btn-secondary-cancel" style="padding: 0.65rem 1.2rem;">
+                    Cancelar / Revisar
+                </button>
+                <button type="button" onclick="ejecutarGuardadoFinal()" class="btn-primary-save" style="padding: 0.65rem 1.35rem; background-color: #15803d; border-color: #15803d; display: inline-flex; align-items: center; gap: 0.45rem;">
+                    <i class="fa-solid fa-check"></i>
+                    <span>{% if ciclista.id %}Sí, Guardar Cambios{% else %}Sí, Registrar Ciclista{% endif %}</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+// Configuración de límites de edad (10 a 90 años) en el input date
+document.addEventListener('DOMContentLoaded', function() {
+    const inputFN = document.getElementById('id_fecha_nacimiento');
+    if (inputFN) {
+        const hoy = new Date();
+        const yyyyHoy = hoy.getFullYear();
+        const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+        const dd = String(hoy.getDate()).padStart(2, '0');
+
+        const maxYear = yyyyHoy - 10;
+        const minYear = yyyyHoy - 90;
+        inputFN.setAttribute('max', `${maxYear}-${mm}-${dd}`);
+        inputFN.setAttribute('min', `${minYear}-${mm}-${dd}`);
+    }
+});
+
+// Validación y apertura del modal de confirmación antes de guardar
+function abrirModalConfirmarGuardado() {
+    const form = document.getElementById('formCiclistaPrincipal');
+    if (!form) return;
+
+    // 1. Chequeo nativo de campos requeridos (HTML5)
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+
+    const fnInput = document.getElementById('id_fecha_nacimiento');
+    const telInput = document.getElementById('id_telefono');
+    const emergInput = document.getElementById('id_contacto_emergencia');
+
+    // 2. Validación de Fecha de Nacimiento (10 a 90 años)
+    if (!fnInput || !fnInput.value) {
+        alert('Por favor completa la fecha de nacimiento del participante.');
+        if (fnInput) fnInput.focus();
+        return;
+    }
+
+    const fn = new Date(fnInput.value + 'T00:00:00');
+    const hoy = new Date();
+    let edad = hoy.getFullYear() - fn.getFullYear();
+    const m = hoy.getMonth() - fn.getMonth();
+    if (m < 0 || (m === 0 && hoy.getDate() < fn.getDate())) {
+        edad--;
+    }
+
+    if (isNaN(edad) || edad < 10 || edad > 90) {
+        alert(`La edad del participante debe estar comprendida entre 10 y 90 años (edad calculada: ${edad} años).`);
+        fnInput.focus();
+        return;
+    }
+
+    // 3. Validación de Teléfono de Emergencia vs. Teléfono Personal
+    if (telInput && emergInput) {
+        const telDigitos = telInput.value.replace(/\D/g, '');
+        const emergDigitos = emergInput.value.replace(/\D/g, '');
+
+        if (!emergDigitos) {
+            alert('Por favor ingresa un contacto de emergencia con número de teléfono.');
+            emergInput.focus();
+            return;
+        }
+
+        if (telDigitos && emergDigitos) {
+            if (telDigitos === emergDigitos ||
+                (telDigitos.length >= 7 && emergDigitos.length >= 7 &&
+                (telDigitos.endsWith(emergDigitos) || emergDigitos.endsWith(telDigitos)))) {
+                alert('El número de contacto de emergencia debe ser distinto al teléfono personal del participante.');
+                emergInput.focus();
+                return;
+            }
+        }
+    }
+
+    // 4. Poblar datos en el modal de confirmación
+    document.getElementById('confNombre').textContent = document.getElementById('id_nombre').value || '--';
+    document.getElementById('confDni').textContent = document.getElementById('id_dni').value || '--';
+    document.getElementById('confEmail').textContent = document.getElementById('id_email').value || '--';
+    document.getElementById('confFechaNac').textContent = fnInput.value || '--';
+    document.getElementById('confEdad').textContent = `${edad} años`;
+    document.getElementById('confTel').textContent = (telInput ? telInput.value : '') || '--';
+    document.getElementById('confEmerg').textContent = (emergInput ? emergInput.value : '') || '--';
+
+    const estadoSelect = document.getElementById('id_estado');
+    document.getElementById('confEstado').textContent = estadoSelect ? estadoSelect.options[estadoSelect.selectedIndex].text : '--';
+
+    // 5. Mostrar modal
+    document.getElementById('modalConfirmarGuardarCiclista').style.display = 'flex';
+}
+
+function cerrarModalConfirmarGuardado() {
+    const modal = document.getElementById('modalConfirmarGuardarCiclista');
+    if (modal) modal.style.display = 'none';
+}
+
+function ejecutarGuardadoFinal() {
+    cerrarModalConfirmarGuardado();
+    const form = document.getElementById('formCiclistaPrincipal');
+    if (form) form.submit();
+}
+
 function abrirModalValidar(id, nombre, dni, email) {
     const modal = document.getElementById('modalValidarCiclista');
     const form = document.getElementById('formValidarCiclista');

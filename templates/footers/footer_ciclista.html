@@ -2,7 +2,7 @@
 <!-- ----------------------------------------------------------------------- -->
 <!-- BOTTOM NAVIGATION BAR FIJA PARA DISPOSITIVOS MÓVILES                     -->
 <!-- ----------------------------------------------------------------------- -->
-<nav class="bottom-nav-bar" aria-label="Navegación Móvil del Ciclista">
+<nav class="bottom-nav-bar" aria-label="Navegación Móvil del Participante">
     <a href="{% url 'mapa_carrera' %}{% if circuito %}?circuito_id={{ circuito.id }}{% elif request.session.circuito_seleccionado_id %}?circuito_id={{ request.session.circuito_seleccionado_id }}{% endif %}" class="bottom-nav-item {% if request.resolver_match.url_name == 'mapa_carrera' %}active{% endif %}" title="Mapa Satelital del Circuito">
         <i class="fa-solid fa-map-location-dot"></i>
         <span>MAPA</span>

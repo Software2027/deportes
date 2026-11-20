@@ -39,40 +39,32 @@
 <section class="news-page-content">
     <div class="container">
 
-        <!-- Barra de Filtros y Búsqueda -->
+        <!-- Barra de Búsqueda y Selector de Categoría Unificados -->
         <div class="news-toolbar-row">
-            <!-- Categorías en píldoras institucionales -->
-            <div class="news-filter-pills">
-                <a href="{% url 'noticias_listado' %}{% if query_q %}?q={{ query_q }}{% endif %}"
-                   class="pill-filter-item {% if not categoria_filtro %}active{% endif %}">
-                    <span>Todas las noticias</span>
-                </a>
-                {% for cat_val, cat_label in categorias %}
-                <a href="{% url 'noticias_listado' %}?categoria={{ cat_val }}{% if query_q %}&q={{ query_q }}{% endif %}"
-                   class="pill-filter-item {% if categoria_filtro == cat_val %}active{% endif %}">
-                    <span>{{ cat_label }}</span>
-                </a>
-                {% endfor %}
-            </div>
-
-            <!-- Buscador redondeado -->
-            <form method="GET" action="{% url 'noticias_listado' %}" style="margin: 0;">
-                {% if categoria_filtro %}
-                <input type="hidden" name="categoria" value="{{ categoria_filtro }}">
-                {% endif %}
-                <div class="news-search-box">
+            <form method="GET" action="{% url 'noticias_listado' %}" class="toolbar-search-filter-form">
+                <div class="search-box-unified">
                     <i class="fa-solid fa-magnifying-glass"></i>
                     <input type="text"
                            name="q"
                            value="{{ query_q }}"
                            placeholder="Buscar noticia..."
-                           class="news-search-input">
+                           class="search-input-unified">
                     {% if query_q %}
                     <a href="{% url 'noticias_listado' %}{% if categoria_filtro %}?categoria={{ categoria_filtro }}{% endif %}"
-                       style="color: #94a3b8; font-size: 0.8rem; text-decoration: none;" title="Limpiar búsqueda">
+                       class="btn-clear-unified" title="Limpiar búsqueda">
                         <i class="fa-solid fa-xmark"></i>
                     </a>
                     {% endif %}
+                </div>
+
+                <div class="filter-select-unified">
+                    <i class="fa-solid fa-filter select-icon"></i>
+                    <select name="categoria" onchange="this.form.submit()" class="select-input-unified" aria-label="Filtrar por categoría">
+                        <option value="">Todas las categorías</option>
+                        {% for cat_val, cat_label in categorias %}
+                        <option value="{{ cat_val }}" {% if categoria_filtro == cat_val %}selected{% endif %}>{{ cat_label }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
             </form>
         </div>

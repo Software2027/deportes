@@ -124,33 +124,36 @@
 }
 
 /* -------------------------------------------------------------------------
-   2. FILA DE 4 TARJETAS DE MÉTRICAS (VERDE BOSQUE TRASLÚCIDO)
+   2. FILA DE 4 TARJETAS DE MÉTRICAS (DISEÑO DEPORTIVO MODERNO Y ELEGANTE)
    ------------------------------------------------------------------------- */
 .metrics-section {
-  background: #ffffff;
+  background: #f8fafc;
   padding: 3rem 0;
+  position: relative;
 }
 
 .metrics-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 1.25rem;
+  gap: 1.35rem;
 }
 
 .metric-card {
   position: relative;
-  height: 145px;
-  border-radius: 12px;
+  height: 155px;
+  border-radius: 16px;
   overflow: hidden;
-  border: 2.5px solid #2e7d32;
-  background: #0e381f;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1.5px solid rgba(34, 197, 94, 0.35);
+  background: #0b321a;
+  box-shadow: 0 10px 24px -4px rgba(11, 50, 26, 0.18), 0 4px 8px rgba(0, 0, 0, 0.04);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: default;
 }
 
 .metric-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(46, 125, 50, 0.25);
+  transform: translateY(-5px);
+  box-shadow: 0 18px 36px -6px rgba(22, 101, 52, 0.35), 0 8px 16px rgba(0, 0, 0, 0.1);
+  border-color: #22c55e;
 }
 
 .metric-bg-img {
@@ -161,6 +164,12 @@
   height: 100%;
   object-fit: cover;
   z-index: 1;
+  transition: transform 0.5s ease;
+  filter: saturate(1.2);
+}
+
+.metric-card:hover .metric-bg-img {
+  transform: scale(1.08);
 }
 
 .metric-green-overlay {
@@ -169,24 +178,40 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(30, 95, 50, 0.62);
+  background: linear-gradient(135deg, rgba(11, 48, 25, 0.86) 0%, rgba(6, 28, 14, 0.93) 100%);
   z-index: 2;
+  transition: background 0.3s ease;
+}
+
+.metric-card:hover .metric-green-overlay {
+  background: linear-gradient(135deg, rgba(14, 60, 31, 0.80) 0%, rgba(8, 36, 18, 0.89) 100%);
 }
 
 .metric-icon-box {
   position: absolute;
-  top: 10px;
-  left: 10px;
+  top: 12px;
+  left: 12px;
   z-index: 3;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  background: rgba(20, 70, 35, 0.85);
-  border: 1.5px solid #fbbf24;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(251, 191, 36, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fbbf24;
+  font-size: 0.95rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transition: all 0.25s ease;
+}
+
+.metric-card:hover .metric-icon-box {
+  background: rgba(251, 191, 36, 0.22);
+  border-color: #fbbf24;
+  transform: scale(1.08);
 }
 
 .metric-center-content {
@@ -198,27 +223,56 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 0.5rem;
+  padding: 1rem 1.25rem 1.25rem 1.25rem;
 }
 
 .metric-number {
   font-family: 'Outfit', sans-serif;
-  font-size: 2.2rem;
+  font-size: 2.5rem;
   font-weight: 800;
   color: #fbbf24;
-  line-height: 1.1;
+  line-height: 1.05;
   margin-bottom: 0.35rem;
-  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.3rem;
+}
+
+.metric-unit {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #fef08a;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
 }
 
 .metric-label {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.82rem;
-  font-weight: 800;
-  color: #fbbf24;
-  letter-spacing: 0.04em;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.80rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+  opacity: 0.95;
+}
+
+/* Micro-barra de acento inferior */
+.metric-bottom-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3.5px;
+  background: linear-gradient(90deg, #fbbf24 0%, #22c55e 100%);
+  z-index: 3;
+  opacity: 0.7;
+  transition: opacity 0.3s ease, height 0.2s ease;
+}
+
+.metric-card:hover .metric-bottom-bar {
+  opacity: 1;
+  height: 4.5px;
 }
 
 /* -------------------------------------------------------------------------
@@ -580,6 +634,7 @@
 @media (max-width: 1024px) {
   .metrics-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 1.15rem;
   }
   .news-clean-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -590,8 +645,29 @@
   .hero-section {
     padding: 7rem 0 4rem 0;
   }
+  .metrics-section {
+    padding: 2.25rem 0;
+  }
   .metrics-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.85rem;
+  }
+  .metric-card {
+    height: 140px;
+    border-radius: 14px;
+  }
+  .metric-icon-box {
+    width: 30px;
+    height: 30px;
+    top: 10px;
+    left: 10px;
+    font-size: 0.85rem;
+  }
+  .metric-number {
+    font-size: 2.1rem;
+  }
+  .metric-label {
+    font-size: 0.72rem;
   }
   .news-clean-grid {
     grid-template-columns: 1fr;
@@ -609,5 +685,15 @@
   }
   .map-interactive-wrapper {
     height: 400px;
+  }
+}
+
+@media (max-width: 480px) {
+  .metrics-grid {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+  .metric-card {
+    height: 145px;
   }
 }

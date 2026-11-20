@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Panel del Ciclista | Ciclismo Malagueño{% endblock %}</title>
-    <meta name="description" content="{% block meta_description %}Plataforma oficial de movilidad, eventos y circuitos ciclistas del municipio de Malagueño.{% endblock %}">
+    <title>{% block title %}Portal del Participante | Circuitos y Movilidad Malagueño{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}Plataforma oficial de movilidad, eventos y circuitos de Malagueño (A pie, Running, Ciclismo, Moto y más).{% endblock %}">
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -53,6 +53,8 @@
 
     <!-- Leaflet JS (Local para alta disponibilidad sin timeouts) -->
     <script src="{% static 'vendor/leaflet/leaflet.js' %}"></script>
+    <!-- Control de inactividad de sesión (1 hora) -->
+    <script src="{% static 'js/session_timeout.js' %}"></script>
 
     {% block extra_js %}{% endblock %}
 </body>

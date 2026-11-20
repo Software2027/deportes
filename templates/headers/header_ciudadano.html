@@ -12,22 +12,22 @@
         <!-- Navegación a la Derecha: Todos los links e Ingresar con la misma separación -->
         <div class="header-nav-wrapper">
             <ul class="nav-menu">
-                <li><a href="{% url 'index' %}" class="nav-link">Inicio</a></li>
-                <li><a href="{% url 'circuitos_listado' %}" class="nav-link">
+                <li><a href="{% url 'index' %}" class="nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}">Inicio</a></li>
+                <li><a href="{% url 'circuitos_listado' %}" class="nav-link {% if request.resolver_match.url_name in 'circuitos_listado,circuitos_ciclista,inscribir_circuito,inscribir_circuito_post' %}active{% endif %}">
                     <i class="fa-solid fa-route" style="margin-right: 5px;"></i>Circuitos</a>
                 </li>
-                <li><a href="{% url 'noticias_listado' %}" class="nav-link">
+                <li><a href="{% url 'noticias_listado' %}" class="nav-link {% if request.resolver_match.url_name in 'noticias_listado,noticia_detalle' %}active{% endif %}">
                     <i class="fa-solid fa-newspaper" style="margin-right: 5px;"></i>Noticias</a>
                 </li>
-                <li><a href="{% url 'comercios_listado' %}" class="nav-link">
+                <li><a href="{% url 'comercios_listado' %}" class="nav-link {% if request.resolver_match.url_name in 'comercios_listado,comercio_detalle' %}active{% endif %}">
                     <i class="fa-solid fa-shop" style="margin-right: 5px;"></i>Comercios</a>
                 </li>
-                <li><a href="{% url 'contacto' %}" class="nav-link">
+                <li><a href="{% url 'contacto' %}" class="nav-link {% if request.resolver_match.url_name in 'contacto,contacto_submit,inscripcion' %}active{% endif %}">
                     <i class="fa-solid fa-envelope" style="margin-right: 5px;"></i>Contacto</a>
                 </li>
                 {% if user.is_authenticated %}
                 <li class="nav-item-ingresar">
-                    <a href="{% url 'mi_progreso' %}" class="btn btn-header-ingresar" style="background: #16a34a;" title="Ir a mi panel de ciclista">
+                    <a href="{% url 'mi_progreso' %}" class="btn btn-header-ingresar {% if request.resolver_match.url_name in 'mi_progreso,mapa_carrera' %}active{% endif %}" style="background: #16a34a;" title="Ir a mi panel de ciclista">
                         <i class="fa-solid fa-bicycle"></i>
                         <span>Mi Progreso</span>
                     </a>

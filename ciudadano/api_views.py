@@ -99,8 +99,8 @@ class IniciarRecorridoAPIView(APIView):
         # Validación del punto de largada con margen de cortesía satelital para smartphones
         punto_inicio = circuito.punto_largada
         radio_base = circuito.radio_largada_metros or 20
-        # Tolerancia de precisión satelital móvil: margen de cortesía (mínimo 45m o radio_base + 25m)
-        radio_maximo = max(radio_base + 25, 45)
+        # Tolerancia satelital móvil extendida a 60m para compatibilidad universal con todos los teléfonos
+        radio_maximo = max(radio_base + 30, 60)
 
         if punto_inicio and latitud is not None and longitud is not None:
             distancia_a_largada = calcular_distancia_metros(
@@ -130,6 +130,12 @@ class IniciarRecorridoAPIView(APIView):
         # Determinar si hoy es el día del evento oficial y modo solicitado
         es_dia_carrera = bool(circuito.fecha_evento and circuito.fecha_evento == date.today())
         modo_solicitado = (request.data.get('modo') or '').strip().lower()
+        movilidad_solicitada = (request.data.get('tipo_movilidad') or 'BICICLETA').strip().upper()
+
+        # Validar si el circuito admite la movilidad solicitada
+        movilidades_aptas = circuito.movilidades_lista
+        if movilidad_solicitada not in movilidades_aptas:
+            movilidad_solicitada = movilidades_aptas[0] if movilidades_aptas else 'BICICLETA'
 
         # Verificar si el ciclista está inscripto a la carrera oficial
         inscripcion_oficial = RecorridoCiclista.objects.filter(
@@ -143,6 +149,7 @@ class IniciarRecorridoAPIView(APIView):
             modalidad = 'OFICIAL'
             recorrido = inscripcion_oficial
             recorrido.estado = 'EN_CURSO'
+            recorrido.tipo_movilidad = movilidad_solicitada
             recorrido.inicio = timezone.now()
             recorrido.save()
             creado = False
@@ -160,6 +167,7 @@ class IniciarRecorridoAPIView(APIView):
                 if recorrido.estado == 'LISTO':
                     recorrido.inicio = timezone.now()
                 recorrido.estado = 'EN_CURSO'
+                recorrido.tipo_movilidad = movilidad_solicitada
                 recorrido.save()
                 creado = False
             else:
@@ -168,6 +176,7 @@ class IniciarRecorridoAPIView(APIView):
                     circuito=circuito,
                     estado='EN_CURSO',
                     modalidad='LIBRE',
+                    tipo_movilidad=movilidad_solicitada,
                     inicio=timezone.now()
                 )
                 creado = True

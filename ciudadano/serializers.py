@@ -63,10 +63,14 @@ class CircuitoGeneralSerializer(serializers.ModelSerializer):
     """
     subcircuitos = SubCircuitoSerializer(many=True, read_only=True)
     comercios = ComercioAdheridoSerializer(many=True, read_only=True)
+    movilidades_lista = serializers.ListField(read_only=True)
 
     class Meta:
         model = CircuitoGeneral
-        fields = ['id', 'nombre', 'descripcion', 'activo', 'distancia_total_km', 'subcircuitos', 'comercios']
+        fields = [
+            'id', 'nombre', 'descripcion', 'activo', 'distancia_total_km',
+            'movilidades_permitidas', 'movilidades_lista', 'subcircuitos', 'comercios'
+        ]
 
 
 # ==============================================================================
@@ -136,6 +140,8 @@ class RecorridoCiclistaSerializer(serializers.ModelSerializer):
             'fin',
             'estado',
             'estado_display',
+            'modalidad',
+            'tipo_movilidad',
             'total_puntos'
         ]
 

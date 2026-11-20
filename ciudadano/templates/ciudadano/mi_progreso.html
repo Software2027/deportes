@@ -78,15 +78,9 @@
                                         </select>
                                     </div>
                                     <div class="circuit-quick-switch-right">
-                                        {% if total_inscriptos > 0 %}
-                                        <a href="#mis-circuitos-inscriptos" class="circuit-quick-link" title="Ver listado completo de mis circuitos">
-                                            <i class="fa-solid fa-list-check"></i> Mis Circuitos ({{ total_inscriptos }})
+                                        <a href="{% url 'circuitos_ciclista' %}" class="circuit-quick-link" title="Explorar catálogo de circuitos y agregar más a tu panel">
+                                            <i class="fa-solid fa-plus-circle"></i> Explorar Más Circuitos
                                         </a>
-                                        {% else %}
-                                        <a href="#seccion-circuitos-todos" class="circuit-quick-link" title="Explorar catálogo de circuitos">
-                                            <i class="fa-solid fa-plus-circle"></i> Agregar Circuitos
-                                        </a>
-                                        {% endif %}
                                     </div>
                                 </div>
 
@@ -99,7 +93,7 @@
                                     {% if circuito.fecha_evento %}
                                     <span class="circuit-meta-item">
                                         <i class="fa-regular fa-calendar-check" style="color: #0284c7;"></i> 
-                                        Evento: <strong>{{ circuito.fecha_evento|date:"d/m/Y" }}</strong>
+                                        Evento: <strong>{{ circuito.fecha_evento|date:"d/m/Y" }}{% if circuito.hora_evento %} a las {{ circuito.hora_evento|time:"H:i" }} hs{% endif %}</strong>
                                     </span>
                                     {% endif %}
                                     {% if circuito.fecha_limite_inscripcion %}
@@ -184,8 +178,8 @@
                             <span>Inscripción activa • Dorsal <strong>#{{ recorrido.id|stringformat:"04d" }}</strong> • Modalidad: <strong>{{ modalidad_display }}</strong></span>
                         </div>
                         <a href="{% url 'mapa_carrera' %}?circuito_id={{ circuito.id }}" class="btn-start-gps-race">
-                            <i class="fa-solid fa-bicycle"></i>
-                            <span>{% if esta_en_carrera %}Continuar Recorrido en Vivo{% else %}Pedalear Este Circuito (GPS){% endif %}</span>
+                            <i class="fa-solid fa-person-walking-dashed-line-arrow-right"></i>
+                            <span>{% if esta_en_carrera %}Continuar Recorrido en Vivo{% else %}Iniciar Recorrido en este Circuito (GPS){% endif %}</span>
                             <i class="fa-solid fa-arrow-right" style="font-size: 0.85rem;"></i>
                         </a>
                     {% endif %}
@@ -193,66 +187,9 @@
             </section>
 
             <!-- --------------------------------------------------------------- -->
-            <!-- SELECTOR SUPERIOR: MIS CIRCUITOS INSCRIPTOS                     -->
+            <!-- BANNER MOTIVADOR SI NO TIENE CIRCUITOS INSCRIPTOS               -->
             <!-- --------------------------------------------------------------- -->
-            {% if tiene_inscriptos %}
-            <section class="mis-circuitos-inscriptos-section" id="mis-circuitos-inscriptos">
-                <div class="mis-circuitos-header-row">
-                    <div class="mis-circuitos-title-wrap">
-                        <i class="fa-solid fa-list-check" style="color: #16a34a; font-size: 1.35rem;"></i>
-                        <h2 class="mis-circuitos-title">Mis Circuitos Inscriptos</h2>
-                        <span class="mis-circuitos-badge-count">{{ total_inscriptos }} circuitos</span>
-                    </div>
-                    <a href="#seccion-circuitos-todos" class="btn-agregar-mas-circuitos">
-                        <i class="fa-solid fa-plus"></i>
-                        <span>Explorar y Agregar Más Circuitos</span>
-                    </a>
-                </div>
-
-                <div class="inscriptos-cards-carousel">
-                    {% for item in mis_circuitos_inscriptos %}
-                    <a href="?circuito_id={{ item.circuito.id }}" class="inscripto-card-tab {% if item.es_actual %}tab-active{% endif %}" title="Ver progreso de {{ item.circuito.nombre }}">
-                        <div class="inscripto-card-header">
-                            <span class="inscripto-type-tag {% if item.modalidad == 'OFICIAL' %}tag-oficial{% else %}tag-libre{% endif %}">
-                                {% if item.modalidad == 'OFICIAL' %}
-                                    <i class="fa-solid fa-trophy"></i> Oficial
-                                {% else %}
-                                    <i class="fa-solid fa-person-biking"></i> Libre
-                                {% endif %}
-                            </span>
-                            {% if item.es_actual %}
-                                <span class="badge-inscripto-current"><i class="fa-solid fa-circle-dot"></i> Viendo Progreso</span>
-                            {% endif %}
-                        </div>
-
-                        <h3 class="inscripto-circuit-name">{{ item.circuito.nombre }}</h3>
-
-                        <div class="inscripto-progress-bar-wrap">
-                            <div class="inscripto-progress-track">
-                                <div class="inscripto-progress-fill" style="width: {{ item.porcentaje }}%;"></div>
-                            </div>
-                            <div class="inscripto-progress-text-row">
-                                <span>{{ item.distancia_km }} de {{ item.distancia_total_km }} km</span>
-                                <strong>{{ item.porcentaje }}%</strong>
-                            </div>
-                        </div>
-
-                        <div class="inscripto-card-footer">
-                            <span class="inscripto-dorsal">Dorsal #{{ item.recorrido.id|stringformat:"04d" }}</span>
-                            <span class="inscripto-cta-action">
-                                {% if item.es_actual %}
-                                    <strong style="color: #16a34a;"><i class="fa-solid fa-play"></i> Pedalear</strong>
-                                {% else %}
-                                    <span>Ver Progreso <i class="fa-solid fa-chevron-right"></i></span>
-                                {% endif %}
-                            </span>
-                        </div>
-                    </a>
-                    {% endfor %}
-                </div>
-            </section>
-            {% else %}
-            <!-- Banner motivador para inscribirse por primera vez -->
+            {% if not tiene_inscriptos %}
             <section class="banner-sin-circuitos">
                 <div class="banner-sin-icon">
                     <i class="fa-solid fa-route"></i>
@@ -261,7 +198,7 @@
                     <h3>¡Aún no te has sumado a ningún circuito!</h3>
                     <p>Inscríbete a una carrera oficial para disputar el podio municipal o agrega un circuito recreativo para entrenar y registrar tu telemetría GPS.</p>
                 </div>
-                <a href="#seccion-circuitos-todos" class="btn-ir-catalogo-circuitos">
+                <a href="{% url 'circuitos_ciclista' %}" class="btn-ir-catalogo-circuitos">
                     <i class="fa-solid fa-compass"></i>
                     <span>Ver Circuitos Disponibles para Inscribirme</span>
                 </a>
@@ -269,46 +206,34 @@
             {% endif %}
 
             <!-- --------------------------------------------------------------- -->
-            <!-- FILA DE 4 CARDS DE KPIS                                         -->
+            <!-- FILA DE CARDS DE KPIS DEL CIRCUITO SELECCIONADO                 -->
             <!-- --------------------------------------------------------------- -->
             <section class="metrics-kpi-grid">
-                <!-- KPI 1: Distancia -->
+                <!-- KPI 1: Distancia del Circuito Seleccionado -->
                 <div class="kpi-card">
                     <div class="kpi-icon-circle">
                         <i class="fa-solid fa-location-dot"></i>
                     </div>
                     <div class="kpi-body">
                         <span class="kpi-label">Distancia</span>
-                        <span class="kpi-value">{{ distancia_km }} km</span>
-                        <span class="kpi-subtext">de {{ total_km }} km totales</span>
+                        <span class="kpi-value">{{ circuito.distancia_total_km|default:total_km }} km</span>
+                        <span class="kpi-subtext">longitud del circuito</span>
                     </div>
                 </div>
 
-                <!-- KPI 2: Tiempo -->
+                <!-- KPI 2: Cantidad de Tramos -->
                 <div class="kpi-card">
-                    <div class="kpi-icon-circle">
-                        <i class="fa-regular fa-clock"></i>
+                    <div class="kpi-icon-circle" style="background: #e0f2fe; color: #0284c7;">
+                        <i class="fa-solid fa-route"></i>
                     </div>
                     <div class="kpi-body">
-                        <span class="kpi-label">Tiempo</span>
-                        <span class="kpi-value">{{ tiempo_str }}</span>
-                        <span class="kpi-subtext">Ritmo: {{ ritmo_str }}</span>
+                        <span class="kpi-label">Cantidad de tramos</span>
+                        <span class="kpi-value">{{ circuito.subcircuitos.count|default:subcircuitos|length }}</span>
+                        <span class="kpi-subtext">tramos en el recorrido</span>
                     </div>
                 </div>
 
-                <!-- KPI 3: Validaciones -->
-                <div class="kpi-card">
-                    <div class="kpi-icon-circle">
-                        <i class="fa-regular fa-circle-check"></i>
-                    </div>
-                    <div class="kpi-body">
-                        <span class="kpi-label">Validaciones</span>
-                        <span class="kpi-value">{{ checkpoints_validados }}</span>
-                        <span class="kpi-subtext">Checkpoints registrados</span>
-                    </div>
-                </div>
-
-                <!-- KPI 4: Locales -->
+                <!-- KPI 3: Locales Adheridos -->
                 <div class="kpi-card">
                     <div class="kpi-icon-circle">
                         <i class="fa-solid fa-store"></i>
@@ -389,165 +314,112 @@
             </section>
 
             <!-- --------------------------------------------------------------- -->
-            <!-- SECCIÓN: TODOS LOS CIRCUITOS DISPONIBLES (CARDS SEPARADAS)      -->
+            <!-- NUEVA SECCIÓN: HISTORIAL DE RECORRIDOS EN ESTE CIRCUITO          -->
             <!-- --------------------------------------------------------------- -->
-            <section class="all-circuits-section" id="seccion-circuitos-todos">
-                <div class="all-circuits-header">
-                    <div class="all-circuits-header-info">
-                        <div class="all-circuits-badge">
-                            <i class="fa-solid fa-route"></i>
-                            <span>Circuitos de Malagueño</span>
+            <section class="historial-recorridos-section" id="seccion-historial-recorridos">
+                <div class="historial-header-row">
+                    <div class="historial-title-wrap">
+                        <i class="fa-solid fa-clock-rotate-left" style="color: #16a34a; font-size: 1.35rem;"></i>
+                        <div>
+                            <h2 class="historial-title">Historial de Recorridos</h2>
+                            <p class="historial-subtitle">Sesiones y telemetría registrada en <strong>{{ circuito.nombre }}</strong></p>
                         </div>
-                        <h2 class="all-circuits-title">Todos los Circuitos Disponibles</h2>
-                        <p class="all-circuits-desc">
-                            Selecciona cualquier circuito para ver tu avance en esa ruta, revisar sus etapas o iniciar el recorrido satelital con tu GPS.
-                        </p>
                     </div>
-
-                    <!-- Filtros de Pestañas -->
-                    <div class="circuits-filter-tabs">
-                        <button type="button" class="circuit-tab-btn active" data-filter="todos">
-                            <span>Todos ({{ circuitos_activos|length }})</span>
-                        </button>
-                        {% if circuitos_eventos %}
-                        <button type="button" class="circuit-tab-btn" data-filter="eventos">
-                            <i class="fa-solid fa-trophy"></i>
-                            <span>Carreras Oficiales ({{ circuitos_eventos|length }})</span>
-                        </button>
-                        {% endif %}
-                        {% if circuitos_recreativos %}
-                        <button type="button" class="circuit-tab-btn" data-filter="recreativos">
-                            <i class="fa-solid fa-person-biking"></i>
-                            <span>Recreativos ({{ circuitos_recreativos|length }})</span>
-                        </button>
-                        {% endif %}
+                    <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+                        <span class="historial-count-badge">{{ historial_recorridos|length }} sesiones</span>
+                        <a href="{% url 'mapa_carrera' %}?circuito_id={{ circuito.id }}" class="btn-nuevo-recorrido-gps">
+                            <i class="fa-solid fa-play"></i>
+                            <span>Pedalear en GPS</span>
+                        </a>
                     </div>
                 </div>
 
-                <div class="circuits-cards-grid">
-                    {% for c in circuitos_activos %}
-                    <div class="circuit-single-card {% if c.id == circuito.id %}card-is-current{% endif %}" data-tipo="{% if c.evento_vigente %}eventos{% else %}recreativos{% endif %}">
-                        <!-- Topbar de la Card -->
-                        <div class="circuit-card-topbar">
-                            {% if c.evento_vigente %}
-                                <span class="badge-circuit-event" title="Competencia Oficial Programada">
-                                    <i class="fa-solid fa-trophy"></i> Carrera Oficial • {{ c.fecha_evento|date:"d/m/Y" }}
-                                </span>
-                            {% elif c.evento_concluido %}
-                                <span class="badge-circuit-finished" title="Carrera concluida. Recorrido 100% habilitado para entrenamiento y práctica libre.">
-                                    <i class="fa-solid fa-flag-checkered"></i> Carrera Finalizada • Modo Libre
-                                </span>
-                            {% else %}
-                                <span class="badge-circuit-free" title="Trazado permanente para práctica libre">
-                                    <i class="fa-solid fa-infinity"></i> Recreativo Permanente
-                                </span>
-                            {% endif %}
-
-                            {% if c.id == circuito.id %}
-                                <span class="badge-circuit-current">
-                                    <i class="fa-solid fa-circle-check"></i> Viendo Progreso
-                                </span>
-                            {% elif c.id in inscriptos_ids %}
-                                <span class="badge-circuit-current" style="background: #e0f2fe; color: #0369a1;">
-                                    <i class="fa-solid fa-check"></i> Inscripto
-                                </span>
-                            {% endif %}
-                        </div>
-
-                        <!-- Título y Descripción -->
-                        <div class="circuit-card-main-info">
-                            <h3 class="circuit-card-name">{{ c.nombre }}</h3>
-                            <p class="circuit-card-desc">
-                                {{ c.descripcion|default:"Trazado oficial habilitado por la Municipalidad de Malagueño con señalización y puntos de control."|truncatewords:20 }}
-                            </p>
-                        </div>
-
-                        <!-- Chips de Métricas -->
-                        <div class="circuit-stats-chips">
-                            <div class="stat-chip">
-                                <i class="fa-solid fa-road" style="color: #16a34a;"></i>
-                                <span><strong>{{ c.distancia_total_km|default:"0.0" }}</strong> km</span>
-                            </div>
-                            <div class="stat-chip">
-                                <i class="fa-solid fa-layer-group" style="color: #0284c7;"></i>
-                                <span><strong>{{ c.subcircuitos.all|length }}</strong> etapas</span>
-                            </div>
-                            <div class="stat-chip">
-                                <i class="fa-solid fa-store" style="color: #f59e0b;"></i>
-                                <span><strong>{{ c.comercios.all|length }}</strong> comercios</span>
-                            </div>
-                            <div class="stat-chip">
-                                <i class="fa-solid fa-bullseye" style="color: #7c3aed;"></i>
-                                <span>Radio <strong>{{ c.radio_largada_metros|default:20 }}m</strong></span>
-                            </div>
-                        </div>
-
-                        <!-- Mini Listado de Etapas si tiene -->
-                        {% if c.subcircuitos.all %}
-                        <div class="circuit-stages-pills">
-                            {% for sub in c.subcircuitos.all %}
-                            <span class="stage-mini-pill" style="border-left-color: {{ sub.color_capa|default:'#16a34a' }};">
-                                Etapa {{ sub.orden }}: {{ sub.nombre|truncatechars:18 }} ({{ sub.distancia_km|default:"--" }} km)
-                            </span>
+                {% if historial_recorridos %}
+                <div class="historial-table-container">
+                    <table class="historial-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha y Hora</th>
+                                <th>Modalidad / Medio</th>
+                                <th>Estado</th>
+                                <th>Tiempo</th>
+                                <th>Distancia</th>
+                                <th>Vel. Promedio</th>
+                                <th>Vel. Máxima</th>
+                                <th>Paradas</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rec in historial_recorridos %}
+                            <tr>
+                                <td>
+                                    <div style="font-weight: 700; color: #0f172a;">{{ rec.fecha_str }}</div>
+                                    <small style="color: #64748b; font-size: 0.75rem;">Sesión #{{ rec.id }}</small>
+                                </td>
+                                <td>
+                                    <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                        {% if rec.modalidad == 'OFICIAL' %}
+                                            <span class="hist-badge hist-badge-oficial"><i class="fa-solid fa-trophy"></i> Oficial</span>
+                                        {% else %}
+                                            <span class="hist-badge hist-badge-libre"><i class="fa-solid fa-compass"></i> Libre</span>
+                                        {% endif %}
+                                        <span style="display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.72rem; color: #475569; font-weight: 600;">
+                                            {% if rec.tipo_movilidad == 'BICICLETA' %}<i class="fa-solid fa-person-biking" style="color: #0284c7;"></i>
+                                            {% elif rec.tipo_movilidad == 'A_PIE' %}<i class="fa-solid fa-person-walking" style="color: #d97706;"></i>
+                                            {% elif rec.tipo_movilidad == 'MOTO' %}<i class="fa-solid fa-motorcycle" style="color: #dc2626;"></i>
+                                            {% elif rec.tipo_movilidad == 'AUTO' %}<i class="fa-solid fa-car" style="color: #475569;"></i>
+                                            {% elif rec.tipo_movilidad == 'CABALLO' %}<i class="fa-solid fa-horse" style="color: #854d0e;"></i>
+                                            {% elif rec.tipo_movilidad == 'PATINES' %}<i class="fa-solid fa-person-skating" style="color: #7e22ce;"></i>
+                                            {% else %}<i class="fa-solid fa-compass" style="color: #64748b;"></i>
+                                            {% endif %}
+                                            {{ rec.tipo_movilidad_display }}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if rec.estado == 'FINALIZADO' %}
+                                        <span class="hist-badge hist-badge-finalizado"><i class="fa-solid fa-circle-check"></i> Finalizado</span>
+                                    {% elif rec.estado == 'EN_CURSO' %}
+                                        <span class="hist-badge hist-badge-encurso"><i class="fa-solid fa-person-walking-dashed-line-arrow-right"></i> En Curso</span>
+                                    {% elif rec.estado == 'PAUSADO' %}
+                                        <span class="hist-badge hist-badge-pausado"><i class="fa-solid fa-pause"></i> Pausado</span>
+                                    {% else %}
+                                        <span class="hist-badge hist-badge-listo"><i class="fa-solid fa-hourglass-start"></i> Inscripto</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <strong style="font-family: 'Outfit', sans-serif; font-size: 0.95rem; color: #0f172a;">{{ rec.duracion_str }}</strong>
+                                </td>
+                                <td>
+                                    <span style="font-weight: 700; color: #16a34a;">{{ rec.distancia_km }} km</span>
+                                </td>
+                                <td>
+                                    <span>{{ rec.vel_prom }} km/h</span>
+                                </td>
+                                <td>
+                                    <span style="font-weight: 600; color: #0284c7;">{{ rec.vel_max }} km/h</span>
+                                </td>
+                                <td>
+                                    <span>{{ rec.paradas_count }} paradas</span>
+                                </td>
+                            </tr>
                             {% endfor %}
-                        </div>
-                        {% endif %}
-
-                        <!-- Acciones de la Card -->
-                        <div class="circuit-card-actions">
-                            {% if c.evento_vigente %}
-                                <!-- Carrera Oficial Programada -->
-                                <a href="{% url 'mapa_carrera' %}?circuito_id={{ c.id }}&modo=libre" class="btn-card-select" title="Entrenar o recorrer en Modo Libre">
-                                    <i class="fa-solid fa-person-biking"></i>
-                                    <span>Pedalear Libre</span>
-                                </a>
-
-                                {% if c.id in inscriptos_carrera_ids %}
-                                    <a href="?circuito_id={{ c.id }}" class="btn-card-primary" title="Inscripción activa a la carrera oficial" style="background: #15803d;">
-                                        <i class="fa-solid fa-id-badge"></i>
-                                        <span>Inscripto Oficial</span>
-                                    </a>
-                                {% else %}
-                                    <form method="POST" action="{% url 'inscribir_circuito' c.id %}" style="flex: 1; display: flex;">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn-card-primary" style="width: 100%;" title="Inscribirme formalmente a la carrera">
-                                            <i class="fa-solid fa-trophy"></i>
-                                            <span>Inscribirme Oficial</span>
-                                        </button>
-                                    </form>
-                                {% endif %}
-                            {% else %}
-                                <!-- Circuito Recreativo Permanente -->
-                                {% if c.id in inscriptos_ids %}
-                                    <a href="?circuito_id={{ c.id }}" class="btn-card-select" title="Ver mi progreso en este circuito">
-                                        <i class="fa-solid fa-chart-line"></i>
-                                        <span>Mi Progreso</span>
-                                    </a>
-                                    <a href="{% url 'mapa_carrera' %}?circuito_id={{ c.id }}" class="btn-card-primary" title="Iniciar recorrido satelital">
-                                        <i class="fa-solid fa-location-crosshairs"></i>
-                                        <span>Pedalear (GPS)</span>
-                                    </a>
-                                {% else %}
-                                    <form method="POST" action="{% url 'inscribir_circuito' c.id %}" style="display: flex;">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn-card-select" title="Añadir a mis circuitos">
-                                            <i class="fa-solid fa-plus"></i>
-                                            <span>Agregar</span>
-                                        </button>
-                                    </form>
-                                    <a href="{% url 'mapa_carrera' %}?circuito_id={{ c.id }}" class="btn-card-primary" title="Iniciar recorrido satelital">
-                                        <i class="fa-solid fa-location-crosshairs"></i>
-                                        <span>Pedalear (GPS)</span>
-                                    </a>
-                                {% endif %}
-                            {% endif %}
-                            <a href="{% url 'mapa_carrera' %}?circuito_id={{ c.id }}" class="btn-card-map" title="Ver trazado satelital">
-                                <i class="fa-solid fa-map"></i>
-                            </a>
-                        </div>
-                    </div>
-                    {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
+                {% else %}
+                <div class="historial-empty-state">
+                    <div class="empty-icon-wrap">
+                        <i class="fa-solid fa-stopwatch"></i>
+                    </div>
+                    <h3>Sin recorridos grabados en este circuito todavía</h3>
+                    <p>Cuando inicies tu recorrido y actives el seguimiento satelital GPS, aquí quedará registrado tu tiempo, distancia y velocidad de cada intento.</p>
+                    <a href="{% url 'mapa_carrera' %}?circuito_id={{ circuito.id }}" class="btn-primer-recorrido">
+                        <i class="fa-solid fa-location-crosshairs"></i>
+                        <span>Iniciar Mi Primer Recorrido GPS</span>
+                    </a>
+                </div>
+                {% endif %}
             </section>
 
             <!-- --------------------------------------------------------------- -->

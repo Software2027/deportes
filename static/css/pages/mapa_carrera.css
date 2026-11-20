@@ -44,6 +44,14 @@ body.carrera-mode {
     z-index: 99999 !important;
 }
 
+:fullscreen .mapa-floating-actions-col,
+:-webkit-full-screen .mapa-floating-actions-col,
+.carrera-wrapper:fullscreen .mapa-floating-actions-col,
+.carrera-wrapper:-webkit-full-screen .mapa-floating-actions-col {
+    bottom: calc(84px + env(safe-area-inset-bottom, 0px)) !important;
+    z-index: 99999 !important;
+}
+
 /* ------------------------------------------------------------------------------
    1. MAPA LEAFLET A PANTALLA COMPLETA
    ------------------------------------------------------------------------------ */
@@ -595,13 +603,21 @@ body.carrera-mode {
 }
 
 /* ------------------------------------------------------------------------------
-   4. BOTÓN FLOTANTE "CENTRAR GPS EN MÍ" (Ergonómico para Ciclismo)
+   4. BOTONES FLOTANTES: CENTRAR GPS Y EMERGENCIA SOS MUNICIPAL
    ------------------------------------------------------------------------------ */
-.btn-recenter-gps {
+.mapa-floating-actions-col {
     position: absolute;
-    bottom: 154px;
+    bottom: 140px;
     right: 16px;
     z-index: 1100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.btn-recenter-gps {
+    position: static;
     width: 56px;
     height: 56px;
     border-radius: 50%;
@@ -621,6 +637,48 @@ body.carrera-mode {
     transform: scale(1.08);
     background-color: #f0fdf4;
     box-shadow: 0 8px 24px rgba(22, 163, 74, 0.35);
+}
+
+.btn-emergency-sos-top {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    height: 38px;
+    padding: 0 0.85rem;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: #ffffff !important;
+    border: 2px solid #ffffff;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    box-shadow: 0 4px 14px rgba(220, 38, 38, 0.45);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.btn-emergency-sos-top:hover {
+    transform: scale(1.05);
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    box-shadow: 0 6px 18px rgba(220, 38, 38, 0.65);
+}
+
+.btn-emergency-sos-top i {
+    font-size: 0.9rem;
+    animation: sosVibrate 3s infinite;
+}
+
+@keyframes sosVibrate {
+    0%, 85%, 100% { transform: scale(1); }
+    88% { transform: scale(1.25) rotate(-10deg); }
+    92% { transform: scale(1.25) rotate(10deg); }
+    96% { transform: scale(1.25) rotate(-10deg); }
+}
+
+.btn-emergency-sos {
+    display: none;
 }
 
 /* ------------------------------------------------------------------------------
@@ -924,9 +982,10 @@ body.carrera-mode {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(15, 23, 42, 0.6);
-    backdrop-filter: blur(4px);
-    z-index: 1000;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    z-index: 999999;
     display: none;
     align-items: center;
     justify-content: center;
@@ -937,12 +996,152 @@ body.carrera-mode {
 .modal-confirm-card {
     background: #ffffff;
     border-radius: 20px;
-    padding: 2rem;
+    padding: 1.75rem 1.5rem;
     max-width: 420px;
     width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
     text-align: center;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.28);
     animation: zoomIn 0.25s ease;
+    box-sizing: border-box;
+}
+
+/* Modal Especial: Selección de Movilidad / Transporte */
+.modal-movilidad-card {
+    max-width: 440px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-movilidad-icon {
+    background: #e0f2fe;
+    color: #0284c7;
+    margin: 0 auto 0.65rem auto;
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    flex-shrink: 0;
+}
+
+.modal-movilidad-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    margin-bottom: 0.35rem;
+    color: #0f172a;
+    flex-shrink: 0;
+}
+
+.modal-movilidad-desc {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-bottom: 0.85rem;
+    line-height: 1.35;
+    flex-shrink: 0;
+}
+
+.movilidades-grid-selector {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.55rem;
+    margin-bottom: 1rem;
+    max-height: 44vh;
+    overflow-y: auto;
+    padding: 2px 4px 6px 4px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.movilidades-grid-selector::-webkit-scrollbar {
+    width: 5px;
+}
+.movilidades-grid-selector::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+.btn-opcion-movilidad {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.65rem 0.5rem;
+    min-height: 58px;
+    border-radius: 12px;
+    border: 2px solid #e2e8f0;
+    background: #ffffff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+    outline: none;
+}
+
+.btn-opcion-movilidad:hover {
+    border-color: #bae6fd;
+    background: #f8fafc;
+}
+
+.btn-opcion-movilidad.seleccionado {
+    border-color: #0284c7 !important;
+    background: #f0f9ff !important;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.18);
+}
+
+.opcion-movilidad-ico {
+    font-size: 1.45rem;
+    color: #0284c7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.opcion-movilidad-txt {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #1e293b;
+    line-height: 1.2;
+    text-align: center;
+}
+
+/* Si la última opción es impar, ocupa ambas columnas de forma centrada y balanceada */
+.btn-opcion-movilidad:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    gap: 0.65rem;
+    padding: 0.55rem 1rem;
+    min-height: 48px;
+}
+
+.btn-opcion-movilidad:last-child:nth-child(odd) .opcion-movilidad-ico {
+    font-size: 1.25rem;
+}
+
+.modal-movilidad-actions {
+    margin-top: auto;
+    padding-top: 0.65rem;
+    border-top: 1px solid #f1f5f9;
+    flex-shrink: 0;
+}
+
+.btn-modal-confirm-movilidad {
+    background: #0284c7 !important;
+    color: #ffffff !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+}
+
+.btn-modal-confirm-movilidad:hover {
+    background: #0369a1 !important;
 }
 
 @keyframes zoomIn {
@@ -1487,29 +1686,40 @@ body.carrera-mode {
         right: 0;
     }
 
-    /* Controles de Pedaleo / Carrera Inferiores */
+    /* Controles de Pedaleo / Carrera Inferiores (Optimizados para convivir con la bottom-nav) */
     .carrera-controls-bar {
-        bottom: 10px;
-        left: 8px;
-        right: 8px;
-        padding: 0.55rem 0.75rem;
-        border-radius: 16px;
+        bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+        left: 10px;
+        right: 10px;
+        padding: 0.5rem 0.65rem;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.98);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18), 0 2px 6px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(226, 232, 240, 0.9);
+        z-index: 1005;
     }
 
     .btn-carrera-action {
-        font-size: 0.95rem;
-        padding: 0.7rem 0.85rem;
-        min-height: 48px;
+        font-size: 0.96rem;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        padding: 0.72rem 0.9rem;
+        min-height: 50px;
+        border-radius: 12px;
     }
 
-    /* Botón flotante para recentrar posición GPS (Ergonómico Mobile) */
-    .btn-recenter-gps {
-        bottom: 82px;
+    /* Botón flotante para recentrar posición GPS (Ergonómico Mobile sobre los controles) */
+    .mapa-floating-actions-col {
+        bottom: calc(142px + env(safe-area-inset-bottom, 0px));
         right: 14px;
-        width: 54px;
-        height: 54px;
-        font-size: 1.3rem;
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.32);
+        z-index: 1005;
+    }
+
+    .btn-recenter-gps {
+        width: 50px;
+        height: 50px;
+        font-size: 1.25rem;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
     }
 
     .etapa-alert-banner {
@@ -1519,15 +1729,15 @@ body.carrera-mode {
 
     /* Banner de Proximidad a Comercio / Punto de Interés */
     .proximity-banner {
-        bottom: 74px;
+        bottom: calc(142px + env(safe-area-inset-bottom, 0px));
         left: 8px;
-        right: 64px;
+        right: 68px;
         padding: 0.65rem 0.85rem;
     }
 
     /* Banner de Desvío / Fuera de Ruta Mobile */
     .alerta-fuera-ruta-banner {
-        bottom: 74px;
+        bottom: calc(142px + env(safe-area-inset-bottom, 0px));
         left: 8px;
         right: 74px;
         padding: 0.65rem 0.85rem;
@@ -1540,6 +1750,82 @@ body.carrera-mode {
     }
     .btn-centrar-desvio {
         padding: 0.45rem 0.6rem;
+    }
+
+    /* Modal / Pop Up de Selección de Movilidad en Móvil */
+    .modal-confirm-backdrop {
+        padding: 0.75rem;
+        align-items: center;
+    }
+
+    .modal-confirm-card.modal-movilidad-card {
+        padding: 1.15rem 1rem 0.9rem 1rem;
+        max-height: 88vh;
+        border-radius: 18px;
+        width: 100%;
+        max-width: 380px;
+    }
+
+    .modal-movilidad-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 1.35rem;
+        margin-bottom: 0.4rem;
+    }
+
+    .modal-movilidad-title {
+        font-size: 1.15rem;
+        margin-bottom: 0.2rem;
+    }
+
+    .modal-movilidad-desc {
+        font-size: 0.78rem;
+        margin-bottom: 0.65rem;
+        line-height: 1.3;
+    }
+
+    .movilidades-grid-selector {
+        gap: 0.45rem;
+        margin-bottom: 0.75rem;
+        max-height: 40vh;
+        padding: 1px 2px 4px 2px;
+    }
+
+    .btn-opcion-movilidad {
+        padding: 0.5rem 0.35rem;
+        min-height: 52px;
+        gap: 0.25rem;
+        border-radius: 10px;
+    }
+
+    .opcion-movilidad-ico {
+        font-size: 1.25rem;
+    }
+
+    .opcion-movilidad-txt {
+        font-size: 0.73rem;
+        line-height: 1.15;
+    }
+
+    .btn-opcion-movilidad:last-child:nth-child(odd) {
+        padding: 0.45rem 0.75rem;
+        min-height: 44px;
+        gap: 0.5rem;
+    }
+
+    .modal-movilidad-actions {
+        padding-top: 0.45rem;
+        gap: 0.5rem;
+    }
+
+    .modal-movilidad-actions .btn-modal-cancel {
+        padding: 0.65rem 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    .modal-movilidad-actions .btn-modal-confirm {
+        padding: 0.65rem 0.65rem;
+        font-size: 0.85rem;
     }
 }
 
@@ -1569,5 +1855,27 @@ body.carrera-mode {
 
     .hud-label {
         font-size: 0.52rem;
+    }
+}
+
+/* ------------------------------------------------------------------------------
+   CONTROL ANTI-TRAMPA Y MARCADOR DE PAUSA GPS
+   ------------------------------------------------------------------------------ */
+.pause-marker-pin {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulsePause 2s infinite ease-in-out;
+}
+
+@keyframes pulsePause {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.12);
+    }
+    100% {
+        transform: scale(1);
     }
 }

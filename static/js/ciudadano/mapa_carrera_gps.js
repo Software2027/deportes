@@ -82,6 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnCerrarDesvio = document.getElementById('btn-cerrar-desvio');
     let desvioSilenciado = false;
     let lecturasDesviadoConsecutivas = 0;
+    let pausadoPorDesvio = false;
 
     // Elementos Modal Fuera de Meta
     const modalFueraMeta = document.getElementById('modal-fuera-meta');
@@ -93,6 +94,64 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalSelectorCircuitos = document.getElementById('modal-selector-circuitos');
     const btnAbrirSelector = document.getElementById('btn-toggle-modal-circuitos');
     const btnCloseSelector = document.getElementById('btn-close-selector-circuitos');
+
+    // Elementos Modal Selección de Movilidad (Multimodal)
+    const modalMovilidad = document.getElementById('modal-seleccion-movilidad');
+    const btnConfirmarMovilidad = document.getElementById('btn-confirmar-movilidad');
+    const btnCancelarMovilidad = document.getElementById('btn-cancelar-movilidad');
+    const botonesMovilidad = document.querySelectorAll('.btn-opcion-movilidad');
+    let tipoMovilidadSeleccionada = 'BICICLETA';
+
+    const btnMovDefault = document.querySelector('.btn-opcion-movilidad.seleccionado');
+    if (btnMovDefault) {
+        tipoMovilidadSeleccionada = btnMovDefault.getAttribute('data-movilidad') || 'BICICLETA';
+    }
+
+    if (botonesMovilidad && botonesMovilidad.length > 0) {
+        botonesMovilidad.forEach(b => {
+            b.addEventListener('click', () => {
+                botonesMovilidad.forEach(item => {
+                    item.classList.remove('seleccionado');
+                    item.style.borderColor = '#e2e8f0';
+                    item.style.backgroundColor = '#ffffff';
+                });
+                b.classList.add('seleccionado');
+                b.style.borderColor = '#0284c7';
+                b.style.backgroundColor = '#f0f9ff';
+                tipoMovilidadSeleccionada = b.getAttribute('data-movilidad') || 'BICICLETA';
+            });
+        });
+    }
+
+    if (btnCancelarMovilidad && modalMovilidad) {
+        btnCancelarMovilidad.addEventListener('click', () => {
+            modalMovilidad.style.display = 'none';
+        });
+    }
+
+    // Elementos Modal Confirmación de Emergencia SOS
+    const btnEmergencySOS = document.getElementById('btn-emergency-sos');
+    const modalConfirmSOS = document.getElementById('modal-confirm-sos');
+    const btnCancelarSOS = document.getElementById('btn-cancelar-sos');
+
+    if (btnEmergencySOS && modalConfirmSOS) {
+        btnEmergencySOS.addEventListener('click', (e) => {
+            e.preventDefault();
+            modalConfirmSOS.style.display = 'flex';
+        });
+    }
+
+    if (btnCancelarSOS && modalConfirmSOS) {
+        btnCancelarSOS.addEventListener('click', () => {
+            modalConfirmSOS.style.display = 'none';
+        });
+    }
+
+    // Elementos Modal Anti-Trampa (Desplazamiento en Pausa)
+    const modalDesplazamientoPausa = document.getElementById('modal-desplazamiento-pausa');
+    const spanDesplazamientoPausaMetros = document.getElementById('desplazamiento-pausa-metros');
+    const btnReanudarConPenalizacion = document.getElementById('btn-reanudar-con-penalizacion');
+    const btnVolverPuntoPausa = document.getElementById('btn-volver-punto-pausa');
 
     // Datos inyectados desde Django
     const trazados = window.carreraTrazado || [];
@@ -113,6 +172,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let acumuladoPausasMs = 0;
     let timestampUltimaPausaMs = null;
     let wakeLock = null;
+
+    // Control Anti-Trampa de Pausa y Reanudación GPS
+    let coordenadaPuntoPausa = null;
+    let timestampInicioPausaMs = null;
+    let marcadorPuntoPausa = null;
+    let lineaRetornoPausa = null;
+    const UMBRAL_TOLERANCIA_PAUSA_METROS = 40;
 
     let distanciaTotalMetros = 0;
     let ultimaCoordenada = null;
@@ -569,14 +635,30 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 8. Detección de Proximidad a Comercios Adheridos
+    // 8. Detección de Proximidad a Comercios Adheridos y Alerta 30m Antes
     const comerciosNotificados = new Set();
+    const comerciosAlertaPrevia = new Set();
 
     function verificarProximidadComercios(lat, lng) {
         comercios.forEach(com => {
             const distancia = calcularHaversineMetros(lat, lng, com.lat, com.lng);
             const radioTolerancia = com.radio || 30;
 
+            // 8.1 Alerta temprana a 30 metros de anticipación
+            if (distancia <= (radioTolerancia + 30) && distancia > radioTolerancia && !comerciosAlertaPrevia.has(com.id)) {
+                comerciosAlertaPrevia.add(com.id);
+                mostrarBannerPreavisoComercio(com, Math.round(distancia));
+
+                if (window.AudioCarrera && window.AudioCarrera.playComercioAdherido) {
+                    window.AudioCarrera.playComercioAdherido();
+                }
+
+                if (navigator.vibrate) {
+                    navigator.vibrate([100, 50, 100]);
+                }
+            }
+
+            // 8.2 Validación oficial dentro del radio de tolerancia
             if (distancia <= radioTolerancia && !comerciosNotificados.has(com.id)) {
                 comerciosNotificados.add(com.id);
                 mostrarBannerProximidad(com);
@@ -591,6 +673,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         });
+    }
+
+    function mostrarBannerPreavisoComercio(comercio, distMetros) {
+        if (!proximityBanner) return;
+        proximityTitle.textContent = `Aproximándote a ${comercio.nombre}`;
+        proximityBenefit.textContent = `Punto oficial a ${distMetros} metros • ${comercio.categoria || 'Parada técnica'}`;
+        proximityBanner.style.display = 'block';
+
+        setTimeout(() => {
+            if (proximityTitle.textContent.includes('Aproximándote')) {
+                proximityBanner.style.display = 'none';
+            }
+        }, 5000);
     }
 
     function mostrarBannerProximidad(comercio) {
@@ -695,6 +790,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Verificar desvío fuera de ruta (geofencing)
         verificarDesvioFueraDeRuta(lat, lng);
+
+        // Verificar proximidad al punto de pausa si el usuario eligió regresar
+        if (coordenadaPuntoPausa && lineaRetornoPausa) {
+            const distRetorno = calcularHaversineMetros(lat, lng, coordenadaPuntoPausa.lat, coordenadaPuntoPausa.lng);
+            lineaRetornoPausa.setLatLngs([[lat, lng], [coordenadaPuntoPausa.lat, coordenadaPuntoPausa.lng]]);
+            if (distRetorno <= UMBRAL_TOLERANCIA_PAUSA_METROS) {
+                map.removeLayer(lineaRetornoPausa);
+                lineaRetornoPausa = null;
+                if (window.AudioCarrera && window.AudioCarrera.playEtapaCompleta) {
+                    window.AudioCarrera.playEtapaCompleta();
+                }
+                if (navigator.vibrate) navigator.vibrate([150, 50, 150]);
+                console.log('[Anti-Cheat] Retorno confirmado al punto de pausa original.');
+            }
+        }
 
         // Verificar llegada a meta oficial (auto-corte por geofence)
         verificarLlegadaAMeta(lat, lng);
@@ -934,20 +1044,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 fueraDeRuta = true;
 
+                // Pausar automáticamente el cronómetro de carrera ante desvío del circuito
+                if (estadoCarrera === 'EN_CURSO' && cronometroInterval && !pausadoPorDesvio) {
+                    pausarCronometro();
+                    pausadoPorDesvio = true;
+                    console.warn('[GPS] Cronómetro pausado por desvío del circuito oficial.');
+                }
+
                 if (alertaFueraRutaBanner && !desvioSilenciado) {
                     alertaFueraRutaBanner.style.display = 'block';
                 }
                 if (fueraRutaDistVal) fueraRutaDistVal.textContent = Math.round(distancia);
 
-                // Adaptación de mensaje según modalidad
+                // Mensaje en pantalla notificando la pausa del cronómetro
                 if (fueraRutaBadge && fueraRutaDesc) {
-                    if (modalidadRecorrido === 'LIBRE') {
-                        fueraRutaBadge.textContent = 'VARIANTE / FUERA DE RUTA';
-                        fueraRutaDesc.textContent = 'Pedaleando fuera del trazado oficial. Línea de retorno en el mapa.';
-                    } else {
-                        fueraRutaBadge.textContent = 'DESVÍO DE CARRERA';
-                        fueraRutaDesc.textContent = 'Fuera del trazado oficial. Reincorpórate para registrar tiempos válidos.';
-                    }
+                    fueraRutaBadge.textContent = 'FUERA DE RECORRIDO • CRONÓMETRO PAUSADO';
+                    fueraRutaDesc.textContent = 'Has salido del trazado oficial. El cronómetro está en pausa; sigue la línea guía en el mapa para retornar y reanudar.';
                 }
 
                 if (puntoCercano) {
@@ -975,6 +1087,19 @@ document.addEventListener('DOMContentLoaded', () => {
             if (lineaRetornoCircuito) {
                 map.removeLayer(lineaRetornoCircuito);
                 lineaRetornoCircuito = null;
+            }
+
+            // Reanudar automáticamente el cronómetro al regresar al trazado
+            if (pausadoPorDesvio && estadoCarrera === 'EN_CURSO') {
+                iniciarCronometro();
+                pausadoPorDesvio = false;
+                console.log('[GPS] Retorno confirmado al trazado oficial. Cronómetro reanudado.');
+                if (window.AudioCarrera) {
+                    window.AudioCarrera.playEtapaCompleta();
+                }
+                if (navigator.vibrate) {
+                    navigator.vibrate([150, 50, 150]);
+                }
             }
         }
     }
@@ -1044,11 +1169,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // 12. Controles de Carrera (Iniciar / Detener / Reanudar / Finalizar)
-    function iniciarCronometro() {
+    function iniciarCronometro(penalizarPausa = false) {
         if (!timestampInicioMs) {
             timestampInicioMs = Date.now();
         } else if (timestampUltimaPausaMs) {
-            acumuladoPausasMs += (Date.now() - timestampUltimaPausaMs);
+            if (!penalizarPausa) {
+                // Parada estática en el lugar: se descuenta el tiempo de pausa
+                acumuladoPausasMs += (Date.now() - timestampUltimaPausaMs);
+            } else {
+                console.warn('[Anti-Cheat] Reanudación con desplazamiento: el tiempo transcurrido en pausa se computa como carrera activa.');
+            }
             timestampUltimaPausaMs = null;
         }
 
@@ -1072,11 +1202,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Iniciar Carrera / Recorrido con Validación de Largada y Tolerancia Satelital
     function intentarIniciarRecorrido(lat, lng) {
-        // Validación client-side con margen de cortesía satelital para smartphones (mínimo 45m o radio + 25m)
+        // Validación client-side con margen satelital extendido a 60m para todos los teléfonos
         const refLargada = coordSalida || puntoLargada;
         if (refLargada && refLargada.length === 2) {
             const dist = calcularHaversineMetros(lat, lng, refLargada[0], refLargada[1]);
-            const radioToleranciaCliente = Math.max(radioLargadaMetros + 25, 45);
+            const radioToleranciaCliente = Math.max(radioLargadaMetros + 30, 60);
             if (dist > radioToleranciaCliente) {
                 mostrarModalFueraLargada(dist, radioLargadaMetros);
                 return;
@@ -1093,7 +1223,8 @@ document.addEventListener('DOMContentLoaded', () => {
             body: JSON.stringify({
                 circuito_id: window.carreraCircuitoId || 1,
                 latitud: lat,
-                longitud: lng
+                longitud: lng,
+                tipo_movilidad: tipoMovilidadSeleccionada || 'BICICLETA'
             })
         })
         .then(res => res.json().then(data => ({ status: res.status, ok: res.ok, body: data })))
@@ -1134,34 +1265,51 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Botón Iniciar
+    // Disparador de inicio de recorrido con posicionamiento GPS
+    function ejecutarDisparoInicio() {
+        const refSalida = coordSalida || puntoLargada;
+        if (ultimaCoordenada) {
+            intentarIniciarRecorrido(ultimaCoordenada.lat, ultimaCoordenada.lng);
+        } else if ('geolocation' in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    ultimaCoordenada = { lat, lng };
+                    cyclistMarker.setLatLng([lat, lng]);
+                    intentarIniciarRecorrido(lat, lng);
+                },
+                (err) => {
+                    console.warn('[GPS] Sin señal satelital inmediata, usando referencia de trazado:', err);
+                    const latFall = refSalida ? refSalida[0] : MALAGUENO_LAT;
+                    const lngFall = refSalida ? refSalida[1] : MALAGUENO_LNG;
+                    intentarIniciarRecorrido(latFall, lngFall);
+                },
+                { enableHighAccuracy: true, timeout: 6000 }
+            );
+        } else {
+            const latFall = refSalida ? refSalida[0] : MALAGUENO_LAT;
+            const lngFall = refSalida ? refSalida[1] : MALAGUENO_LNG;
+            intentarIniciarRecorrido(latFall, lngFall);
+        }
+    }
+
+    // Botón Iniciar (Abre modal de movilidad o dispara directamente)
     if (btnStart) {
         btnStart.addEventListener('click', () => {
-            const refSalida = coordSalida || puntoLargada;
-            if (ultimaCoordenada) {
-                intentarIniciarRecorrido(ultimaCoordenada.lat, ultimaCoordenada.lng);
-            } else if ('geolocation' in navigator) {
-                navigator.geolocation.getCurrentPosition(
-                    (pos) => {
-                        const lat = pos.coords.latitude;
-                        const lng = pos.coords.longitude;
-                        ultimaCoordenada = { lat, lng };
-                        cyclistMarker.setLatLng([lat, lng]);
-                        intentarIniciarRecorrido(lat, lng);
-                    },
-                    (err) => {
-                        console.warn('[GPS] Sin señal satelital inmediata, usando referencia de trazado:', err);
-                        const latFall = refSalida ? refSalida[0] : MALAGUENO_LAT;
-                        const lngFall = refSalida ? refSalida[1] : MALAGUENO_LNG;
-                        intentarIniciarRecorrido(latFall, lngFall);
-                    },
-                    { enableHighAccuracy: true, timeout: 6000 }
-                );
+            if (modalMovilidad) {
+                modalMovilidad.style.display = 'flex';
             } else {
-                const latFall = refSalida ? refSalida[0] : MALAGUENO_LAT;
-                const lngFall = refSalida ? refSalida[1] : MALAGUENO_LNG;
-                intentarIniciarRecorrido(latFall, lngFall);
+                ejecutarDisparoInicio();
             }
+        });
+    }
+
+    // Botón Confirmar Selección de Movilidad en Modal
+    if (btnConfirmarMovilidad) {
+        btnConfirmarMovilidad.addEventListener('click', () => {
+            if (modalMovilidad) modalMovilidad.style.display = 'none';
+            ejecutarDisparoInicio();
         });
     }
 
@@ -1176,6 +1324,33 @@ document.addEventListener('DOMContentLoaded', () => {
             const refSalida = coordSalida || puntoLargada;
             const lat = ultimaCoordenada ? ultimaCoordenada.lat : (refSalida ? refSalida[0] : MALAGUENO_LAT);
             const lng = ultimaCoordenada ? ultimaCoordenada.lng : (refSalida ? refSalida[1] : MALAGUENO_LNG);
+
+            // Registro Anti-Trampa: Fijar coordenadas exactas del punto de detención
+            coordenadaPuntoPausa = { lat, lng };
+            timestampInicioPausaMs = Date.now();
+
+            if (marcadorPuntoPausa) {
+                map.removeLayer(marcadorPuntoPausa);
+                marcadorPuntoPausa = null;
+            }
+            if (lineaRetornoPausa) {
+                map.removeLayer(lineaRetornoPausa);
+                lineaRetornoPausa = null;
+            }
+
+            const pauseIcon = L.divIcon({
+                className: 'pause-marker-pin',
+                html: `<div style="background:#d97706; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-size:12px; border:2.5px solid #fff; box-shadow:0 3px 10px rgba(0,0,0,0.3);"><i class="fa-solid fa-pause"></i></div>`,
+                iconSize: [28, 28],
+                iconAnchor: [14, 14]
+            });
+            marcadorPuntoPausa = L.marker([lat, lng], { icon: pauseIcon, zIndexOffset: 950 }).addTo(map);
+            marcadorPuntoPausa.bindPopup(`
+                <div style="font-family:'Outfit', sans-serif; text-align:center;">
+                    <strong style="color:#d97706; font-size:0.9rem;"><i class="fa-solid fa-pause"></i> Punto de Pausa</strong><br>
+                    <span style="font-size:0.75rem; color:#64748b;">Lugar de detención oficial</span>
+                </div>
+            `);
 
             if (recorridoId) {
                 fetch('/api/recorrido/detener/', {
@@ -1204,13 +1379,60 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Función Reanudar
-    function reanudarMarcha() {
+    // Función de control Anti-Trampa al Reanudar
+    function solicitarReanudacionMarcha() {
         if (modalParada) modalParada.style.display = 'none';
+
+        // Evaluar si hubo desplazamiento físico durante la pausa
+        if (coordenadaPuntoPausa && ultimaCoordenada) {
+            const distDesplazamiento = calcularHaversineMetros(
+                coordenadaPuntoPausa.lat,
+                coordenadaPuntoPausa.lng,
+                ultimaCoordenada.lat,
+                ultimaCoordenada.lng
+            );
+
+            if (distDesplazamiento > UMBRAL_TOLERANCIA_PAUSA_METROS) {
+                // Se detectó desplazamiento con cronómetro en pausa
+                if (modalDesplazamientoPausa) {
+                    if (spanDesplazamientoPausaMetros) {
+                        spanDesplazamientoPausaMetros.textContent = `${Math.round(distDesplazamiento)} metros`;
+                    }
+                    modalDesplazamientoPausa.style.display = 'flex';
+                }
+                if (window.AudioCarrera && window.AudioCarrera.playDesvioAlerta) {
+                    window.AudioCarrera.playDesvioAlerta();
+                }
+                if (navigator.vibrate) {
+                    navigator.vibrate([250, 100, 250]);
+                }
+                return;
+            }
+        }
+
+        // Descanso en el mismo lugar (<= 40m): reanudación limpia
+        reanudarMarcha(false);
+    }
+
+    // Función Reanudar
+    function reanudarMarcha(penalizarTiempo = false) {
+        if (modalParada) modalParada.style.display = 'none';
+        if (modalDesplazamientoPausa) modalDesplazamientoPausa.style.display = 'none';
+
+        if (marcadorPuntoPausa) {
+            map.removeLayer(marcadorPuntoPausa);
+            marcadorPuntoPausa = null;
+        }
+        if (lineaRetornoPausa) {
+            map.removeLayer(lineaRetornoPausa);
+            lineaRetornoPausa = null;
+        }
+        coordenadaPuntoPausa = null;
+
         estadoCarrera = 'EN_CURSO';
         btnResume.style.display = 'none';
         btnPause.style.display = 'inline-flex';
-        iniciarCronometro();
+        iniciarCronometro(penalizarTiempo);
 
         if (recorridoId) {
             fetch('/api/recorrido/iniciar/', {
@@ -1221,12 +1443,43 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Botones del Modal Anti-Trampa
+    if (btnReanudarConPenalizacion) {
+        btnReanudarConPenalizacion.addEventListener('click', () => {
+            reanudarMarcha(true);
+        });
+    }
+
+    if (btnVolverPuntoPausa) {
+        btnVolverPuntoPausa.addEventListener('click', () => {
+            if (modalDesplazamientoPausa) modalDesplazamientoPausa.style.display = 'none';
+            if (coordenadaPuntoPausa && ultimaCoordenada) {
+                if (!lineaRetornoPausa) {
+                    lineaRetornoPausa = L.polyline(
+                        [[ultimaCoordenada.lat, ultimaCoordenada.lng], [coordenadaPuntoPausa.lat, coordenadaPuntoPausa.lng]],
+                        { color: '#d97706', weight: 4, dashArray: '6, 8', opacity: 0.95 }
+                    ).addTo(map);
+                } else {
+                    lineaRetornoPausa.setLatLngs([
+                        [ultimaCoordenada.lat, ultimaCoordenada.lng],
+                        [coordenadaPuntoPausa.lat, coordenadaPuntoPausa.lng]
+                    ]);
+                }
+                autoCentrarGPS = false;
+                map.fitBounds([
+                    [ultimaCoordenada.lat, ultimaCoordenada.lng],
+                    [coordenadaPuntoPausa.lat, coordenadaPuntoPausa.lng]
+                ], { padding: [80, 80], maxZoom: 17 });
+            }
+        });
+    }
+
     // Botón Reanudar
     if (btnResume) {
-        btnResume.addEventListener('click', reanudarMarcha);
+        btnResume.addEventListener('click', solicitarReanudacionMarcha);
     }
     if (btnReanudarDesdeModal) {
-        btnReanudarDesdeModal.addEventListener('click', reanudarMarcha);
+        btnReanudarDesdeModal.addEventListener('click', solicitarReanudacionMarcha);
     }
 
     // Estado inicial si ya estaba en curso o pausado
@@ -1287,6 +1540,16 @@ document.addEventListener('DOMContentLoaded', () => {
         detenerSeguimientoGPS();
         pausarCronometro();
         desactivarWakeLock();
+
+        if (marcadorPuntoPausa) {
+            map.removeLayer(marcadorPuntoPausa);
+            marcadorPuntoPausa = null;
+        }
+        if (lineaRetornoPausa) {
+            map.removeLayer(lineaRetornoPausa);
+            lineaRetornoPausa = null;
+        }
+        coordenadaPuntoPausa = null;
 
         const refMeta = coordMeta || puntoMeta;
         const lat = ultimaCoordenada ? ultimaCoordenada.lat : (refMeta ? refMeta[0] : null);

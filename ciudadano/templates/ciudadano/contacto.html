@@ -1,7 +1,7 @@
 {% extends "base/base_ciudadano.html" %}
 {% load static %}
 
-{% block title %}Inscripción de Ciclistas | Ciclismo Malagueño{% endblock %}
+{% block title %}Inscripción y Asistencia | Circuitos y Movilidad Malagueño{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'vendor/leaflet/leaflet.css' %}">
@@ -18,8 +18,8 @@
         <div class="contacto-hero-content">
             <!-- Badge dorado institucional -->
             <div class="contacto-hero-badge">
-                <i class="fa-solid fa-bicycle"></i>
-                <span>Inscripción Oficial de Ciclistas</span>
+                <i class="fa-solid fa-person-walking-dashed-line-arrow-right"></i>
+                <span>Inscripción Oficial de Participantes</span>
             </div>
 
             <h1 class="contacto-hero-title">
@@ -28,7 +28,7 @@
             </h1>
 
             <p class="contacto-hero-desc">
-                Inscríbete para participar en los circuitos municipales de Malagueño. Al completar tu registro, tu solicitud quedará en estado <strong>PENDIENTE</strong> para la revisión y validación del equipo organizador.
+                Inscríbete para participar en los circuitos municipales de Malagueño (caminata, running, bicicleta, moto, auto y más). Al completar tu registro, tu solicitud quedará en estado <strong>PENDIENTE</strong> para la revisión y validación del equipo organizador.
             </p>
         </div>
     </div>
@@ -41,8 +41,55 @@
     <div class="container">
         <div class="contacto-content-grid">
 
-            <!-- COLUMNA IZQUIERDA: PASOS DE VALIDACIÓN Y CANALES -->
+            <!-- COLUMNA IZQUIERDA: EMERGENCIAS, PASOS DE VALIDACIÓN Y CANALES -->
             <div class="contacto-info-column">
+
+                <!-- BLOQUE INSTITUCIONAL: EMERGENCIAS 24 HORAS (IDÉNTICO A LA REFERENCIA) -->
+                <div class="emergencias-vivo-block">
+                    <div class="emergencias-vivo-header">
+                        <span class="badge-vivo">VIVO</span>
+                        <span class="label-emergencias-vivo">EMERGENCIAS 24 HORAS</span>
+                    </div>
+
+                    <div class="emergencias-vivo-cards-list">
+                        <!-- Card 1: Centro de Monitoreo -->
+                        <a href="tel:03514984004" class="card-vivo-emergencia" title="Llamar a Centro de Monitoreo (498-40-04)">
+                            <div class="card-vivo-top">
+                                <div class="card-vivo-icon-circle">
+                                    <i class="fa-solid fa-shield-halved"></i>
+                                </div>
+                                <span class="card-vivo-phone">498-40-04</span>
+                            </div>
+                            <h4 class="card-vivo-title">CENTRO DE MONITOREO</h4>
+                            <p class="card-vivo-desc">Atención inmediata ante situaciones de inseguridad o incidentes en vía pública.</p>
+                        </a>
+
+                        <!-- Card 2: Emergencias Médicas -->
+                        <a href="tel:03514981188" class="card-vivo-emergencia" title="Llamar a Emergencias Médicas (498-11-88)">
+                            <div class="card-vivo-top">
+                                <div class="card-vivo-icon-circle">
+                                    <i class="fa-solid fa-stethoscope"></i>
+                                </div>
+                                <span class="card-vivo-phone">498-11-88</span>
+                            </div>
+                            <h4 class="card-vivo-title">EMERGENCIAS MÉDICAS</h4>
+                            <p class="card-vivo-desc">Servicio de ambulancias y atención pre-hospitalaria de urgencia.</p>
+                        </a>
+
+                        <!-- Card 3: Bomberos -->
+                        <a href="tel:03514981100" class="card-vivo-emergencia" title="Llamar a Bomberos (498-11-00)">
+                            <div class="card-vivo-top">
+                                <div class="card-vivo-icon-circle">
+                                    <i class="fa-solid fa-fire"></i>
+                                </div>
+                                <span class="card-vivo-phone">498-11-00</span>
+                            </div>
+                            <h4 class="card-vivo-title">BOMBEROS</h4>
+                            <p class="card-vivo-desc">Cuerpo activo para incendios, rescates y siniestros de gran magnitud.</p>
+                        </a>
+                    </div>
+                </div>
+
                 <!-- Tarjeta: Proceso de Validación -->
                 <div class="info-channel-card" style="border-left: 4px solid #2e7d32;">
                     <div class="info-channel-icon">
@@ -124,7 +171,7 @@
                         </span>
                     </div>
                     <p class="form-header-desc">
-                        Ingresa tus datos personales y deportivos. Una vez enviado el formulario, tu solicitud aparecerá en estado <strong>Pendiente</strong> en el Panel de Ciclistas para la decisión del administrador.
+                        Ingresa tus datos personales y deportivos. Una vez enviado el formulario, tu solicitud aparecerá en estado <strong>Pendiente</strong> en el Panel de Participantes para la decisión del administrador.
                     </p>
 
                     <!-- Mensajes Flash de Django -->
@@ -207,13 +254,17 @@
                             <div class="contacto-form-group">
                                 <label for="inputFechaNacimiento" class="contacto-label">
                                     <i class="fa-regular fa-calendar-days"></i>
-                                    <span>Fecha de Nacimiento</span>
+                                    <span>Fecha de Nacimiento <span style="color: #dc2626;">*</span></span>
                                 </label>
                                 <input type="date"
                                        id="inputFechaNacimiento"
                                        name="fecha_nacimiento"
+                                       required
                                        value="{{ datos.fecha_nacimiento|default:'' }}"
                                        class="contacto-input">
+                                <small style="display: block; color: #64748b; font-size: 0.74rem; margin-top: 0.25rem;">
+                                    Permitido para participantes de 10 a 90 años.
+                                </small>
                             </div>
 
                             <div class="contacto-form-group">
@@ -336,9 +387,67 @@
             <div style="font-family: inherit; font-size: 0.85rem; padding: 4px;">
                 <strong style="color: #114224; font-size: 0.95rem;">Municipalidad de Malagueño</strong><br>
                 <span>Av. San Martín 450</span><br>
-                <small style="color: #2e7d32; font-weight: 600;">Sede de Validación de Ciclistas</small>
+                <small style="color: #2e7d32; font-weight: 600;">Sede de Validación de Participantes</small>
             </div>
         `).openPopup();
+
+        // Configuración de límites de edad (10 a 90 años) en el input date
+        const inputFN = document.getElementById('inputFechaNacimiento');
+        if (inputFN) {
+            const hoy = new Date();
+            const yyyyHoy = hoy.getFullYear();
+            const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+            const dd = String(hoy.getDate()).padStart(2, '0');
+
+            const maxYear = yyyyHoy - 10;
+            const minYear = yyyyHoy - 90;
+            inputFN.setAttribute('max', `${maxYear}-${mm}-${dd}`);
+            inputFN.setAttribute('min', `${minYear}-${mm}-${dd}`);
+        }
+
+        // Validación cliente en el formulario
+        const formInscripcion = document.querySelector('.contacto-form-card form');
+        if (formInscripcion) {
+            formInscripcion.addEventListener('submit', function(e) {
+                const telInput = document.getElementById('inputTelefono');
+                const emergInput = document.getElementById('inputEmergencia');
+                const fnInput = document.getElementById('inputFechaNacimiento');
+
+                // 1. Validar fecha de nacimiento y edad 10-90
+                if (fnInput && fnInput.value) {
+                    const fn = new Date(fnInput.value + 'T00:00:00');
+                    const hoy = new Date();
+                    let edad = hoy.getFullYear() - fn.getFullYear();
+                    const m = hoy.getMonth() - fn.getMonth();
+                    if (m < 0 || (m === 0 && hoy.getDate() < fn.getDate())) {
+                        edad--;
+                    }
+                    if (edad < 10 || edad > 90) {
+                        e.preventDefault();
+                        alert(`La edad debe estar comprendida entre 10 y 90 años (edad calculada: ${edad} años).`);
+                        fnInput.focus();
+                        return false;
+                    }
+                }
+
+                // 2. Validar que el teléfono de emergencia sea diferente al personal
+                if (telInput && emergInput) {
+                    const telDigitos = telInput.value.replace(/\D/g, '');
+                    const emergDigitos = emergInput.value.replace(/\D/g, '');
+
+                    if (telDigitos && emergDigitos) {
+                        if (telDigitos === emergDigitos ||
+                            (telDigitos.length >= 7 && emergDigitos.length >= 7 &&
+                            (telDigitos.endsWith(emergDigitos) || emergDigitos.endsWith(telDigitos)))) {
+                            e.preventDefault();
+                            alert('El número de contacto de emergencia debe ser distinto a tu número de teléfono personal.');
+                            emergInput.focus();
+                            return false;
+                        }
+                    }
+                }
+            });
+        }
     });
 
     function handleFotoCarnetPreview(input) {

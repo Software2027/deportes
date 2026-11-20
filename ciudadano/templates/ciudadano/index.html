@@ -1,7 +1,7 @@
 {% extends "base/base_ciudadano.html" %}
 {% load static %}
 
-{% block title %}Ciclismo Malagueño | Pedalea por una ciudad más sostenible{% endblock %}
+{% block title %}Circuitos y Movilidad Malagueño | Explora, camina, corre o pedalea por una ciudad activa{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/pages/home.css' %}">
@@ -22,16 +22,16 @@
             <!-- Badge dorado: Próximo Evento -->
             <div class="badge-proximo-evento">
                 <i class="fa-solid fa-calendar-days"></i>
-                <span>Próximo Evento: 15 de Mayo</span>
+                <span>Circuitos y Movilidad Malagueño</span>
             </div>
 
             <h1 class="hero-title">
-                Pedalea por una ciudad <br>
-                <span class="highlight-yellow">más sostenible</span>
+                Recorre y explora Malagueño <br>
+                <span class="highlight-yellow">por una ciudad más activa</span>
             </h1>
 
             <p class="hero-description">
-                Únete a la comunidad de Ciclismo Malagueño. Participa en circuitos municipales, apoya al comercio local y sigue tu progreso en tiempo real.
+                Únete a la comunidad de Malagueño. Participa en circuitos municipales caminando, corriendo, en bicicleta o moto, apoya al comercio local y sigue tu telemetría GPS en tiempo real.
             </p>
 
             <div class="hero-actions">
@@ -49,61 +49,65 @@
 </section>
 
 <!-- ----------------------------------------------------------------------- -->
-<!-- 2. FILA DE 4 TARJETAS DE MÉTRICAS (VERDE BOSQUE TRASLÚCIDO)             -->
+<!-- 2. FILA DE 4 TARJETAS DE MÉTRICAS (DISEÑO DEPORTIVO MODERNO)             -->
 <!-- ----------------------------------------------------------------------- -->
 <section class="metrics-section">
     <div class="container">
         <div class="metrics-grid">
-            <!-- Card 1: Ciclistas Activos -->
+            <!-- Card 1: Participantes Activos -->
             <div class="metric-card">
-                <img src="{% static 'IMG/ciclistas.jpg' %}" alt="Ciclistas Activos" class="metric-bg-img">
+                <img src="{% static 'IMG/ciclistas.jpg' %}" alt="Participantes Registrados" class="metric-bg-img">
                 <div class="metric-green-overlay"></div>
-                <div class="metric-icon-box">
+                <div class="metric-icon-box" title="Comunidad Activa">
                     <i class="fa-solid fa-users"></i>
                 </div>
                 <div class="metric-center-content">
-                    <span class="metric-number">+2.5k</span>
-                    <span class="metric-label">CICLISTAS ACTIVOS</span>
+                    <span class="metric-number">{{ stat_ciclistas }}</span>
+                    <span class="metric-label">PARTICIPANTES REGISTRADOS</span>
                 </div>
+                <div class="metric-bottom-bar"></div>
             </div>
 
             <!-- Card 2: Rutas Definidas -->
             <div class="metric-card">
                 <img src="{% static 'IMG/distancia.jpg' %}" alt="Rutas Definidas" class="metric-bg-img">
                 <div class="metric-green-overlay"></div>
-                <div class="metric-icon-box">
-                    <i class="fa-solid fa-location-arrow"></i>
+                <div class="metric-icon-box" title="Distancia de Circuitos">
+                    <i class="fa-solid fa-route"></i>
                 </div>
                 <div class="metric-center-content">
-                    <span class="metric-number">120 km</span>
-                    <span class="metric-label">RUTAS DEFINIDAS</span>
+                    <span class="metric-number">{{ stat_km_rutas }} <span class="metric-unit">km</span></span>
+                    <span class="metric-label">RUTAS HABILITADAS</span>
                 </div>
+                <div class="metric-bottom-bar"></div>
             </div>
 
             <!-- Card 3: Negocios Adheridos -->
             <div class="metric-card">
                 <img src="{% static 'IMG/afiliados.jpg' %}" alt="Negocios Adheridos" class="metric-bg-img">
                 <div class="metric-green-overlay"></div>
-                <div class="metric-icon-box">
-                    <i class="fa-solid fa-circle-check"></i>
+                <div class="metric-icon-box" title="Comercios Locales">
+                    <i class="fa-solid fa-handshake"></i>
                 </div>
                 <div class="metric-center-content">
-                    <span class="metric-number">12</span>
+                    <span class="metric-number">{{ stat_negocios }}</span>
                     <span class="metric-label">NEGOCIOS ADHERIDOS</span>
                 </div>
+                <div class="metric-bottom-bar"></div>
             </div>
 
-            <!-- Card 4: Retos Mensuales -->
+            <!-- Card 4: Circuitos Activos -->
             <div class="metric-card">
-                <img src="{% static 'IMG/retos.jpg' %}" alt="Retos Mensuales" class="metric-bg-img">
+                <img src="{% static 'IMG/retos.jpg' %}" alt="Circuitos Activos" class="metric-bg-img">
                 <div class="metric-green-overlay"></div>
-                <div class="metric-icon-box">
+                <div class="metric-icon-box" title="Circuitos Oficiales y Libres">
                     <i class="fa-solid fa-trophy"></i>
                 </div>
                 <div class="metric-center-content">
-                    <span class="metric-number">15</span>
-                    <span class="metric-label">RETOS MENSUALES</span>
+                    <span class="metric-number">{{ stat_circuitos }}</span>
+                    <span class="metric-label">CIRCUITOS ACTIVOS</span>
                 </div>
+                <div class="metric-bottom-bar"></div>
             </div>
         </div>
     </div>
@@ -222,9 +226,9 @@
                     </div>
                 </div>
 
-                <a href="{% if user.is_authenticated %}{% url 'mapa_carrera' %}{% if circuito %}?circuito_id={{ circuito.id }}{% endif %}{% else %}{% url 'login' %}?next={% url 'mapa_carrera' %}{% if circuito %}?circuito_id={{ circuito.id }}{% endif %}{% endif %}" id="btn-pedalear-gps" class="btn-open-gps">
+                <a href="{% if user.is_authenticated %}{% url 'mi_progreso' %}{% if circuito %}?circuito_id={{ circuito.id }}{% endif %}{% else %}{% url 'login' %}?next={% url 'mi_progreso' %}{% if circuito %}?circuito_id={{ circuito.id }}{% endif %}{% endif %}" id="btn-pedalear-gps" class="btn-open-gps">
                     <i class="fa-solid fa-location-crosshairs"></i>
-                    <span>Pedalear con GPS</span>
+                    <span>Recorrer con GPS</span>
                 </a>
             </div>
         </div>
@@ -239,12 +243,12 @@
         <div class="all-circuits-header">
             <div class="all-circuits-header-info">
                 <div class="all-circuits-badge" style="background: rgba(250, 204, 21, 0.15); color: #facc15; border: 1px solid rgba(250, 204, 21, 0.4);">
-                    <i class="fa-solid fa-bicycle"></i>
-                    <span>Red de Circuitos Municipales</span>
+                    <i class="fa-solid fa-person-walking-dashed-line-arrow-right"></i>
+                    <span>Red de Circuitos y Rutas Municipales</span>
                 </div>
-                <h2 class="all-circuits-title" style="color: #ffffff;">Circuitos y Carreras Destacadas</h2>
+                <h2 class="all-circuits-title" style="color: #ffffff;">Circuitos y Recorridos Habilitados</h2>
                 <p class="all-circuits-desc" style="color: #cbd5e1;">
-                    Conoce tres de los trazados oficiales de Malagueño o explora el catálogo completo para inscribirte o pedalear en modo libre con telemetría GPS.
+                    Conoce los trazados oficiales de Malagueño o explora el catálogo completo para inscribirte o realizar los recorridos en modo libre con telemetría GPS.
                 </p>
             </div>
 
@@ -266,7 +270,7 @@
                 <div class="circuit-card-topbar">
                     {% if c.evento_vigente %}
                         <span class="badge-circuit-event" title="Competencia Oficial Programada">
-                            <i class="fa-solid fa-trophy"></i> Carrera Oficial • {{ c.fecha_evento|date:"d/m/Y" }}
+                            <i class="fa-solid fa-trophy"></i> Carrera Oficial • {{ c.fecha_evento|date:"d/m/Y" }}{% if c.hora_evento %} a las {{ c.hora_evento|time:"H:i" }} hs{% endif %}
                         </span>
                     {% elif c.evento_concluido %}
                         <span class="badge-circuit-finished" title="Carrera concluida. Recorrido 100% habilitado para entrenamiento y práctica libre.">
