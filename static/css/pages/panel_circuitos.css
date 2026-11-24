@@ -187,8 +187,16 @@
     color: #0f172a;
 }
 
+.table-responsive-container {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 0 0 18px 18px;
+}
+
 .circuitos-data-table {
     width: 100%;
+    min-width: 860px;
     border-collapse: collapse;
     font-size: 0.88rem;
 }
@@ -295,9 +303,17 @@
 }
 
 @keyframes pulseActive {
-    0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.4); }
-    70% { box-shadow: 0 0 0 6px rgba(22, 163, 74, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
+    0% {
+        box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.4);
+    }
+
+    70% {
+        box-shadow: 0 0 0 6px rgba(22, 163, 74, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(22, 163, 74, 0);
+    }
 }
 
 /* Botones de acción */
@@ -483,7 +499,7 @@
     height: 22px;
     border-radius: 50%;
     border: 2px solid #ffffff;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     cursor: pointer;
     flex-shrink: 0;
 }
@@ -543,9 +559,17 @@
 }
 
 @keyframes pulseDrawing {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.03); }
-    100% { transform: scale(1); }
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.03);
+    }
+
+    100% {
+        transform: scale(1);
+    }
 }
 
 .btn-clear-stage {
@@ -738,17 +762,213 @@
     border-color: #fca5a5;
 }
 
-/* Responsividad */
+/* Indicador visual de scroll horizontal en móviles */
+.mobile-table-scroll-hint {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 1.25rem;
+    background: #f0fdf4;
+    color: #166534;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-bottom: 1px solid #bbf7d0;
+}
+
+.mobile-table-scroll-hint i {
+    font-size: 0.85rem;
+    color: #15803d;
+}
+
+/* Responsividad General del Módulo de Circuitos */
 @media (max-width: 1024px) {
     .editor-circuito-container {
         grid-template-columns: 1fr;
     }
+
     .editor-sidebar-panel {
         max-height: 480px;
         border-right: none;
         border-bottom: 1px solid #e2e8f0;
     }
-    .editor-map-area, #circuitoEditorMap {
+
+    .editor-map-area,
+    #circuitoEditorMap {
         min-height: 480px;
+    }
+}
+
+@media (max-width: 768px) {
+    .panel-circuitos-container {
+        padding: 1rem 0.75rem;
+    }
+
+    .circuitos-page-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.85rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .btn-create-circuito {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Grilla de métricas en 2 columnas en móvil */
+    .circuitos-kpis-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.75rem !important;
+        margin-bottom: 1.25rem !important;
+    }
+
+    .circuito-metric-card {
+        padding: 0.85rem 0.95rem !important;
+        gap: 0.65rem !important;
+        border-radius: 14px !important;
+    }
+
+    .metric-icon-square {
+        width: 38px !important;
+        height: 38px !important;
+        font-size: 1.1rem !important;
+        border-radius: 10px !important;
+    }
+
+    .metric-value-huge {
+        font-size: 1.35rem !important;
+    }
+
+    .metric-title-small {
+        font-size: 0.68rem !important;
+    }
+
+    /* Mostrar pista táctil en móvil */
+    .mobile-table-scroll-hint {
+        display: flex;
+    }
+
+    .table-card-header {
+        padding: 1rem 1.2rem;
+    }
+
+    .table-title-text {
+        font-size: 1rem;
+    }
+
+    /* Optimización de celdas de la tabla en móvil */
+    .circuitos-data-table {
+        min-width: 820px;
+        font-size: 0.82rem;
+    }
+
+    .circuitos-data-table th {
+        padding: 0.65rem 0.75rem;
+        font-size: 0.7rem;
+    }
+
+    .circuitos-data-table td {
+        padding: 0.65rem 0.75rem;
+        vertical-align: middle;
+    }
+
+    /* Columna de información del circuito no fija (scroll libre sin tapar contenido) */
+    .circuitos-data-table th:first-child,
+    .circuitos-data-table td:first-child {
+        position: static !important;
+        box-shadow: none !important;
+        min-width: 170px;
+        max-width: 220px;
+    }
+
+    .circuito-name-bold {
+        font-size: 0.86rem;
+        font-weight: 700;
+        line-height: 1.25;
+    }
+
+    .circuito-desc-sub {
+        font-size: 0.72rem;
+        max-width: 180px;
+        line-height: 1.25;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        white-space: normal;
+        margin-top: 0.15rem;
+    }
+
+    .movilidades-tags-list {
+        display: flex;
+        gap: 0.25rem;
+        margin-top: 0.35rem;
+        flex-wrap: nowrap;
+        align-items: center;
+    }
+
+    .mov-tag-pill {
+        font-size: 0.68rem;
+        font-weight: 600;
+        padding: 0.15rem 0.4rem;
+        border-radius: 4px;
+        white-space: nowrap;
+    }
+
+    .mov-tag-more {
+        font-size: 0.65rem;
+        font-weight: 700;
+        color: #475569;
+        background: #f1f5f9;
+        padding: 0.15rem 0.35rem;
+        border-radius: 4px;
+        white-space: nowrap;
+    }
+
+    .subcircuitos-pills-wrap {
+        max-width: 190px;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .subcircuito-badge-pill {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.45rem;
+        white-space: nowrap;
+    }
+
+    .subcircuito-text-truncate {
+        max-width: 140px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: inline-block;
+        vertical-align: middle;
+    }
+
+    .subcircuito-badge-more {
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: #15803d;
+        background: #dcfce7;
+        padding: 0.15rem 0.45rem;
+        border-radius: 999px;
+        width: fit-content;
+        margin-top: 0.1rem;
+        gap: 0.25rem;
+    }
+
+    .subcircuito-badge-pill {
+        font-size: 0.68rem;
+        padding: 0.2rem 0.45rem;
+    }
+
+    .actions-cell-wrap {
+        gap: 0.35rem;
+    }
+
+    .btn-action-pill {
+        padding: 0.35rem 0.6rem;
+        font-size: 0.72rem;
     }
 }

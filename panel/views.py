@@ -29,15 +29,16 @@ from ciudadano.utils import calcular_distancia_metros
 
 def requiere_staff(view_func):
     """
-    Decorador que asegura que el usuario esté autenticado y posea permisos
-    de staff o superusuario para acceder a las vistas del panel de administración municipal.
+    Decorador que asegura que el usuario esté autenticado, posea permisos
+    de staff o superusuario y cuente con sesión de tipo administrativo
+    para acceder a las vistas del panel de administración municipal.
     """
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
         if not request.user.is_authenticated:
             messages.warning(request, "Debe iniciar sesión para acceder al panel de administración.")
             return redirect('panel_login')
-        if not (request.user.is_staff or request.user.is_superuser):
+        if not (request.user.is_staff or request.user.is_superuser) or request.session.get('tipo_sesion') == 'ciclista':
             messages.error(request, "Acceso restringido: Se requieren permisos administrativos para acceder.")
             return redirect('panel_login')
         return view_func(request, *args, **kwargs)
@@ -66,8 +67,8 @@ def login_admin_view(request):
     Permite ingreso con correo electrónico o con nombre de usuario.
     Solo otorga acceso a usuarios con rol staff o superusuario.
     """
-    # Si ya está autenticado como administrador o staff, redirigir directo al dashboard
-    if request.user.is_authenticated and (request.user.is_staff or request.user.is_superuser):
+    # Si ya está autenticado con sesión administrativa activa, redirigir directo al dashboard
+    if request.user.is_authenticated and (request.user.is_staff or request.user.is_superuser) and request.session.get('tipo_sesion') == 'administrador':
         return redirect('panel_dashboard')
 
     if request.method == 'POST':
@@ -100,8 +101,9 @@ def login_admin_view(request):
             messages.error(request, "Acceso denegado: El usuario no cuenta con permisos administrativos para el panel.")
             return render(request, 'panel/login.html')
 
-        # 3. Iniciar sesión y redirigir al Dashboard
+        # 3. Iniciar sesión y etiquetar sesión de administrador
         login(request, user_to_auth)
+        request.session['tipo_sesion'] = 'administrador'
         messages.success(
             request,
             f"¡Bienvenido al Portal de Gestión, {user_to_auth.first_name or user_to_auth.username}!"

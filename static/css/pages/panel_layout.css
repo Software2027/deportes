@@ -198,6 +198,37 @@ html, body {
     opacity: 1;
 }
 
+/* Badge Notificador de Solicitudes Pendientes */
+.badge-pendientes-sidebar {
+    background-color: #f59e0b;
+    color: #0b381e;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    line-height: 1.1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    animation: pulseBadgePending 2.2s infinite ease-in-out;
+}
+
+.nav-link.active .badge-pendientes-sidebar {
+    background-color: #ef4444;
+    color: #ffffff;
+}
+
+@keyframes pulseBadgePending {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.08);
+    }
+}
+
 /* User Footer del Sidebar */
 .sidebar-user-footer {
     padding: 1.25rem 1rem;
@@ -472,18 +503,63 @@ html, body {
 /* ------------------------------------------------------------------------------
    3. RESPONSIVE QUERIES
    ------------------------------------------------------------------------------ */
+/* Bloqueo de scroll de fondo cuando el menú lateral está abierto en móvil */
+body.sidebar-open {
+    overflow: hidden !important;
+}
+
 @media (max-width: 992px) {
     .panel-sidebar {
         position: fixed;
         left: 0;
         top: 0;
         bottom: 0;
+        height: 100vh;
+        height: 100dvh;
+        max-height: 100dvh;
+        display: flex;
+        flex-direction: column;
         transform: translateX(-100%);
-        box-shadow: 10px 0 30px rgba(0, 0, 0, 0.25);
+        box-shadow: 12px 0 35px rgba(0, 0, 0, 0.35);
+        z-index: 10000;
+        width: 285px;
     }
 
     .panel-sidebar.open {
         transform: translateX(0);
+    }
+
+    .sidebar-header {
+        flex-shrink: 0;
+        z-index: 2;
+    }
+
+    .sidebar-nav {
+        flex: 1 1 auto;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        min-height: 0;
+        padding-bottom: 1rem;
+    }
+
+    .sidebar-user-footer {
+        flex-shrink: 0;
+        margin-top: auto;
+        z-index: 2;
+        background-color: #062313;
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        padding: 1rem 1rem max(1.2rem, calc(0.85rem + env(safe-area-inset-bottom)));
+        box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-logout-sidebar {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        font-weight: 700;
+        font-size: 0.88rem;
     }
 
     .btn-sidebar-close {

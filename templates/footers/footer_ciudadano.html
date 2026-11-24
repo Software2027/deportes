@@ -46,8 +46,10 @@
                 </h4>
                 <ul class="col-contact-info">
                     <li>
-                        <i class="fa-solid fa-location-dot" style="margin-top: 3px; font-size: 14px;"></i>
-                        <span>San Martín 590, Malagueño, Córdoba (X5101)</span>
+                        <i class="fa-solid fa-location-dot" style="margin-top: 3px; font-size: 14px; color: #4ade80;"></i>
+                        <a href="https://maps.app.goo.gl/2M9GZJmtiwaAQa1X8" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none;" title="Abrir ubicación en Google Maps">
+                            <span>San Martín 590, Malagueño, Córdoba (X5101)</span>
+                        </a>
                     </li>
                     <li>
                         <i class="fa-solid fa-phone" style="font-size: 14px;"></i>
@@ -60,20 +62,28 @@
                 </ul>
             </div>
 
-            <!-- Columna 4: Ubicación (Mini Mapa) -->
+            <!-- Columna 4: Ubicación (Google Maps Real) -->
             <div class="footer-col col-map">
                 <h4 class="col-title">
                     <span class="col-icon"><i class="fa-solid fa-location-dot"></i></span>
                     UBICACIÓN
                 </h4>
-                <div class="mini-map-card">
-                    <div class="mini-map-visual">
-                        <!-- Representación cartográfica minimalista con pin central -->
-                        <div class="map-grid-lines"></div>
-                        <div class="map-pin-pulse">
-                            <i class="fa-solid fa-location-dot" style="font-size: 22px; color: #3b82f6;"></i>
-                        </div>
+                <div class="footer-gmaps-wrapper" style="border-radius: 12px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25); background: #0f172a;">
+                    <div style="width: 100%; height: 130px; position: relative;">
+                        <iframe 
+                            src="https://maps.google.com/maps?q=-31.4627219,-64.3581597+(Municipalidad+de+Malague%C3%B1o)&t=&z=15&ie=UTF8&iwloc=B&output=embed" 
+                            width="100%" 
+                            height="100%" 
+                            style="border: 0; display: block;" 
+                            allowfullscreen="" 
+                            loading="lazy"
+                            title="Mapa Municipalidad de Malagueño">
+                        </iframe>
                     </div>
+                    <a href="https://maps.app.goo.gl/2M9GZJmtiwaAQa1X8" target="_blank" rel="noopener noreferrer" style="display: flex; align-items: center; justify-content: center; gap: 0.45rem; padding: 0.45rem 0.65rem; background: #092614; color: #86efac; font-size: 0.72rem; font-weight: 700; text-decoration: none; border-top: 1px solid rgba(255, 255, 255, 0.1); transition: background 0.2s;" title="Ver en Google Maps">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        <span>Abrir en Google Maps</span>
+                    </a>
                 </div>
             </div>
         </div>

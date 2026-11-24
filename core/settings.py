@@ -51,8 +51,10 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'core.middleware.RoleIsolationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'core.middleware.CustomErrorPagesMiddleware',
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -69,6 +71,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'ciudadano.context_processors.circuito_activo_context',
+                'ciudadano.context_processors.panel_global_context',
             ],
         },
     },

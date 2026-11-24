@@ -23,6 +23,7 @@
 
     <!-- Estilos de Layout del Panel -->
     <link rel="stylesheet" href="{% static 'css/pages/panel_layout.css' %}">
+    <link rel="stylesheet" href="{% static 'css/includes/mensajes.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
 <body class="panel-body-layout">
@@ -65,17 +66,8 @@
 
             <!-- CONTENEDOR DE CONTENIDO -->
             <main class="panel-page-container">
-                <!-- MENSAJES DJANGO -->
-                {% if messages %}
-                    <div class="panel-messages-box">
-                        {% for message in messages %}
-                            <div class="panel-alert alert-{{ message.tags }}">
-                                <i class="fa-solid fa-circle-check"></i>
-                                <span>{{ message }}</span>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
+                <!-- MENSAJES DJANGO INSTITUCIONALES -->
+                {% include "includes/mensajes.html" %}
 
                 {% block content %}{% endblock %}
             </main>
@@ -98,11 +90,13 @@
             function openSidebar() {
                 if (sidebar) sidebar.classList.add('open');
                 if (backdrop) backdrop.classList.add('open');
+                document.body.classList.add('sidebar-open');
             }
 
             function closeSidebar() {
                 if (sidebar) sidebar.classList.remove('open');
                 if (backdrop) backdrop.classList.remove('open');
+                document.body.classList.remove('sidebar-open');
             }
 
             if (toggleBtn) toggleBtn.addEventListener('click', openSidebar);

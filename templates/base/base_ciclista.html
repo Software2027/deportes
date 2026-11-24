@@ -26,6 +26,7 @@
     <link rel="stylesheet" href="{% static 'css/pages/styles.css' %}">
     <link rel="stylesheet" href="{% static 'css/headers/header_ciclista.css' %}">
     <link rel="stylesheet" href="{% static 'css/footers/footer_ciclista.css' %}">
+    <link rel="stylesheet" href="{% static 'css/includes/mensajes.css' %}">
 
     {% block extra_css %}{% endblock %}
 </head>
@@ -37,12 +38,8 @@
     <!-- 2. Contenido Principal del Ciclista -->
     <main id="main-ciclista-content">
         {% if messages %}
-        <div class="container" style="padding-top: 1rem; margin-bottom: 0.5rem; position: relative; z-index: 100;">
-            {% for message in messages %}
-                <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-error{% endif %}">
-                    <span>{{ message }}</span>
-                </div>
-            {% endfor %}
+        <div class="container" style="padding-top: 1.25rem; margin-bottom: 0.5rem; position: relative; z-index: 100;">
+            {% include "includes/mensajes.html" %}
         </div>
         {% endif %}
         {% block content %}{% endblock %}

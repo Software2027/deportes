@@ -5,6 +5,7 @@ Vistas de renderizado de plantillas para el Portal Ciudadano y App Ciclista.
 from datetime import date, datetime
 import json
 import re
+from functools import wraps
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.utils import timezone
@@ -352,7 +353,8 @@ def login_view(request):
     Permite iniciar sesión con DNI o Correo Electrónico (Gmail) y su Contraseña.
     Verifica que la solicitud del ciclista se encuentre en estado 'Validado'.
     """
-    if request.user.is_authenticated and not request.user.is_staff:
+    # Si ya está autenticado con sesión de ciclista, redirigir a mi progreso
+    if request.user.is_authenticated and request.session.get('tipo_sesion') == 'ciclista':
         return redirect('mi_progreso')
 
     if request.method == 'POST':
@@ -423,8 +425,24 @@ def login_view(request):
                 messages.error(request, "Tu cuenta de ciclista no se encuentra habilitada para ingresar.")
                 return render(request, 'ciudadano/login.html', {'initial_username': identifier})
 
-        # Iniciar sesión oficial de Django
+        # Si el usuario es administrador/staff y no tiene perfil de ciclista acreditado,
+        # indicarle que debe utilizar el portal interno de gestión
+        if (user.is_staff or user.is_superuser) and not ciclista:
+            messages.info(
+                request,
+                "Has ingresado credenciales correspondientes a un Administrador Municipal. "
+                "Para acceder a la consola de gestión, por favor ingresa por el Acceso Interno."
+            )
+            return redirect('panel_login')
+
+        if not ciclista:
+            messages.error(request, "No se encontró un perfil de ciclista acreditado para este usuario.")
+            return render(request, 'ciudadano/login.html', {'initial_username': identifier})
+
+        # Iniciar sesión oficial de Django y etiquetar sesión de ciclista
         login(request, user)
+        request.session['tipo_sesion'] = 'ciclista'
+        request.session['ciclista_id'] = ciclista.id
         next_url = request.POST.get('next') or request.GET.get('next')
         if next_url and next_url.startswith('/'):
             return redirect(next_url)
@@ -443,14 +461,38 @@ def logout_view(request):
     return redirect('index')
 
 
+def requiere_ciclista(view_func):
+    """
+    Decorador que asegura que el usuario esté autenticado con rol y sesión de ciclista/participante.
+    Si un administrador municipal intenta ingresar a estas vistas, se le redirige al dashboard administrativo.
+    """
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('login')
+        
+        # Si la sesión activa es de tipo administrador o si es staff/superuser sin sesión de ciclista
+        if request.session.get('tipo_sesion') == 'administrador' or (
+            (request.user.is_staff or request.user.is_superuser) and request.session.get('tipo_sesion') != 'ciclista'
+        ):
+            messages.info(
+                request,
+                "Has ingresado con tu cuenta administrativa del municipio. "
+                "El área de progreso y GPS es de uso exclusivo para participantes acreditados. "
+                "Puedes gestionar las carreras y ciclistas desde tu Panel de Control."
+            )
+            return redirect('panel_dashboard')
+        
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
+
+
+@requiere_ciclista
 def mapa_carrera_view(request):
     """
     Pantalla fullscreen de carrera con GPS activo y telemetría en tiempo real.
     Provee el circuito oficial de Malagueño, trazados de etapas, comercios y sesión de carrera.
     """
-    if not request.user.is_authenticated:
-        return redirect('login')
-
     user = request.user
 
     # Obtener el perfil del ciclista asociado al usuario autenticado
@@ -607,14 +649,13 @@ def mapa_carrera_view(request):
     return render(request, 'ciudadano/mapa_carrera.html', context)
 
 
+@requiere_ciclista
 def mi_progreso_view(request):
     """
     Mini panel del ciclista (Dashboard post-login).
     Muestra el perfil oficial, circuito activo, estado de inscripción, KPIs reales de avance,
     subcircuitos validados, cronograma de paradas oficiales y mini mapa de la ruta.
     """
-    if not request.user.is_authenticated:
-        return redirect('login')
 
     user = request.user
 
@@ -1153,7 +1194,7 @@ def circuitos_ciudadano_list(request):
     return render(request, 'ciudadano/circuitos_listado.html', context)
 
 
-@login_required(login_url='login')
+@requiere_ciclista
 def circuitos_ciclista_view(request):
     """
     Catálogo de circuitos dentro de la experiencia privada del ciclista acreditado (/mis-circuitos/).
@@ -1196,3 +1237,41 @@ def circuitos_ciclista_view(request):
         'ciclista': ciclista,
     }
     return render(request, 'ciudadano/circuitos_ciclista.html', context)
+
+
+# ==============================================================================
+# MANEJADORES DE ERRORES HTTP PERSONALIZADOS (404, 500, 403, 400, 503)
+# ==============================================================================
+
+def error_404_view(request, exception=None):
+    """Página de error 404 personalizada - Página no encontrada."""
+    return render(request, 'errores/404.html', status=404)
+
+
+def error_500_view(request):
+    """Página de error 500 personalizada - Error interno del servidor."""
+    return render(request, 'errores/500.html', status=500)
+
+
+def error_403_view(request, exception=None):
+    """Página de error 403 personalizada - Acceso denegado."""
+    return render(request, 'errores/403.html', status=403)
+
+
+def error_400_view(request, exception=None):
+    """Página de error 400 personalizada - Solicitud incorrecta."""
+    return render(request, 'errores/400.html', status=400)
+
+
+def error_test_preview_view(request, code):
+    """
+    Vista auxiliar para previsualizar las páginas de error en entorno de desarrollo.
+    Ejemplo: /error/404/, /error/500/, /error/403/, /error/400/, /error/503/
+    """
+    code_str = str(code)
+    plantilla = f'errores/{code_str}.html'
+    status_int = int(code_str) if code_str.isdigit() else 200
+    try:
+        return render(request, plantilla, status=status_int)
+    except Exception:
+        return render(request, 'errores/404.html', status=404)

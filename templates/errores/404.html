@@ -1,0 +1,89 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página No Encontrada (404) | Municipalidad de Malagueño</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{% static 'IMG/logo_iso_municipalidad.png' %}">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Estilos de Errores Institucionales -->
+    <link rel="stylesheet" href="{% static 'css/pages/error_pages.css' %}">
+</head>
+<body class="error-page-body">
+
+    <main class="error-card-container">
+        <!-- Borde Superior Decorativo Degradado -->
+        <div class="error-card-topbar-stripe"></div>
+
+        <!-- Marca Institucional -->
+        <header class="error-brand-header">
+            <img src="{% static 'IMG/logo_iso_municipalidad.png' %}" alt="Escudo Municipalidad de Malagueño" class="error-brand-logo">
+            <div class="error-brand-text">
+                <span class="error-brand-sub">MUNICIPALIDAD DE</span>
+                <span class="error-brand-title">MALAGUEÑO</span>
+            </div>
+        </header>
+
+        <!-- Ícono Central en Círculo Pastel -->
+        <div class="error-icon-circle icon-circle-404" aria-hidden="true">
+            <i class="fa-solid fa-location-dot"></i>
+        </div>
+
+        <!-- Pill / Badge Código -->
+        <div>
+            <span class="error-code-badge badge-404">CÓDIGO 404 • PÁGINA NO ENCONTRADA</span>
+        </div>
+
+        <!-- Título Principal -->
+        <h1 class="error-main-title">No encontramos la página que buscás</h1>
+
+        <!-- Mensaje Explicativo -->
+        <p class="error-main-desc">
+            La dirección web ingresada no existe, ha cambiado de lugar o fue dada de baja. Podés volver a la página principal o explorar nuestras secciones oficiales:
+        </p>
+
+        <!-- Caja de Accesos Recomendados -->
+        <section class="error-recommendations-box">
+            <div class="error-recommendations-header">
+                <i class="fa-regular fa-compass"></i>
+                <span>Accesos Recomendados</span>
+            </div>
+            <nav class="error-recommendations-grid">
+                <a href="{% url 'circuitos_listado' %}" class="recommendation-link">
+                    <i class="fa-solid fa-route"></i>
+                    <span>Rutas y Circuitos</span>
+                </a>
+                <a href="{% url 'noticias_listado' %}" class="recommendation-link">
+                    <i class="fa-solid fa-newspaper"></i>
+                    <span>Prensa y Noticias</span>
+                </a>
+                <a href="{% url 'comercios_listado' %}" class="recommendation-link">
+                    <i class="fa-solid fa-shop"></i>
+                    <span>Comercios Adheridos</span>
+                </a>
+                <a href="{% url 'contacto' %}" class="recommendation-link">
+                    <i class="fa-solid fa-envelope"></i>
+                    <span>Contacto y Asistencia</span>
+                </a>
+            </nav>
+        </section>
+
+        <!-- Botón Principal -->
+        <div class="error-actions-wrap">
+            <a href="{% url 'index' %}" class="btn-error-primary">
+                <i class="fa-solid fa-house"></i>
+                <span>Ir al Portal Principal</span>
+            </a>
+        </div>
+    </main>
+
+    <!-- Pie Institucional -->
+    <footer class="error-page-footer">
+        © Municipalidad de Malagueño • Gestión y Transparencia
+    </footer>
+
+</body>
+</html>

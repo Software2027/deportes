@@ -1,0 +1,327 @@
+/* ==============================================================================
+   PÁGINAS DE ERROR INSTITUCIONALES - MUNICIPALIDAD DE MALAGUEÑO
+   Diseño centrado, minimalista y responsivo (404, 500, 403, 400, 503)
+   ============================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap');
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body.error-page-body {
+    background-color: #f1f5f9;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #1e293b;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem 1rem;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Contenedor Principal de la Card */
+.error-card-container {
+    width: 100%;
+    max-width: 540px;
+    background: #ffffff;
+    border-radius: 24px;
+    box-shadow: 0 10px 40px rgba(15, 23, 42, 0.08), 0 2px 12px rgba(15, 23, 42, 0.04);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    position: relative;
+    overflow: hidden;
+    padding: 2.5rem 2.25rem 2.25rem 2.25rem;
+    text-align: center;
+    animation: errorCardZoomIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes errorCardZoomIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Línea Superior Degradada Institucional (Verde / Dorado Malagueño) */
+.error-card-topbar-stripe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, #15803d 0%, #ca8a04 45%, #eab308 100%);
+}
+
+/* Marca / Logo Institucional */
+.error-brand-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.error-brand-logo {
+    height: 48px;
+    width: auto;
+    object-fit: contain;
+}
+
+.error-brand-text {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    line-height: 1.05;
+}
+
+.error-brand-sub {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #475569;
+    letter-spacing: 0.08em;
+}
+
+.error-brand-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #0b381e;
+    letter-spacing: 0.04em;
+}
+
+/* Ícono Circular Central */
+.error-icon-circle {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    margin: 0 auto 1.25rem auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.85rem;
+    transition: transform 0.2s ease;
+}
+
+.error-icon-circle:hover {
+    transform: scale(1.05);
+}
+
+/* Variantes de Ícono según Código */
+.icon-circle-404 {
+    background-color: #fef3c7;
+    color: #d97706;
+}
+
+.icon-circle-500 {
+    background-color: #fee2e2;
+    color: #dc2626;
+}
+
+.icon-circle-403 {
+    background-color: #fef2f2;
+    color: #991b1b;
+}
+
+.icon-circle-400 {
+    background-color: #f1f5f9;
+    color: #475569;
+}
+
+.icon-circle-503 {
+    background-color: #e0f2fe;
+    color: #0284c7;
+}
+
+/* Badge de Código de Error */
+.error-code-badge {
+    display: inline-block;
+    padding: 0.35rem 0.9rem;
+    border-radius: 999px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 0.85rem;
+}
+
+.badge-404 {
+    background-color: #fef3c7;
+    color: #b45309;
+    border: 1px solid #fde68a;
+}
+
+.badge-500 {
+    background-color: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
+}
+
+.badge-403 {
+    background-color: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.badge-400 {
+    background-color: #f1f5f9;
+    color: #334155;
+    border: 1px solid #e2e8f0;
+}
+
+.badge-503 {
+    background-color: #e0f2fe;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
+}
+
+/* Título Principal */
+.error-main-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #0b381e;
+    line-height: 1.25;
+    margin-bottom: 0.65rem;
+}
+
+/* Párrafo Descriptivo */
+.error-main-desc {
+    font-size: 0.9rem;
+    color: #64748b;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+}
+
+/* Caja de Accesos Recomendados */
+.error-recommendations-box {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.75rem;
+    text-align: left;
+}
+
+.error-recommendations-header {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #475569;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+}
+
+.error-recommendations-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.65rem 1rem;
+}
+
+.recommendation-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    color: #1e293b;
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 0.25rem 0;
+    transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.recommendation-link i {
+    font-size: 0.95rem;
+    color: #15803d;
+    width: 16px;
+    text-align: center;
+}
+
+.recommendation-link:hover {
+    color: #15803d;
+    transform: translateX(2px);
+}
+
+/* Botón de Acción Principal */
+.error-actions-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.btn-error-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    background-color: #15803d;
+    color: #ffffff;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    padding: 0.8rem 1.6rem;
+    border-radius: 12px;
+    text-decoration: none;
+    box-shadow: 0 4px 14px rgba(21, 128, 61, 0.28);
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-error-primary:hover {
+    background-color: #166534;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(21, 128, 61, 0.35);
+    color: #ffffff;
+}
+
+/* Pie de Página Institucional Fuera de la Card */
+.error-page-footer {
+    margin-top: 1.75rem;
+    font-size: 0.78rem;
+    color: #94a3b8;
+    text-align: center;
+    font-weight: 500;
+}
+
+/* Media Queries para Móviles */
+@media (max-width: 600px) {
+    .error-card-container {
+        padding: 2rem 1.25rem 1.5rem 1.25rem;
+        border-radius: 20px;
+    }
+
+    .error-main-title {
+        font-size: 1.35rem;
+    }
+
+    .error-main-desc {
+        font-size: 0.84rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .error-recommendations-grid {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+
+    .btn-error-primary {
+        width: 100%;
+        padding: 0.75rem 1.25rem;
+    }
+}

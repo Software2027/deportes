@@ -25,7 +25,14 @@
                 <li><a href="{% url 'contacto' %}" class="nav-link {% if request.resolver_match.url_name in 'contacto,contacto_submit,inscripcion' %}active{% endif %}">
                     <i class="fa-solid fa-envelope" style="margin-right: 5px;"></i>Contacto</a>
                 </li>
-                {% if user.is_authenticated %}
+                {% if user.is_authenticated and request.session.tipo_sesion == 'administrador' %}
+                <li class="nav-item-ingresar">
+                    <a href="{% url 'panel_dashboard' %}" class="btn btn-header-ingresar" style="background: #0b381e;" title="Ir al Panel de Gestión Municipal">
+                        <i class="fa-solid fa-chart-pie"></i>
+                        <span>Panel Municipal</span>
+                    </a>
+                </li>
+                {% elif user.is_authenticated %}
                 <li class="nav-item-ingresar">
                     <a href="{% url 'mi_progreso' %}" class="btn btn-header-ingresar {% if request.resolver_match.url_name in 'mi_progreso,mapa_carrera' %}active{% endif %}" style="background: #16a34a;" title="Ir a mi panel de ciclista">
                         <i class="fa-solid fa-bicycle"></i>

@@ -17,3 +17,22 @@ def circuito_activo_context(request):
     return {
         'circuito_activo_global': circuito_activo
     }
+
+
+def panel_global_context(request):
+    """
+    Inyecta métricas globales para el panel administrativo,
+    incluyendo el número de ciclistas con solicitud en estado 'Pendiente'.
+    """
+    total_pendientes = 0
+    # Se evalúa solo para rutas del panel administrativo o usuarios staff
+    if request.path.startswith('/panel/') or (hasattr(request, 'user') and request.user.is_authenticated and request.user.is_staff):
+        try:
+            from .models import Ciclista
+            total_pendientes = Ciclista.objects.filter(estado='Pendiente').count()
+        except Exception:
+            total_pendientes = 0
+
+    return {
+        'total_ciclistas_pendientes': total_pendientes
+    }

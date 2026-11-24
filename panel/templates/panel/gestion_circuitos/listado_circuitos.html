@@ -92,6 +92,12 @@
             </div>
         </div>
 
+        <!-- Indicador táctil para móviles -->
+        <div class="mobile-table-scroll-hint">
+            <i class="fa-solid fa-arrows-left-right"></i>
+            <span>Desliza horizontalmente para ver todos los datos y acciones</span>
+        </div>
+
         <div class="table-responsive-container">
             <table class="circuitos-data-table">
                 <thead>
@@ -112,17 +118,20 @@
                         <td class="col-circuito-info">
                             <span class="circuito-name-bold">{{ c.nombre }}</span>
                             <span class="circuito-desc-sub">{{ c.descripcion|default:"Sin descripción detallada" }}</span>
-                            <div style="display: flex; gap: 0.3rem; margin-top: 0.4rem; flex-wrap: wrap;">
-                                {% for mov in c.movilidades_lista %}
-                                    {% if mov == 'BICICLETA' %}<span title="Bicicleta / Ciclismo" style="font-size: 0.7rem; font-weight: 600; padding: 0.15rem 0.4rem; background: #e0f2fe; color: #0369a1; border-radius: 4px;"><i class="fa-solid fa-person-biking"></i> Bici</span>
-                                    {% elif mov == 'A_PIE' %}<span title="A Pie (Caminata / Running)" style="font-size: 0.7rem; font-weight: 600; padding: 0.15rem 0.4rem; background: #fef3c7; color: #b45309; border-radius: 4px;"><i class="fa-solid fa-person-walking"></i> A Pie</span>
-                                    {% elif mov == 'MOTO' %}<span title="Moto / Enduro" style="font-size: 0.7rem; font-weight: 600; padding: 0.15rem 0.4rem; background: #fee2e2; color: #b91c1c; border-radius: 4px;"><i class="fa-solid fa-motorcycle"></i> Moto</span>
-                                    {% elif mov == 'AUTO' %}<span title="Auto / Vehículo" style="font-size: 0.7rem; font-weight: 600; padding: 0.15rem 0.4rem; background: #f1f5f9; color: #475569; border-radius: 4px;"><i class="fa-solid fa-car"></i> Auto</span>
-                                    {% elif mov == 'CABALLO' %}<span title="A Caballo" style="font-size: 0.7rem; font-weight: 600; padding: 0.15rem 0.4rem; background: #fef9c3; color: #854d0e; border-radius: 4px;"><i class="fa-solid fa-horse"></i> Caballo</span>
-                                    {% elif mov == 'PATINES' %}<span title="Rollers / Patines" style="font-size: 0.7rem; font-weight: 600; padding: 0.15rem 0.4rem; background: #f3e8ff; color: #7e22ce; border-radius: 4px;"><i class="fa-solid fa-person-skating"></i> Patines</span>
-                                    {% else %}<span title="Otro Medio" style="font-size: 0.7rem; font-weight: 600; padding: 0.15rem 0.4rem; background: #f1f5f9; color: #334155; border-radius: 4px;"><i class="fa-solid fa-compass"></i> {{ mov }}</span>
+                            <div class="movilidades-tags-list">
+                                {% for mov in c.movilidades_lista|slice:":3" %}
+                                    {% if mov == 'BICICLETA' %}<span class="mov-tag-pill" title="Bicicleta / Ciclismo" style="background: #e0f2fe; color: #0369a1;"><i class="fa-solid fa-person-biking"></i> Bici</span>
+                                    {% elif mov == 'A_PIE' %}<span class="mov-tag-pill" title="A Pie (Caminata / Running)" style="background: #fef3c7; color: #b45309;"><i class="fa-solid fa-person-walking"></i> A Pie</span>
+                                    {% elif mov == 'MOTO' %}<span class="mov-tag-pill" title="Moto / Enduro" style="background: #fee2e2; color: #b91c1c;"><i class="fa-solid fa-motorcycle"></i> Moto</span>
+                                    {% elif mov == 'AUTO' %}<span class="mov-tag-pill" title="Auto / Vehículo" style="background: #f1f5f9; color: #475569;"><i class="fa-solid fa-car"></i> Auto</span>
+                                    {% elif mov == 'CABALLO' %}<span class="mov-tag-pill" title="A Caballo" style="background: #fef9c3; color: #854d0e;"><i class="fa-solid fa-horse"></i> Caballo</span>
+                                    {% elif mov == 'PATINES' %}<span class="mov-tag-pill" title="Rollers / Patines" style="background: #f3e8ff; color: #7e22ce;"><i class="fa-solid fa-person-skating"></i> Patines</span>
+                                    {% else %}<span class="mov-tag-pill" title="Otro Medio" style="background: #f1f5f9; color: #334155;"><i class="fa-solid fa-compass"></i> {{ mov }}</span>
                                     {% endif %}
                                 {% endfor %}
+                                {% if c.movilidades_lista|length > 3 %}
+                                    <span class="mov-tag-more" title="Más movilidades: {{ c.movilidades_lista|join:', ' }}">+{{ c.movilidades_lista|length|add:"-3" }}</span>
+                                {% endif %}
                             </div>
                         </td>
 
@@ -162,14 +171,19 @@
                         <!-- Etapas / Subcircuitos con color identificatorio -->
                         <td>
                             <div class="subcircuitos-pills-wrap">
-                                {% for sub in c.subcircuitos.all %}
+                                {% for sub in c.subcircuitos.all|slice:":2" %}
                                 <span class="subcircuito-badge-pill" title="Etapa {{ sub.orden }}: {{ sub.nombre }}">
                                     <span class="subcircuito-color-dot" style="background-color: {{ sub.color_capa|default:'#16a34a' }};"></span>
-                                    <span>E{{ sub.orden }}: {{ sub.nombre }}</span>
+                                    <span class="subcircuito-text-truncate">E{{ sub.orden }}: {{ sub.nombre|truncatechars:18 }}</span>
                                 </span>
                                 {% empty %}
-                                <span style="font-size: 0.78rem; color: #94a3b8; font-style: italic;">Sin etapas creadas</span>
+                                <span style="font-size: 0.78rem; color: #94a3b8; font-style: italic;">Sin etapas</span>
                                 {% endfor %}
+                                {% if c.subcircuitos.count > 2 %}
+                                <span class="subcircuito-badge-more" title="Total: {{ c.subcircuitos.count }} etapas">
+                                    +{{ c.subcircuitos.count|add:"-2" }} más
+                                </span>
+                                {% endif %}
                             </div>
                         </td>
 

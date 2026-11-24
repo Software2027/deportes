@@ -1,0 +1,39 @@
+{% load static %}
+{% if messages %}
+<div class="muni-messages-wrapper" id="muniMessagesContainer" role="region" aria-label="Mensajes del sistema">
+    {% for message in messages %}
+        <div class="muni-alert {% if message.tags == 'success' %}muni-alert-success{% elif message.tags == 'error' or message.tags == 'danger' %}muni-alert-error{% elif message.tags == 'warning' %}muni-alert-warning{% else %}muni-alert-info{% endif %}" role="alert">
+            <div class="muni-alert-icon-box">
+                {% if message.tags == 'success' %}
+                    <i class="fa-solid fa-circle-check"></i>
+                {% elif message.tags == 'error' or message.tags == 'danger' %}
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                {% elif message.tags == 'warning' %}
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                {% else %}
+                    <i class="fa-solid fa-circle-info"></i>
+                {% endif %}
+            </div>
+            
+            <div class="muni-alert-content">
+                <span class="muni-alert-title">
+                    {% if message.tags == 'success' %}
+                        ¡Operación Exitosa!
+                    {% elif message.tags == 'error' or message.tags == 'danger' %}
+                        Atención / Verificación requerida
+                    {% elif message.tags == 'warning' %}
+                        Aviso Importante
+                    {% else %}
+                        Información Municipal
+                    {% endif %}
+                </span>
+                <div class="muni-alert-text">{{ message }}</div>
+            </div>
+
+            <button type="button" class="muni-alert-close" onclick="this.closest('.muni-alert').remove();" aria-label="Cerrar notificación">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+    {% endfor %}
+</div>
+{% endif %}

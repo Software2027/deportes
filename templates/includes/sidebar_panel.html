@@ -29,7 +29,14 @@
                         <i class="fa-solid fa-users nav-icon"></i>
                         <span>Ciclistas</span>
                     </div>
-                    <i class="fa-solid fa-chevron-right nav-arrow"></i>
+                    <div style="display: flex; align-items: center; gap: 0.45rem;">
+                        {% if total_ciclistas_pendientes and total_ciclistas_pendientes > 0 %}
+                        <span class="badge-pendientes-sidebar" title="{{ total_ciclistas_pendientes }} solicitudes pendientes de validación">
+                            {{ total_ciclistas_pendientes }}
+                        </span>
+                        {% endif %}
+                        <i class="fa-solid fa-chevron-right nav-arrow"></i>
+                    </div>
                 </a>
             </li>
             <li class="nav-item">
