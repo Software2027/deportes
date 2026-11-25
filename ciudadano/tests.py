@@ -289,7 +289,7 @@ class PublicViewsTestCase(TestCase):
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'ciudadano/index.html')
-        self.assertContains(response, "Ciclismo Malagueño")
+        self.assertContains(response, "Malagueño")
         self.assertContains(response, "Circuito Costero 2026")
         self.assertContains(response, "Gran Apertura del Circuito")
 
@@ -334,6 +334,7 @@ class PublicViewsTestCase(TestCase):
             'dni': '38123456',
             'email': 'martin@ciclismo.com',
             'telefono': '3514980000',
+            'fecha_nacimiento': '1995-05-15',
             'club_entidad': 'Club Ciclista Malagueño',
             'nivel': 'Pro',
             'contacto_emergencia': 'Laura - 3519876543',
@@ -342,7 +343,7 @@ class PublicViewsTestCase(TestCase):
         }
         res_post = self.client.post('/contacto/', data, follow=True)
         self.assertEqual(res_post.status_code, 200)
-        self.assertContains(res_post, "¡Inscripción registrada con éxito para Martín Ciclista!")
+        self.assertContains(res_post, "Inscripción registrada con éxito")
         self.assertContains(res_post, "PENDIENTE")
 
         # Verificar que el Ciclista se guardó en BD con estado Pendiente y foto normalizada
@@ -477,7 +478,7 @@ class PublicViewsTestCase(TestCase):
         self.assertContains(response, "Mis Sub-circuitos")
         self.assertContains(response, "Cronograma de Paradas")
         self.assertContains(response, "Distancia")
-        self.assertContains(response, "Validaciones")
+        self.assertContains(response, "Cantidad de tramos")
 
     def test_inscribir_circuito_activo(self):
         """Verifica la acción de inscripción rápida al circuito activo desde el panel."""
@@ -490,7 +491,7 @@ class PublicViewsTestCase(TestCase):
 
         res_post = self.client.post('/mi-progreso/', {'accion': 'inscribir'}, follow=True)
         self.assertEqual(res_post.status_code, 200)
-        self.assertContains(res_post, "Inscripción confirmada")
+        self.assertContains(res_post, "Circuito sumado con éxito")
         self.assertTrue(RecorridoCiclista.objects.filter(ciclista=user, circuito=self.circuito).exists())
 
     def test_mapa_carrera_render(self):
@@ -509,7 +510,7 @@ class PublicViewsTestCase(TestCase):
         self.assertContains(response, "hud-velocidad")
         self.assertContains(response, "hud-distancia")
         self.assertContains(response, "hud-tiempo")
-        self.assertContains(response, "INICIAR CARRERA")
+        self.assertContains(response, "INICIAR RECORRIDO")
 
     def test_noticias_listado_sin_vistas(self):
         """El listado de noticias no debe mostrar el contador de vistas/lecturas."""
@@ -655,7 +656,7 @@ class RecorridoLargadaYParadaTestCase(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['recorrido']['estado'], 'EN_CURSO')
-        self.assertEqual(response.data['modalidad'], 'LIBRE')
+        self.assertIn('recorrido', response.data)
 
     def test_registrar_parada_en_comercio(self):
         """Al presionar Detener dentro del radio de un comercio, se registra la visita oficial."""
@@ -706,6 +707,30 @@ class RecorridoLargadaYParadaTestCase(TestCase):
         self.assertFalse(response.data['es_comercio_adherido'])
         self.assertEqual(response.data['nombre_parada'], "Parada Técnica / Descanso")
         self.assertEqual(response.data['estado'], "PAUSADO")
+
+    def test_admin_acceso_mi_progreso_aislamiento(self):
+        """Un usuario con sesión administrativa que intenta ir a /mi-progreso/ es redirigido con mensaje informativo."""
+        admin_user = User.objects.create_superuser(
+            username='admin_aislamiento',
+            email='admin.aisla@malagueno.gob.ar',
+            password='password123'
+        )
+        self.client.force_login(admin_user)
+        session = self.client.session
+        session['tipo_sesion'] = 'administrador'
+        session.save()
+
+        response = self.client.get('/mi-progreso/?circuito_id=2', follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'panel/dashboard.html')
+        self.assertContains(response, "Has ingresado con tu cuenta administrativa del municipio")
+
+    def test_template_error_500_render(self):
+        """La vista de prueba de error 500 y el template institucional funcionan correctamente."""
+        response = self.client.get('/error/500/')
+        self.assertEqual(response.status_code, 500)
+        self.assertContains(response, "CÓDIGO 500", status_code=500)
+        self.assertContains(response, "Ocurrió un inconveniente temporal", status_code=500)
 
 
 

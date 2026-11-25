@@ -84,27 +84,17 @@
                     <textarea id="circuitoDescripcion" rows="3" style="padding: 0.65rem; border-radius: 8px; border: 1px solid #cbd5e1; font-family: inherit; font-size: 0.85rem;" placeholder="Detalles de la carrera, perfil altimétrico, recomendaciones...">{{ circuito.descripcion|default:'' }}</textarea>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem;">
-                    <div class="form-group" style="display: flex; flex-direction: column; gap: 0.35rem;">
-                        <label style="font-size: 0.8rem; font-weight: 700; color: #0f172a;" for="circuitoFechaEvento">
-                            <i class="fa-regular fa-calendar"></i> Fecha del Evento
-                        </label>
-                        <input type="date" id="circuitoFechaEvento" class="form-control-input" style="padding: 0.55rem; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.82rem;" value="{{ circuito.fecha_evento|date:'Y-m-d'|default:'' }}">
-                    </div>
-
-                    <div class="form-group" style="display: flex; flex-direction: column; gap: 0.35rem;">
-                        <label style="font-size: 0.8rem; font-weight: 700; color: #0f172a;" for="circuitoHoraEvento">
-                            <i class="fa-regular fa-clock"></i> Hora de Largada
-                        </label>
-                        <input type="time" id="circuitoHoraEvento" class="form-control-input" style="padding: 0.55rem; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.82rem;" value="{{ circuito.hora_evento|time:'H:i'|default:'' }}">
-                    </div>
-                </div>
-
                 <div class="form-group" style="display: flex; flex-direction: column; gap: 0.35rem; margin-top: 0.2rem;">
-                    <label style="font-size: 0.8rem; font-weight: 700; color: #0f172a;" for="circuitoFechaLimite">
-                        <i class="fa-solid fa-hourglass-half"></i> Límite Inscripción
+                    <label style="font-size: 0.8rem; font-weight: 700; color: #0f172a;" for="circuitoDificultad">
+                        <i class="fa-solid fa-gauge-high"></i> Dificultad / Nivel de Exigencia *
                     </label>
-                    <input type="date" id="circuitoFechaLimite" class="form-control-input" style="padding: 0.55rem; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.82rem;" value="{{ circuito.fecha_limite_inscripcion|date:'Y-m-d'|default:'' }}">
+                    <select id="circuitoDificultad" class="form-control-input" style="padding: 0.55rem; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.82rem; background: #fff;">
+                        {% for cod, nombre_dif in dificultades_circuito %}
+                        <option value="{{ cod }}" {% if circuito and circuito.dificultad == cod or not circuito and cod == 'MODERADO' %}selected{% endif %}>
+                            {{ nombre_dif }}
+                        </option>
+                        {% endfor %}
+                    </select>
                 </div>
 
                 <div class="form-group" style="display: flex; flex-direction: column; gap: 0.35rem; margin-top: 0.2rem;">
@@ -758,10 +748,9 @@ function guardarCircuitoCompleto() {
         }
     }
 
-    const fechaEvento = document.getElementById('circuitoFechaEvento').value || null;
-    const horaEvento = document.getElementById('circuitoHoraEvento').value || null;
-    const fechaLimite = document.getElementById('circuitoFechaLimite').value || null;
     const radioLargada = parseInt(document.getElementById('circuitoRadioLargada').value) || 80;
+    const dificultadSelect = document.getElementById('circuitoDificultad');
+    const dificultad = dificultadSelect ? dificultadSelect.value : 'MODERADO';
     const movilidadesPermitidas = Array.from(document.querySelectorAll('.chk-movilidad:checked')).map(cb => cb.value);
 
     if (movilidadesPermitidas.length === 0) {
@@ -774,10 +763,8 @@ function guardarCircuitoCompleto() {
         circuito_id: circuitoId || null,
         nombre: nombre,
         descripcion: descripcion,
+        dificultad: dificultad,
         activo: activo,
-        fecha_evento: fechaEvento,
-        hora_evento: horaEvento,
-        fecha_limite_inscripcion: fechaLimite,
         radio_largada_metros: radioLargada,
         movilidades_permitidas: movilidadesPermitidas,
         etapas: etapas.map((e, idx) => ({

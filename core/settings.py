@@ -51,8 +51,8 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'core.middleware.RoleIsolationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'core.middleware.RoleIsolationMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'core.middleware.CustomErrorPagesMiddleware',
 ]

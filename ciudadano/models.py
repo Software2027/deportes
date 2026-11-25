@@ -43,6 +43,14 @@ TIPOS_MOVILIDAD = [
     ('OTRO', 'Otro Medio'),
 ]
 
+# Niveles de Dificultad para Categorizar Circuitos
+DIFICULTADES_CIRCUITO = [
+    ('FACIL', 'Fácil / Principiante'),
+    ('MODERADO', 'Moderado / Intermedio'),
+    ('DIFICIL', 'Difícil / Avanzado'),
+    ('EXPERTO', 'Experto / Pro'),
+]
+
 
 class CircuitoGeneral(models.Model):
     """
@@ -50,33 +58,22 @@ class CircuitoGeneral(models.Model):
     """
     nombre = models.CharField(max_length=150, verbose_name="Nombre del Circuito")
     descripcion = models.TextField(blank=True, verbose_name="Descripción")
+    dificultad = models.CharField(
+        max_length=20,
+        choices=DIFICULTADES_CIRCUITO,
+        default='MODERADO',
+        verbose_name="Dificultad / Nivel",
+        help_text="Categoría de exigencia física y técnica del circuito."
+    )
     activo = models.BooleanField(
         default=False,
         verbose_name="Activo",
         help_text="Define qué circuito se muestra por defecto en el portal público y en la app ciclista."
     )
-    fecha_evento = models.DateField(
-        null=True,
-        blank=True,
-        verbose_name="Fecha del Evento Oficial",
-        help_text="Fecha programada para la largada de la competencia oficial."
-    )
-    hora_evento = models.TimeField(
-        null=True,
-        blank=True,
-        verbose_name="Hora de Largada Oficial",
-        help_text="Hora programada para la largada de la competencia oficial (ej: 09:30)."
-    )
-    fecha_limite_inscripcion = models.DateField(
-        null=True,
-        blank=True,
-        verbose_name="Fecha Límite de Inscripción",
-        help_text="Fecha hasta la cual los ciclistas pueden postularse para la carrera oficial."
-    )
     radio_largada_metros = models.IntegerField(
         default=20,
         verbose_name="Radio de Largada (metros)",
-        help_text="Distancia máxima de tolerancia (20 m recomendados) respecto al Km 0 para validar la largada oficial."
+        help_text="Distancia máxima de tolerancia (20 m recomendados) respecto al Km 0 para validar el inicio del recorrido."
     )
     movilidades_permitidas = models.CharField(
         max_length=200,
@@ -99,40 +96,6 @@ class CircuitoGeneral(models.Model):
         if not self.movilidades_permitidas:
             return ['BICICLETA', 'A_PIE']
         return [m.strip().upper() for m in self.movilidades_permitidas.split(',') if m.strip()]
-
-    @property
-    def es_evento(self):
-        """Indica si el circuito corresponde a una carrera o evento oficial con fecha programada."""
-        return self.fecha_evento is not None
-
-    @property
-    def evento_vigente(self):
-        """Indica si la fecha de la carrera es igual o posterior a la jornada actual."""
-        if not self.fecha_evento:
-            return False
-        from datetime import date
-        return self.fecha_evento >= date.today()
-
-    @property
-    def inscripciones_abiertas(self):
-        """Indica si el período de inscripción a la carrera oficial está activo según la fecha límite configurada."""
-        if not self.fecha_evento:
-            return False
-        from datetime import date
-        today = date.today()
-        # Si tiene fecha límite de inscripción explícita, se respeta estrictamente
-        if self.fecha_limite_inscripcion:
-            return today <= self.fecha_limite_inscripcion
-        # Si no se configuró fecha límite, cierra el mismo día del evento oficial
-        return today <= self.fecha_evento
-
-    @property
-    def evento_concluido(self):
-        """Indica si la fecha programada de la carrera ya transcurrió pero el circuito continúa disponible para uso libre."""
-        if not self.fecha_evento:
-            return False
-        from datetime import date
-        return self.fecha_evento < date.today()
 
     @property
     def punto_largada(self):
@@ -159,16 +122,6 @@ class CircuitoGeneral(models.Model):
         """Calcula la distancia total acumulada del circuito sumando los trazados de sus etapas."""
         total_metros = sum(sub.distancia_metros for sub in self.subcircuitos.all())
         return round(total_metros / 1000.0, 2)
-
-    @property
-    def inscripcion_abierta(self):
-        """Indica si el período de inscripción para el evento oficial sigue vigente."""
-        if not self.evento_vigente:
-            return False
-        if not self.fecha_limite_inscripcion:
-            return True
-        from datetime import date
-        return date.today() <= self.fecha_limite_inscripcion
 
 
 class SubCircuito(models.Model):
@@ -378,10 +331,6 @@ class RecorridoCiclista(models.Model):
         ('PAUSADO', 'Pausado'),
         ('FINALIZADO', 'Finalizado'),
     ]
-    MODALIDADES = [
-        ('OFICIAL', 'Evento Oficial'),
-        ('LIBRE', 'Libre / Práctica'),
-    ]
 
     ciclista = models.ForeignKey(
         User,
@@ -403,12 +352,6 @@ class RecorridoCiclista(models.Model):
         default='LISTO',
         verbose_name="Estado del Recorrido"
     )
-    modalidad = models.CharField(
-        max_length=20,
-        choices=MODALIDADES,
-        default='LIBRE',
-        verbose_name="Modalidad del Recorrido"
-    )
     tipo_movilidad = models.CharField(
         max_length=20,
         choices=TIPOS_MOVILIDAD,
@@ -422,7 +365,7 @@ class RecorridoCiclista(models.Model):
         ordering = ['-inicio']
 
     def __str__(self):
-        return f"Recorrido #{self.id} ({self.get_modalidad_display()}) - {self.ciclista.username} [{self.get_estado_display()}]"
+        return f"Recorrido #{self.id} - {self.ciclista.username} [{self.get_estado_display()}]"
 
     @property
     def distancia_km(self):

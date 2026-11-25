@@ -103,7 +103,7 @@
                 <thead>
                     <tr>
                         <th>Circuito</th>
-                        <th>Modalidad / Fechas</th>
+                        <th>Modalidad</th>
                         <th>Distancia</th>
                         <th>Etapas</th>
                         <th>Comercios</th>
@@ -135,27 +135,30 @@
                             </div>
                         </td>
 
-                        <!-- Modalidad y Fechas Oficiales -->
+                        <!-- Modalidad y Dificultad -->
                         <td>
-                            {% if c.es_evento %}
-                                <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-                                    <span style="display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 700; font-size: 0.8rem; color: #b45309; background: #fef3c7; padding: 0.2rem 0.55rem; border-radius: 6px; width: fit-content;">
-                                        <i class="fa-solid fa-trophy"></i> Carrera Oficial
-                                    </span>
-                                    <span style="font-size: 0.82rem; color: #334155; font-weight: 600;">
-                                        <i class="fa-regular fa-calendar" style="color: #64748b;"></i> {{ c.fecha_evento|date:"d/m/Y" }}{% if c.hora_evento %} • <i class="fa-regular fa-clock" style="color: #64748b;"></i> {{ c.hora_evento|time:"H:i" }} hs{% endif %}
-                                    </span>
-                                    {% if c.fecha_limite_inscripcion %}
-                                    <span style="font-size: 0.74rem; color: #64748b;">
-                                        Límite: {{ c.fecha_limite_inscripcion|date:"d/m/Y" }}
-                                    </span>
-                                    {% endif %}
-                                </div>
-                            {% else %}
-                                <span style="display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 700; font-size: 0.8rem; color: #0369a1; background: #e0f2fe; padding: 0.2rem 0.55rem; border-radius: 6px;">
-                                    <i class="fa-solid fa-infinity"></i> Recreativo Permanente
+                            <div style="display: flex; flex-direction: column; gap: 0.35rem;">
+                                <span style="display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 700; font-size: 0.8rem; color: #0369a1; background: #e0f2fe; padding: 0.2rem 0.55rem; border-radius: 6px; width: fit-content;">
+                                    <i class="fa-solid fa-infinity"></i> Modo Libre Permanente
                                 </span>
-                            {% endif %}
+                                {% if c.dificultad == 'FACIL' %}
+                                    <span style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.74rem; font-weight: 700; color: #15803d; background: #dcfce7; padding: 0.15rem 0.45rem; border-radius: 4px; width: fit-content;">
+                                        <i class="fa-solid fa-seedling"></i> Fácil / Principiante
+                                    </span>
+                                {% elif c.dificultad == 'MODERADO' %}
+                                    <span style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.74rem; font-weight: 700; color: #0284c7; background: #e0f2fe; padding: 0.15rem 0.45rem; border-radius: 4px; width: fit-content;">
+                                        <i class="fa-solid fa-mountain"></i> Moderado / Intermedio
+                                    </span>
+                                {% elif c.dificultad == 'DIFICIL' %}
+                                    <span style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.74rem; font-weight: 700; color: #ea580c; background: #ffedd5; padding: 0.15rem 0.45rem; border-radius: 4px; width: fit-content;">
+                                        <i class="fa-solid fa-fire"></i> Difícil / Avanzado
+                                    </span>
+                                {% elif c.dificultad == 'EXPERTO' %}
+                                    <span style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.74rem; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 0.15rem 0.45rem; border-radius: 4px; width: fit-content;">
+                                        <i class="fa-solid fa-bolt"></i> Experto / Pro
+                                    </span>
+                                {% endif %}
+                            </div>
                         </td>
 
                         <!-- Distancia y Radio -->

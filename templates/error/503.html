@@ -1,0 +1,89 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servicio en Mantenimiento (503) | Municipalidad de Malagueño</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{% static 'IMG/logo_iso_municipalidad.png' %}">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Estilos de Errores Institucionales -->
+    <link rel="stylesheet" href="{% static 'css/pages/error_pages.css' %}">
+</head>
+<body class="error-page-body">
+
+    <main class="error-card-container">
+        <!-- Borde Superior Decorativo Degradado -->
+        <div class="error-card-topbar-stripe"></div>
+
+        <!-- Marca Institucional -->
+        <header class="error-brand-header">
+            <img src="{% static 'IMG/logo_iso_municipalidad.png' %}" alt="Escudo Municipalidad de Malagueño" class="error-brand-logo">
+            <div class="error-brand-text">
+                <span class="error-brand-sub">MUNICIPALIDAD DE</span>
+                <span class="error-brand-title">MALAGUEÑO</span>
+            </div>
+        </header>
+
+        <!-- Ícono Central en Círculo Pastel -->
+        <div class="error-icon-circle icon-circle-503" aria-hidden="true">
+            <i class="fa-solid fa-wrench"></i>
+        </div>
+
+        <!-- Pill / Badge Código -->
+        <div>
+            <span class="error-code-badge badge-503">CÓDIGO 503 • MANTENIMIENTO PROGRAMADO</span>
+        </div>
+
+        <!-- Título Principal -->
+        <h1 class="error-main-title">Estamos mejorando la plataforma</h1>
+
+        <!-- Mensaje Explicativo -->
+        <p class="error-main-desc">
+            El sistema se encuentra temporalmente en tareas de optimización o actualización de infraestructura. Estaremos de regreso en unos instantes.
+        </p>
+
+        <!-- Caja de Accesos Recomendados -->
+        <section class="error-recommendations-box">
+            <div class="error-recommendations-header">
+                <i class="fa-regular fa-compass"></i>
+                <span>Canales de Contacto</span>
+            </div>
+            <nav class="error-recommendations-grid">
+                <a href="tel:03514981000" class="recommendation-link">
+                    <i class="fa-solid fa-phone"></i>
+                    <span>(0351) 498-1000</span>
+                </a>
+                <a href="mailto:info@malagueno.gob.ar" class="recommendation-link">
+                    <i class="fa-solid fa-envelope"></i>
+                    <span>info@malagueno.gob.ar</span>
+                </a>
+                <a href="https://maps.app.goo.gl/2M9GZJmtiwaAQa1X8" target="_blank" rel="noopener noreferrer" class="recommendation-link">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>San Martín 450</span>
+                </a>
+                <a href="javascript:location.reload();" class="recommendation-link">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>Reintentar</span>
+                </a>
+            </nav>
+        </section>
+
+        <!-- Botón Principal -->
+        <div class="error-actions-wrap">
+            <button type="button" onclick="location.reload();" class="btn-error-primary">
+                <i class="fa-solid fa-rotate-right"></i>
+                <span>Verificar Disponibilidad</span>
+            </button>
+        </div>
+    </main>
+
+    <!-- Pie Institucional -->
+    <footer class="error-page-footer">
+        © Municipalidad de Malagueño • Gestión y Transparencia
+    </footer>
+
+</body>
+</html>

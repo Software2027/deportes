@@ -70,7 +70,7 @@
                                         <select id="quickCircuitSelector" class="circuit-select-input" onchange="if(this.value) window.location.href='?circuito_id='+this.value;">
                                             {% for item in mis_circuitos_inscriptos %}
                                             <option value="{{ item.circuito.id }}" {% if item.circuito.id == circuito.id %}selected{% endif %}>
-                                                {{ item.circuito.nombre }} ({{ item.total_km }} km)
+                                                {{ item.circuito.nombre }} ({{ item.circuito.distancia_total_km|default:item.distancia_total_km }} km)
                                             </option>
                                             {% empty %}
                                             <option value="" disabled selected>No tienes circuitos añadidos</option>
@@ -90,22 +90,14 @@
                                         <i class="fa-solid fa-road" style="color: #16a34a;"></i> 
                                         Distancia: <strong>{{ circuito.distancia_total_km|default:"0.0" }} km</strong>
                                     </span>
-                                    {% if circuito.fecha_evento %}
                                     <span class="circuit-meta-item">
-                                        <i class="fa-regular fa-calendar-check" style="color: #0284c7;"></i> 
-                                        Evento: <strong>{{ circuito.fecha_evento|date:"d/m/Y" }}{% if circuito.hora_evento %} a las {{ circuito.hora_evento|time:"H:i" }} hs{% endif %}</strong>
+                                        <i class="fa-solid fa-layer-group" style="color: #0284c7;"></i>
+                                        Etapas: <strong>{{ circuito.subcircuitos.all|length }}</strong>
                                     </span>
-                                    {% endif %}
-                                    {% if circuito.fecha_limite_inscripcion %}
-                                    <span class="circuit-meta-item {% if circuito.inscripcion_abierta %}text-green{% else %}text-amber{% endif %}">
-                                        <i class="fa-solid fa-hourglass-half"></i> 
-                                        {% if circuito.inscripcion_abierta %}
-                                            Inscripción abierta hasta el {{ circuito.fecha_limite_inscripcion|date:"d/m/Y" }}
-                                        {% else %}
-                                            Inscripción oficial cerrada (Práctica libre disponible)
-                                        {% endif %}
+                                    <span class="circuit-meta-item">
+                                        <i class="fa-solid fa-store" style="color: #f59e0b;"></i>
+                                        Comercios: <strong>{{ circuito.comercios.all|length }}</strong>
                                     </span>
-                                    {% endif %}
                                 </div>
                                 {% endif %}
                             </div>
@@ -136,46 +128,28 @@
                     </div>
                 </div>
 
-                <!-- Barra de Acción Rápida: Inscribirme vs Iniciar GPS -->
+                <!-- Barra de Acción Rápida: Iniciar GPS -->
                 <div class="hero-circuit-actions-bar">
                     {% if not esta_inscripto %}
                         <div class="circuit-action-msg">
-                            {% if circuito.inscripciones_abiertas %}
-                                <i class="fa-solid fa-circle-info"></i>
-                                <span>Inscripción abierta al evento oficial, o puedes sumarlo a tu panel en modo Libre para entrenar.</span>
-                            {% else %}
-                                <i class="fa-solid fa-person-biking"></i>
-                                <span>Inscripción oficial cerrada. Puedes sumarlo a tu panel en <strong>Modo Libre</strong> para pedalearlo cuando quieras.</span>
-                            {% endif %}
+                            <i class="fa-solid fa-person-biking"></i>
+                            <span>Circuito disponible. Súmalo a tu panel para entrenar y registrar tu avance en <strong>Modo Libre</strong>.</span>
                         </div>
                         <div style="display: flex; gap: 0.65rem; align-items: center; flex-wrap: wrap;">
                             <form method="POST" action="{% url 'mi_progreso' %}">
                                 {% csrf_token %}
                                 <input type="hidden" name="accion" value="inscribir">
                                 <input type="hidden" name="circuito_id" value="{{ circuito.id }}">
-                                <input type="hidden" name="modo" value="libre">
-                                <button type="submit" class="btn-inscribir-circuito" style="background: #0284c7;">
-                                    <i class="fa-solid fa-plus"></i>
-                                    <span>Agregar en Modo Libre</span>
+                                <button type="submit" class="btn-inscribir-circuito" style="background-color: #16a34a; color: #ffffff !important; box-shadow: 0 4px 14px rgba(22, 163, 74, 0.35);">
+                                    <i class="fa-solid fa-plus-circle"></i>
+                                    <span>Sumar a mi Panel</span>
                                 </button>
                             </form>
-                            {% if circuito.inscripciones_abiertas %}
-                            <form method="POST" action="{% url 'mi_progreso' %}">
-                                {% csrf_token %}
-                                <input type="hidden" name="accion" value="inscribir">
-                                <input type="hidden" name="circuito_id" value="{{ circuito.id }}">
-                                <input type="hidden" name="modo" value="oficial">
-                                <button type="submit" class="btn-inscribir-circuito">
-                                    <i class="fa-solid fa-trophy"></i>
-                                    <span>Inscribirme Oficial</span>
-                                </button>
-                            </form>
-                            {% endif %}
                         </div>
                     {% else %}
                         <div class="circuit-action-msg">
                             <i class="fa-solid fa-circle-check" style="color: #16a34a;"></i>
-                            <span>Inscripción activa • Dorsal <strong>#{{ recorrido.id|stringformat:"04d" }}</strong> • Modalidad: <strong>{{ modalidad_display }}</strong></span>
+                            <span>Circuito Activo • Modo Libre Recreativo</span>
                         </div>
                         <a href="{% url 'mapa_carrera' %}?circuito_id={{ circuito.id }}" class="btn-start-gps-race">
                             <i class="fa-solid fa-person-walking-dashed-line-arrow-right"></i>
@@ -196,7 +170,7 @@
                 </div>
                 <div class="banner-sin-content">
                     <h3>¡Aún no te has sumado a ningún circuito!</h3>
-                    <p>Inscríbete a una carrera oficial para disputar el podio municipal o agrega un circuito recreativo para entrenar y registrar tu telemetría GPS.</p>
+                    <p>Agrega un circuito a tu panel para entrenar, recorrer los rincones de Malagueño y registrar tu telemetría GPS a tu propio ritmo.</p>
                 </div>
                 <a href="{% url 'circuitos_ciclista' %}" class="btn-ir-catalogo-circuitos">
                     <i class="fa-solid fa-compass"></i>
@@ -228,7 +202,7 @@
                     </div>
                     <div class="kpi-body">
                         <span class="kpi-label">Cantidad de tramos</span>
-                        <span class="kpi-value">{{ circuito.subcircuitos.count|default:subcircuitos|length }}</span>
+                        <span class="kpi-value">{{ circuito.subcircuitos.all|length }}</span>
                         <span class="kpi-subtext">tramos en el recorrido</span>
                     </div>
                 </div>
@@ -309,6 +283,12 @@
                             <span class="subcircuit-validated-text">{{ sub.validados_texto }}</span>
                         </div>
                     </div>
+                    {% empty %}
+                    <div style="grid-column: 1 / -1; padding: 2rem 1.5rem; background: #ffffff; border-radius: 14px; border: 1.5px dashed #cbd5e1; text-align: center; color: #64748b;">
+                        <i class="fa-solid fa-layer-group" style="font-size: 2rem; color: #94a3b8; margin-bottom: 0.65rem; display: block;"></i>
+                        <h4 style="font-size: 1.05rem; font-weight: 700; color: #334155; margin: 0 0 0.25rem 0;">Circuito de Trazado Continuo</h4>
+                        <p style="font-size: 0.88rem; margin: 0; color: #64748b;">Este circuito se recorre como una ruta unificada continua sin subdivisión en etapas.</p>
+                    </div>
                     {% endfor %}
                 </div>
             </section>
@@ -340,7 +320,7 @@
                         <thead>
                             <tr>
                                 <th>Fecha y Hora</th>
-                                <th>Modalidad / Medio</th>
+                                <th>Medio de Movilidad</th>
                                 <th>Estado</th>
                                 <th>Tiempo</th>
                                 <th>Distancia</th>
@@ -357,24 +337,17 @@
                                     <small style="color: #64748b; font-size: 0.75rem;">Sesión #{{ rec.id }}</small>
                                 </td>
                                 <td>
-                                    <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-                                        {% if rec.modalidad == 'OFICIAL' %}
-                                            <span class="hist-badge hist-badge-oficial"><i class="fa-solid fa-trophy"></i> Oficial</span>
-                                        {% else %}
-                                            <span class="hist-badge hist-badge-libre"><i class="fa-solid fa-compass"></i> Libre</span>
+                                    <span style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.82rem; color: #1e293b; font-weight: 700;">
+                                        {% if rec.tipo_movilidad == 'BICICLETA' %}<i class="fa-solid fa-person-biking" style="color: #0284c7;"></i>
+                                        {% elif rec.tipo_movilidad == 'A_PIE' %}<i class="fa-solid fa-person-walking" style="color: #d97706;"></i>
+                                        {% elif rec.tipo_movilidad == 'MOTO' %}<i class="fa-solid fa-motorcycle" style="color: #dc2626;"></i>
+                                        {% elif rec.tipo_movilidad == 'AUTO' %}<i class="fa-solid fa-car" style="color: #475569;"></i>
+                                        {% elif rec.tipo_movilidad == 'CABALLO' %}<i class="fa-solid fa-horse" style="color: #854d0e;"></i>
+                                        {% elif rec.tipo_movilidad == 'PATINES' %}<i class="fa-solid fa-person-skating" style="color: #7e22ce;"></i>
+                                        {% else %}<i class="fa-solid fa-compass" style="color: #64748b;"></i>
                                         {% endif %}
-                                        <span style="display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.72rem; color: #475569; font-weight: 600;">
-                                            {% if rec.tipo_movilidad == 'BICICLETA' %}<i class="fa-solid fa-person-biking" style="color: #0284c7;"></i>
-                                            {% elif rec.tipo_movilidad == 'A_PIE' %}<i class="fa-solid fa-person-walking" style="color: #d97706;"></i>
-                                            {% elif rec.tipo_movilidad == 'MOTO' %}<i class="fa-solid fa-motorcycle" style="color: #dc2626;"></i>
-                                            {% elif rec.tipo_movilidad == 'AUTO' %}<i class="fa-solid fa-car" style="color: #475569;"></i>
-                                            {% elif rec.tipo_movilidad == 'CABALLO' %}<i class="fa-solid fa-horse" style="color: #854d0e;"></i>
-                                            {% elif rec.tipo_movilidad == 'PATINES' %}<i class="fa-solid fa-person-skating" style="color: #7e22ce;"></i>
-                                            {% else %}<i class="fa-solid fa-compass" style="color: #64748b;"></i>
-                                            {% endif %}
-                                            {{ rec.tipo_movilidad_display }}
-                                        </span>
-                                    </div>
+                                        {{ rec.tipo_movilidad_display }}
+                                    </span>
                                 </td>
                                 <td>
                                     {% if rec.estado == 'FINALIZADO' %}

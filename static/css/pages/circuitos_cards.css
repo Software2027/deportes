@@ -100,6 +100,63 @@
     color: #16a34a;
 }
 
+/* Filtro Select para versión Móvil */
+.circuits-filter-mobile {
+    display: none;
+    width: 100%;
+}
+
+.circuits-filter-select-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.circuits-filter-select-wrapper i.filter-select-icon {
+    position: absolute;
+    left: 1.1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #16a34a;
+    font-size: 0.95rem;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.circuits-filter-select-wrapper i.filter-select-chevron {
+    position: absolute;
+    right: 1.15rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #64748b;
+    font-size: 0.85rem;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.circuits-filter-select {
+    width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 14px;
+    padding: 0.78rem 2.6rem 0.78rem 1.15rem;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #0f172a;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.circuits-filter-select:focus {
+    border-color: #16a34a;
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15);
+}
+
 /* Grilla Responsiva de Cards */
 .circuits-cards-grid {
     display: grid;
@@ -212,6 +269,43 @@
     font-weight: 800;
     letter-spacing: 0.3px;
     box-shadow: 0 2px 6px rgba(22, 163, 74, 0.3);
+}
+
+/* Badges de Dificultad / Nivel */
+.badge-dificultad {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.28rem 0.7rem;
+    border-radius: 9999px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.badge-dif-facil {
+    background: #ecfdf5;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+
+.badge-dif-moderado {
+    background: #f0f9ff;
+    color: #0284c7;
+    border: 1px solid #bae6fd;
+}
+
+.badge-dif-dificil {
+    background: #fff7ed;
+    color: #ea580c;
+    border: 1px solid #fed7aa;
+}
+
+.badge-dif-experto {
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
 }
 
 /* Info Principal */
@@ -375,17 +469,16 @@
     .all-circuits-header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 1rem;
+        gap: 1.15rem;
     }
 
+    /* En móvil se ocultan las pestañas y se activa el selector dropdown */
     .circuits-filter-tabs {
-        width: 100%;
-        overflow-x: auto;
+        display: none !important;
     }
 
-    .circuit-tab-btn {
-        flex: 1;
-        justify-content: center;
+    .circuits-filter-mobile {
+        display: block !important;
     }
 
     .circuits-cards-grid {

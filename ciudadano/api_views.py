@@ -53,13 +53,10 @@ class CircuitoActivoAPIView(APIView):
                 'comercios'
             ).first()
         else:
-            today = date.today()
-            circuitos_qs = CircuitoGeneral.objects.filter(activo=True).prefetch_related(
+            circuito = CircuitoGeneral.objects.filter(activo=True).prefetch_related(
                 'subcircuitos__trazado',
                 'comercios'
-            )
-            # Priorizar evento oficial vigente o primer circuito activo
-            circuito = circuitos_qs.filter(fecha_evento__gte=today).order_by('fecha_evento').first() or circuitos_qs.first()
+            ).first()
 
         if not circuito:
             return Response(
@@ -74,10 +71,9 @@ class CircuitoActivoAPIView(APIView):
 class IniciarRecorridoAPIView(APIView):
     """
     POST /api/recorrido/iniciar/
-    Inicia o reanuda un recorrido para el ciclista autenticado.
+    Inicia o reanuda un recorrido en modo libre para el ciclista autenticado.
     Valida que la posición GPS actual del ciclista coincida dentro del radio de largada del circuito.
-    Determina si la modalidad es OFICIAL (si coincide con la fecha del evento) o LIBRE (práctica).
-    Payload opcional: { "circuito_id": 1, "latitud": -31.468, "longitud": -64.355 }
+    Payload opcional: { "circuito_id": 1, "latitud": -31.468, "longitud": -64.355, "tipo_movilidad": "BICICLETA" }
     """
     permission_classes = [permissions.IsAuthenticated]
 
@@ -127,9 +123,6 @@ class IniciarRecorridoAPIView(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-        # Determinar si hoy es el día del evento oficial y modo solicitado
-        es_dia_carrera = bool(circuito.fecha_evento and circuito.fecha_evento == date.today())
-        modo_solicitado = (request.data.get('modo') or '').strip().lower()
         movilidad_solicitada = (request.data.get('tipo_movilidad') or 'BICICLETA').strip().upper()
 
         # Validar si el circuito admite la movilidad solicitada
@@ -137,56 +130,35 @@ class IniciarRecorridoAPIView(APIView):
         if movilidad_solicitada not in movilidades_aptas:
             movilidad_solicitada = movilidades_aptas[0] if movilidades_aptas else 'BICICLETA'
 
-        # Verificar si el ciclista está inscripto a la carrera oficial
-        inscripcion_oficial = RecorridoCiclista.objects.filter(
+        # Recuperar o crear el recorrido en modo libre del participante
+        recorrido = RecorridoCiclista.objects.filter(
             ciclista=request.user,
             circuito=circuito,
-            modalidad='OFICIAL'
+            estado__in=['LISTO', 'EN_CURSO', 'PAUSADO']
         ).first()
 
-        if es_dia_carrera and inscripcion_oficial and modo_solicitado != 'libre':
-            # Carrera Oficial: activar la manga de carrera del participante
-            modalidad = 'OFICIAL'
-            recorrido = inscripcion_oficial
+        if recorrido:
+            if recorrido.estado == 'LISTO':
+                recorrido.inicio = timezone.now()
             recorrido.estado = 'EN_CURSO'
             recorrido.tipo_movilidad = movilidad_solicitada
-            recorrido.inicio = timezone.now()
             recorrido.save()
             creado = False
         else:
-            # Modo Libre: práctica, reconocimiento o paseo recreativo sin alterar la inscripción
-            modalidad = 'LIBRE'
-            recorrido = RecorridoCiclista.objects.filter(
+            recorrido = RecorridoCiclista.objects.create(
                 ciclista=request.user,
                 circuito=circuito,
-                modalidad='LIBRE',
-                estado__in=['LISTO', 'EN_CURSO', 'PAUSADO']
-            ).first()
-
-            if recorrido:
-                if recorrido.estado == 'LISTO':
-                    recorrido.inicio = timezone.now()
-                recorrido.estado = 'EN_CURSO'
-                recorrido.tipo_movilidad = movilidad_solicitada
-                recorrido.save()
-                creado = False
-            else:
-                recorrido = RecorridoCiclista.objects.create(
-                    ciclista=request.user,
-                    circuito=circuito,
-                    estado='EN_CURSO',
-                    modalidad='LIBRE',
-                    tipo_movilidad=movilidad_solicitada,
-                    inicio=timezone.now()
-                )
-                creado = True
+                estado='EN_CURSO',
+                tipo_movilidad=movilidad_solicitada,
+                inicio=timezone.now()
+            )
+            creado = True
 
         serializer = RecorridoCiclistaSerializer(recorrido)
         return Response(
             {
                 "mensaje": "Recorrido iniciado con éxito" if creado else "Recorrido reanudado",
                 "recorrido": serializer.data,
-                "modalidad": recorrido.modalidad,
                 "circuito_nombre": circuito.nombre
             },
             status=status.HTTP_201_CREATED if creado else status.HTTP_200_OK

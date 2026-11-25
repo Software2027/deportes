@@ -125,6 +125,9 @@ class PanelLoginDashboardTests(TestCase):
             'nombre': 'Ciclista Nuevo Test',
             'email': 'nuevo@ciclista.com',
             'dni': '99887766T',
+            'telefono': '3514981111',
+            'contacto_emergencia': '3514982222',
+            'fecha_nacimiento': '1998-04-12',
             'club_entidad': 'Club Malagueño',
             'nivel': 'Pro',
             'estado': 'Validado'
@@ -140,6 +143,9 @@ class PanelLoginDashboardTests(TestCase):
             defaults={
                 'nombre': 'Carlos Quintana',
                 'email': 'carlos.q@test.com',
+                'fecha_nacimiento': '1996-03-20',
+                'telefono': '3514981111',
+                'contacto_emergencia': '3514982222',
                 'club_entidad': 'Sierra Central Team',
                 'nivel': 'Pro',
                 'estado': 'Validado'
@@ -157,6 +163,9 @@ class PanelLoginDashboardTests(TestCase):
             'nombre': 'Carlos Quintana Editado',
             'email': 'carlos.q@test.com',
             'dni': '45678912Z',
+            'telefono': '3514981111',
+            'contacto_emergencia': '3514982222',
+            'fecha_nacimiento': '1996-03-20',
             'club_entidad': 'Sierra Central Team',
             'nivel': 'Elite',
             'estado': 'Validado'
@@ -490,15 +499,20 @@ class PanelLoginDashboardTests(TestCase):
         self.assertEqual(comercio.circuito_general, circuito_creado)
 
     def test_circuito_activar(self):
-        """Activar un circuito debe poner activo=True y desactivar los demás."""
+        """Activar y alternar un circuito debe actualizar activo entre True y False."""
         c2 = CircuitoGeneral.objects.create(nombre="Segundo Circuito", activo=False)
         self.client.force_login(self.admin_user)
+        # 1. Activar
         response = self.client.post(reverse('panel_circuito_activar', kwargs={'pk': c2.id}), follow=True)
         self.assertEqual(response.status_code, 200)
         c2.refresh_from_db()
-        self.circuito.refresh_from_db()
         self.assertTrue(c2.activo)
-        self.assertFalse(self.circuito.activo)
+
+        # 2. Desactivar (toggle)
+        response_toggle = self.client.post(reverse('panel_circuito_activar', kwargs={'pk': c2.id}), follow=True)
+        self.assertEqual(response_toggle.status_code, 200)
+        c2.refresh_from_db()
+        self.assertFalse(c2.activo)
 
     def test_circuito_delete(self):
         """Eliminar un circuito vía POST."""

@@ -573,55 +573,26 @@
         <div class="ranking-title-group">
             <h1>
                 <i class="fa-solid fa-trophy" style="color: #f59e0b;"></i>
-                Ranking y Telemetría Oficial
+                Ranking y Telemetría de Circuitos
             </h1>
             <p>
-                Clasificación de tiempos de largada a meta, velocidades punta y paradas en puntos de control para eventos municipales.
+                Clasificación de tiempos de largada a meta, velocidades punta y paradas en puntos de control en Modo Libre.
             </p>
         </div>
 
         <div class="ranking-filter-bar">
             <!-- Selector de Circuito -->
             <form method="GET" action="{% url 'panel_ranking_evento' %}" class="ranking-filter-form" style="display: flex; gap: 0.5rem; align-items: center;">
-                <input type="hidden" name="modalidad" value="{{ modalidad_filtro }}">
                 <select name="circuito_id" class="select-circuito-picker" onchange="this.form.submit()">
-                    {% if not circuitos_eventos and not circuitos_libres %}
-                        <option value="">No hay circuitos activos</option>
-                    {% else %}
-                        {% if circuitos_eventos %}
-                        <optgroup label="Carreras y Eventos Oficiales">
-                            {% for c in circuitos_eventos %}
-                            <option value="{{ c.id }}" {% if circuito.id == c.id %}selected{% endif %}>
-                                Carrera: {{ c.nombre }} ({{ c.fecha_evento|date:"d/m/Y" }})
-                            </option>
-                            {% endfor %}
-                        </optgroup>
-                        {% endif %}
-                        {% if circuitos_libres %}
-                        <optgroup label="Circuitos Recreativos / Libres">
-                            {% for c in circuitos_libres %}
-                            <option value="{{ c.id }}" {% if circuito.id == c.id %}selected{% endif %}>
-                                Circuito: {{ c.nombre }} (Permanente)
-                            </option>
-                            {% endfor %}
-                        </optgroup>
-                        {% endif %}
-                    {% endif %}
+                    {% for c in circuitos_libres %}
+                    <option value="{{ c.id }}" {% if circuito.id == c.id %}selected{% endif %}>
+                        Circuito: {{ c.nombre }}
+                    </option>
+                    {% empty %}
+                    <option value="">No hay circuitos activos</option>
+                    {% endfor %}
                 </select>
             </form>
-
-            <!-- Pestañas de Modalidad -->
-            <div class="tabs-modalidad-group">
-                <a href="?circuito_id={{ circuito.id }}&modalidad=OFICIAL" class="tab-modalidad-btn {% if modalidad_filtro == 'OFICIAL' %}active{% endif %}">
-                    <i class="fa-solid fa-flag-checkered"></i> Oficial
-                </a>
-                <a href="?circuito_id={{ circuito.id }}&modalidad=LIBRE" class="tab-modalidad-btn {% if modalidad_filtro == 'LIBRE' %}active{% endif %}">
-                    <i class="fa-solid fa-person-biking"></i> Libre
-                </a>
-                <a href="?circuito_id={{ circuito.id }}&modalidad=TODAS" class="tab-modalidad-btn {% if modalidad_filtro == 'TODAS' %}active{% endif %}">
-                    Todos
-                </a>
-            </div>
         </div>
     </div>
 
@@ -630,15 +601,9 @@
     <div style="margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;">
         <div style="display: flex; align-items: center; gap: 0.75rem;">
             <span style="font-size: 1.25rem; font-weight: 800; color: #0f172a;">{{ circuito.nombre }}</span>
-            {% if circuito.es_evento %}
-                <span class="circuito-badge-evento">
-                    <i class="fa-solid fa-calendar-check"></i> Evento: {{ circuito.fecha_evento|date:"d/m/Y" }}
-                </span>
-            {% else %}
-                <span class="circuito-badge-libre">
-                    <i class="fa-solid fa-infinity"></i> Recreativo Permanente
-                </span>
-            {% endif %}
+            <span class="circuito-badge-libre">
+                <i class="fa-solid fa-infinity"></i> Circuito Permanente • Modo Libre
+            </span>
             <span style="font-size: 0.85rem; color: #64748b; font-weight: 600;">
                 <i class="fa-solid fa-road"></i> {{ circuito.distancia_total_km|default:"--" }} km
             </span>
@@ -688,16 +653,8 @@
                 <i class="fa-solid fa-users"></i>
             </div>
             <div class="kpi-data-wrap">
-                {% if modalidad_filtro == 'OFICIAL' %}
-                    <span class="kpi-val">{{ total_finalizados_oficial }} <small style="font-size: 0.9rem;">/ {{ total_inscriptos_oficiales }}</small></span>
-                    <span class="kpi-lbl">Arribos / Inscriptos Oficiales</span>
-                {% elif modalidad_filtro == 'LIBRE' %}
-                    <span class="kpi-val">{{ total_sesiones_libres }} <small style="font-size: 0.9rem;">({{ ciclistas_libres_unicos }} ciclistas)</small></span>
-                    <span class="kpi-lbl">Sesiones Libres / Usuarios</span>
-                {% else %}
-                    <span class="kpi-val">{{ total_finalizados }} <small style="font-size: 0.9rem;">/ {{ total_iniciados }}</small></span>
-                    <span class="kpi-lbl">Total Arribos / Iniciados</span>
-                {% endif %}
+                <span class="kpi-val">{{ total_finalizados }} <small style="font-size: 0.9rem;">/ {{ total_iniciados }}</small></span>
+                <span class="kpi-lbl">Total Recorridos Finalizados / Iniciados</span>
             </div>
         </div>
     </div>
@@ -712,9 +669,9 @@
                 <div>
                     <h2>
                         <i class="fa-solid fa-trophy" style="color: #f59e0b;"></i>
-                        Podio Oficial de Competencia
+                        Podio de Honor del Circuito
                     </h2>
-                    <p>Mejores marcas y registros de tiempo completados en el circuito</p>
+                    <p>Mejores marcas y registros de tiempo completados en Modo Libre</p>
                 </div>
             </div>
             <span class="podio-badge-circuito">
@@ -763,7 +720,7 @@
         <div class="table-header-block">
             <h3>
                 <i class="fa-solid fa-list-ol"></i>
-                Tabla Clasificatoria Oficial - Mejores Marcas ({{ participantes|length }} Participantes Clasificados)
+                Tabla Clasificatoria - Mejores Marcas ({{ participantes|length }} Participantes Clasificados)
             </h3>
         </div>
 
@@ -774,12 +731,12 @@
                         <th style="width: 60px;">Pos</th>
                         <th>Ciclista / DNI</th>
                         <th>Categoría / Club</th>
-                        <th>Tiempo Oficial</th>
+                        <th>Tiempo</th>
                         <th>Distancia</th>
                         <th>Vel. Promedio</th>
                         <th>Vel. Máx GPS</th>
                         <th>Paradas / Control</th>
-                        <th>Modalidad</th>
+                        <th>Movilidad</th>
                         <th>Fecha y Hora</th>
                     </tr>
                 </thead>
@@ -834,24 +791,17 @@
                             </span>
                         </td>
                         <td>
-                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-                                {% if p.modalidad == 'OFICIAL' %}
-                                    <span class="tag-modalidad-oficial"><i class="fa-solid fa-flag-checkered"></i> Oficial</span>
-                                {% else %}
-                                    <span class="tag-modalidad-libre"><i class="fa-solid fa-compass"></i> Libre</span>
+                            <span style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.8rem; color: #1e293b; font-weight: 700;">
+                                {% if p.tipo_movilidad == 'BICICLETA' %}<i class="fa-solid fa-person-biking" style="color: #0284c7;"></i>
+                                {% elif p.tipo_movilidad == 'A_PIE' %}<i class="fa-solid fa-person-walking" style="color: #d97706;"></i>
+                                {% elif p.tipo_movilidad == 'MOTO' %}<i class="fa-solid fa-motorcycle" style="color: #dc2626;"></i>
+                                {% elif p.tipo_movilidad == 'AUTO' %}<i class="fa-solid fa-car" style="color: #475569;"></i>
+                                {% elif p.tipo_movilidad == 'CABALLO' %}<i class="fa-solid fa-horse" style="color: #854d0e;"></i>
+                                {% elif p.tipo_movilidad == 'PATINES' %}<i class="fa-solid fa-person-skating" style="color: #7e22ce;"></i>
+                                {% else %}<i class="fa-solid fa-compass" style="color: #64748b;"></i>
                                 {% endif %}
-                                <span style="display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.72rem; color: #475569; font-weight: 600;">
-                                    {% if p.tipo_movilidad == 'BICICLETA' %}<i class="fa-solid fa-person-biking" style="color: #0284c7;"></i>
-                                    {% elif p.tipo_movilidad == 'A_PIE' %}<i class="fa-solid fa-person-walking" style="color: #d97706;"></i>
-                                    {% elif p.tipo_movilidad == 'MOTO' %}<i class="fa-solid fa-motorcycle" style="color: #dc2626;"></i>
-                                    {% elif p.tipo_movilidad == 'AUTO' %}<i class="fa-solid fa-car" style="color: #475569;"></i>
-                                    {% elif p.tipo_movilidad == 'CABALLO' %}<i class="fa-solid fa-horse" style="color: #854d0e;"></i>
-                                    {% elif p.tipo_movilidad == 'PATINES' %}<i class="fa-solid fa-person-skating" style="color: #7e22ce;"></i>
-                                    {% else %}<i class="fa-solid fa-compass" style="color: #64748b;"></i>
-                                    {% endif %}
-                                    {{ p.tipo_movilidad_display }}
-                                </span>
-                            </div>
+                                {{ p.tipo_movilidad_display }}
+                            </span>
                         </td>
                         <td>
                             <span style="font-size: 0.82rem; color: #64748b;">{{ p.fecha }}</span>
@@ -863,8 +813,8 @@
                             <div style="font-size: 2.5rem; color: #cbd5e1; margin-bottom: 0.75rem;">
                                 <i class="fa-solid fa-person-biking"></i>
                             </div>
-                            <h4 style="font-weight: 700; margin: 0 0 0.25rem 0; color: #334155;">No hay registros para este filtro</h4>
-                            <p style="margin: 0; font-size: 0.88rem;">No se encontraron recorridos finalizados en la modalidad seleccionada.</p>
+                            <h4 style="font-weight: 700; margin: 0 0 0.25rem 0; color: #334155;">No hay registros aún</h4>
+                            <p style="margin: 0; font-size: 0.88rem;">No se encontraron recorridos finalizados en este circuito.</p>
                         </td>
                     </tr>
                     {% endfor %}

@@ -26,7 +26,7 @@
             </div>
 
             <h1 class="hero-title">
-                Recorriendo Malagueño <br>
+                Malagueño <br>
                 <span class="highlight-yellow">Descubrí los diferentes circuitos</span>
             </h1>
 
@@ -153,41 +153,25 @@
             </div>
         </div>
 
-        <!-- Selector y Categorización de Circuitos Activos (Eventos Oficiales vs. Rutas Recreativas) -->
-        {% if circuitos_eventos or circuitos_recreativos %}
-        <div class="circuitos-tabs-container" style="display: flex; flex-wrap: wrap; gap: 1rem; margin: 1.25rem 0; padding: 0.75rem 1rem; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);">
-            {% if circuitos_eventos %}
+        <!-- Selector de Circuitos Activos -->
+        {% if circuitos_activos %}
+        <div class="circuitos-tabs-container" style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin: 1.25rem 0; padding: 0.75rem 1rem; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);">
             <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-                <span style="font-size: 0.75rem; font-weight: 800; color: #15803d; text-transform: uppercase; letter-spacing: 0.5px;">
-                    <i class="fa-solid fa-trophy"></i> Carreras Oficiales:
+                <span style="font-size: 0.78rem; font-weight: 800; color: #15803d; text-transform: uppercase; letter-spacing: 0.5px;">
+                    <i class="fa-solid fa-route"></i> Circuitos Municipales:
                 </span>
-                {% for c in circuitos_eventos %}
+                {% for c in circuitos_activos %}
                 <a href="?circuito_id={{ c.id }}#circuito" data-circuito-id="{{ c.id }}" class="btn-circuito-pill btn-ver-recorrido" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.85rem; border-radius: 999px; font-size: 0.82rem; font-weight: 700; text-decoration: none; border: 1.5px solid {% if c.id == circuito.id %}#16a34a{% else %}#cbd5e1{% endif %}; background: {% if c.id == circuito.id %}#16a34a{% else %}#ffffff{% endif %}; color: {% if c.id == circuito.id %}#ffffff{% else %}#334155{% endif %}; transition: all 0.2s;">
                     <span>{{ c.nombre }}</span>
-                    {% if c.fecha_evento %}<small style="opacity: 0.85;">({{ c.fecha_evento|date:"d/m" }})</small>{% endif %}
+                    <small style="opacity: 0.85;">({{ c.distancia_total_km|default:"0.0" }} km)</small>
                 </a>
                 {% endfor %}
             </div>
-            {% endif %}
-
-            {% if circuitos_recreativos %}
-            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-                <span style="font-size: 0.75rem; font-weight: 800; color: #0284c7; text-transform: uppercase; letter-spacing: 0.5px;">
-                    <i class="fa-solid fa-person-biking"></i> Rutas Recreativas:
-                </span>
-                {% for c in circuitos_recreativos %}
-                <a href="?circuito_id={{ c.id }}#circuito" data-circuito-id="{{ c.id }}" class="btn-circuito-pill btn-ver-recorrido" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.85rem; border-radius: 999px; font-size: 0.82rem; font-weight: 700; text-decoration: none; border: 1.5px solid {% if c.id == circuito.id %}#0284c7{% else %}#cbd5e1{% endif %}; background: {% if c.id == circuito.id %}#0284c7{% else %}#ffffff{% endif %}; color: {% if c.id == circuito.id %}#ffffff{% else %}#334155{% endif %}; transition: all 0.2s;">
-                    <span>{{ c.nombre }}</span>
-                    <small style="opacity: 0.85;">(Libre)</small>
-                </a>
-                {% endfor %}
-            </div>
-            {% endif %}
 
             <div style="margin-left: auto;">
                 <a href="{% url 'circuitos_listado' %}" style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; font-weight: 700; color: #16a34a; text-decoration: none; padding: 0.4rem 0.75rem; border-radius: 8px; background: #ffffff; border: 1px solid #bbf7d0;">
                     <i class="fa-solid fa-compass"></i>
-                    <span>Explorar más</span>
+                    <span>Ver todos</span>
                     <i class="fa-solid fa-arrow-right"></i>
                 </a>
             </div>
@@ -279,22 +263,12 @@
         <!-- Grilla limitada a exactamente 3 cards destacadas -->
         <div class="circuits-cards-grid">
             {% for c in circuitos_activos|slice:":3" %}
-            <div class="circuit-single-card {% if c.id == circuito.id %}card-is-current{% endif %}" data-circuito-id="{{ c.id }}" data-tipo="{% if c.evento_vigente %}eventos{% else %}recreativos{% endif %}">
+            <div class="circuit-single-card {% if c.id == circuito.id %}card-is-current{% endif %}" data-circuito-id="{{ c.id }}">
                 <!-- Topbar de la Card -->
                 <div class="circuit-card-topbar">
-                    {% if c.evento_vigente %}
-                        <span class="badge-circuit-event" title="Competencia Oficial Programada">
-                            <i class="fa-solid fa-trophy"></i> Carrera Oficial • {{ c.fecha_evento|date:"d/m/Y" }}{% if c.hora_evento %} a las {{ c.hora_evento|time:"H:i" }} hs{% endif %}
-                        </span>
-                    {% elif c.evento_concluido %}
-                        <span class="badge-circuit-finished" title="Carrera concluida. Recorrido 100% habilitado para entrenamiento y práctica libre.">
-                            <i class="fa-solid fa-flag-checkered"></i> Carrera Finalizada • Modo Libre
-                        </span>
-                    {% else %}
-                        <span class="badge-circuit-free" title="Trazado permanente para práctica libre">
-                            <i class="fa-solid fa-infinity"></i> Recreativo Permanente
-                        </span>
-                    {% endif %}
+                    <span class="badge-circuit-free" title="Trazado permanente para práctica y recorrido libre">
+                        <i class="fa-solid fa-route"></i> Circuito Libre
+                    </span>
 
                     {% if c.id == circuito.id %}
                         <span class="badge-circuit-current">

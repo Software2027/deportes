@@ -140,7 +140,6 @@ class RecorridoCiclistaSerializer(serializers.ModelSerializer):
             'fin',
             'estado',
             'estado_display',
-            'modalidad',
             'tipo_movilidad',
             'total_puntos'
         ]

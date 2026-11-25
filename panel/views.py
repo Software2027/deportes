@@ -22,7 +22,7 @@ from django.contrib.auth.decorators import login_required
 from ciudadano.models import (
     CircuitoGeneral, SubCircuito, CategoriaComercio, ComercioAdherido,
     RecorridoCiclista, Noticia, RegistroGPS, Ciclista, PuntosTramo, ParadaRecorrido,
-    TIPOS_MOVILIDAD
+    TIPOS_MOVILIDAD, DIFICULTADES_CIRCUITO
 )
 from ciudadano.utils import calcular_distancia_metros
 
@@ -1121,6 +1121,7 @@ def circuito_editor_view(request, pk=None):
         'subcircuitos_json': json.dumps(subcircuitos_data),
         'comercios_json': json.dumps(comercios_data),
         'tipos_movilidad': TIPOS_MOVILIDAD,
+        'dificultades_circuito': DIFICULTADES_CIRCUITO,
     }
     return render(request, 'panel/gestion_circuitos/editor_circuito.html', context)
 
@@ -1138,10 +1139,10 @@ def circuito_guardar_api_view(request):
         circuito_id = data.get('circuito_id')
         nombre = data.get('nombre', '').strip()
         descripcion = data.get('descripcion', '').strip()
+        dificultad = data.get('dificultad', 'MODERADO').strip().upper()
+        if dificultad not in dict(DIFICULTADES_CIRCUITO):
+            dificultad = 'MODERADO'
         activo = bool(data.get('activo', False))
-        fecha_evento = data.get('fecha_evento') or None
-        hora_evento = data.get('hora_evento') or None
-        fecha_limite_inscripcion = data.get('fecha_limite_inscripcion') or None
         radio_largada_metros = int(data.get('radio_largada_metros') or 80)
         movilidades_raw = data.get('movilidades_permitidas', [])
         if isinstance(movilidades_raw, list):
@@ -1165,10 +1166,8 @@ def circuito_guardar_api_view(request):
                 circuito = get_object_or_404(CircuitoGeneral, pk=circuito_id)
                 circuito.nombre = nombre
                 circuito.descripcion = descripcion
+                circuito.dificultad = dificultad
                 circuito.activo = activo
-                circuito.fecha_evento = fecha_evento
-                circuito.hora_evento = hora_evento
-                circuito.fecha_limite_inscripcion = fecha_limite_inscripcion
                 circuito.radio_largada_metros = radio_largada_metros
                 circuito.movilidades_permitidas = movilidades_str
                 circuito.save()
@@ -1176,10 +1175,8 @@ def circuito_guardar_api_view(request):
                 circuito = CircuitoGeneral.objects.create(
                     nombre=nombre,
                     descripcion=descripcion,
+                    dificultad=dificultad,
                     activo=activo,
-                    fecha_evento=fecha_evento,
-                    hora_evento=hora_evento,
-                    fecha_limite_inscripcion=fecha_limite_inscripcion,
                     radio_largada_metros=radio_largada_metros,
                     movilidades_permitidas=movilidades_str
                 )
@@ -1467,14 +1464,11 @@ def noticia_cambiar_estado_view(request, pk, nuevo_estado):
 @requiere_staff
 def ranking_evento_view(request, circuito_id=None):
     """
-    Vista de Ranking Oficial y Estadísticas de Carrera / Eventos para el Panel Municipal.
-    Permite filtrar por circuito, alternar entre modalidad OFICIAL (competencia) y LIBRE (práctica),
-    y visualizar métricas avanzadas: podio, mejores marcas, velocidad máxima, paradas en comercios y tiempos por tramo.
+    Vista de Ranking y Estadísticas de Circuitos para el Panel Municipal.
+    Permite filtrar por circuito y visualizar métricas avanzadas: podio, mejores marcas,
+    velocidad máxima, paradas en comercios y tiempos por tramo.
     """
-    # 1. Obtener circuitos disponibles (priorizando eventos oficiales)
-    circuitos_eventos = CircuitoGeneral.objects.filter(activo=True, fecha_evento__isnull=False).order_by('-fecha_evento')
-    circuitos_libres = CircuitoGeneral.objects.filter(activo=True, fecha_evento__isnull=True).order_by('nombre')
-    todos_circuitos = CircuitoGeneral.objects.filter(activo=True).order_by('-fecha_evento', 'nombre')
+    todos_circuitos = CircuitoGeneral.objects.filter(activo=True).order_by('nombre')
 
     # Seleccionar circuito actual
     if not circuito_id:
@@ -1485,19 +1479,13 @@ def ranking_evento_view(request, circuito_id=None):
         circuito_actual = CircuitoGeneral.objects.filter(id=circuito_id).first()
 
     if not circuito_actual:
-        circuito_actual = circuitos_eventos.first() or todos_circuitos.first()
+        circuito_actual = todos_circuitos.first()
 
-    # Modalidad seleccionada (OFICIAL, LIBRE o TODAS)
-    modalidad_filtro = request.GET.get('modalidad', 'OFICIAL' if (circuito_actual and circuito_actual.es_evento) else 'TODAS')
-
-    # 2. Filtrar recorridos finalizados del circuito
+    # Filtrar recorridos finalizados del circuito
     recorridos_qs = RecorridoCiclista.objects.filter(
         circuito=circuito_actual,
         estado='FINALIZADO'
     ).select_related('ciclista')
-
-    if modalidad_filtro in ['OFICIAL', 'LIBRE']:
-        recorridos_qs = recorridos_qs.filter(modalidad=modalidad_filtro)
 
     # 3. Procesar datos de participantes y telemetría agrupando por el MEJOR TIEMPO único de cada participante
     mejores_por_ciclista = {}
@@ -1574,7 +1562,7 @@ def ranking_evento_view(request, circuito_id=None):
             'dni': dni,
             'nivel': nivel,
             'club': club,
-            'dorsal_str': f"#{r.id:04d}" if r.modalidad == 'OFICIAL' else "--",
+            'dorsal_str': f"#{r.id:04d}",
             'segundos': segundos,
             'tiempo_str': tiempo_formateado,
             'distancia_km': distancia_km,
@@ -1582,7 +1570,6 @@ def ranking_evento_view(request, circuito_id=None):
             'velocidad_max': vel_max_kmh,
             'paradas': paradas_count,
             'comercios': comercios_count,
-            'modalidad': r.modalidad,
             'tipo_movilidad': r.tipo_movilidad or 'BICICLETA',
             'tipo_movilidad_display': r.get_tipo_movilidad_display() if hasattr(r, 'get_tipo_movilidad_display') else (r.tipo_movilidad or 'Bicicleta'),
             'fecha': r.inicio.strftime("%d/%m/%Y %H:%M") if r.inicio else ""
@@ -1590,7 +1577,7 @@ def ranking_evento_view(request, circuito_id=None):
 
     participantes_data = list(mejores_por_ciclista.values())
 
-    # 4. Ordenar participantes por tiempo de menor a mayor (ranking oficial)
+    # 4. Ordenar participantes por tiempo de menor a mayor (ranking)
     participantes_data.sort(key=lambda x: (x['segundos'] == 0, x['segundos']))
 
     # Asignar posición en el ranking
@@ -1600,13 +1587,10 @@ def ranking_evento_view(request, circuito_id=None):
     # 5. Podio (Top 3)
     podio = participantes_data[:3] if len(participantes_data) >= 1 else []
 
-    # 6. Estadísticas Generales del Evento y Uso Ciudadano
+    # 6. Estadísticas Generales del Circuito y Uso Ciudadano
     total_finalizados = len(participantes_data)
     total_iniciados = RecorridoCiclista.objects.filter(circuito=circuito_actual).count() if circuito_actual else 0
-    total_inscriptos_oficiales = RecorridoCiclista.objects.filter(circuito=circuito_actual, modalidad='OFICIAL').values('ciclista').distinct().count() if circuito_actual else 0
-    total_finalizados_oficial = RecorridoCiclista.objects.filter(circuito=circuito_actual, modalidad='OFICIAL', estado='FINALIZADO').count() if circuito_actual else 0
-    total_sesiones_libres = RecorridoCiclista.objects.filter(circuito=circuito_actual, modalidad='LIBRE').count() if circuito_actual else 0
-    ciclistas_libres_unicos = RecorridoCiclista.objects.filter(circuito=circuito_actual, modalidad='LIBRE').values('ciclista').distinct().count() if circuito_actual else 0
+    ciclistas_unicos = RecorridoCiclista.objects.filter(circuito=circuito_actual).values('ciclista').distinct().count() if circuito_actual else 0
 
     mejor_tiempo = participantes_data[0]['tiempo_str'] if participantes_data and participantes_data[0]['segundos'] > 0 else "--:--:--"
     velocidad_max_evento = max([p['velocidad_max'] for p in participantes_data], default=0.0)
@@ -1617,18 +1601,12 @@ def ranking_evento_view(request, circuito_id=None):
 
     context = {
         'circuito': circuito_actual,
-        'circuitos_eventos': circuitos_eventos,
-        'circuitos_libres': circuitos_libres,
         'todos_circuitos': todos_circuitos,
-        'modalidad_filtro': modalidad_filtro,
         'participantes': participantes_data,
         'podio': podio,
         'total_iniciados': total_iniciados,
         'total_finalizados': total_finalizados,
-        'total_inscriptos_oficiales': total_inscriptos_oficiales,
-        'total_finalizados_oficial': total_finalizados_oficial,
-        'total_sesiones_libres': total_sesiones_libres,
-        'ciclistas_libres_unicos': ciclistas_libres_unicos,
+        'ciclistas_unicos': ciclistas_unicos,
         'mejor_tiempo': mejor_tiempo,
         'velocidad_max_evento': velocidad_max_evento,
         'velocidad_prom_evento': velocidad_prom_evento,

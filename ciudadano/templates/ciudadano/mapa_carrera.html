@@ -97,20 +97,10 @@
     <!-- ----------------------------------------------------------------------- -->
     <div class="carrera-hud-container">
         <!-- Badge Superior de Modalidad y Estado de Sesión -->
-        <div class="carrera-modalidad-strip {% if tipo_sesion == 'CARRERA_OFICIAL' %}strip-oficial{% elif tipo_sesion == 'ENTRENAMIENTO_PREVIO' %}strip-entreno{% else %}strip-libre{% endif %}">
-            {% if tipo_sesion == 'CARRERA_OFICIAL' %}
-                <i class="fa-solid fa-flag-checkered"></i>
-                <span class="desktop-text">Manga Oficial • Dorsal <strong>{{ dorsal_oficial }}</strong> • Clasificación en Vivo</span>
-                <span class="mobile-text">Manga Oficial • Dorsal <strong>{{ dorsal_oficial }}</strong></span>
-            {% elif tipo_sesion == 'ENTRENAMIENTO_PREVIO' %}
-                <i class="fa-solid fa-stopwatch"></i>
-                <span class="desktop-text">Modo Entrenamiento • Carrera oficial: <strong>{{ circuito.fecha_evento|date:"d/m/Y" }}{% if circuito.hora_evento %} {{ circuito.hora_evento|time:"H:i" }} hs{% endif %}</strong> (Dorsal {{ dorsal_oficial }})</span>
-                <span class="mobile-text">Entrenamiento (Dorsal {{ dorsal_oficial }}) • Carrera: <strong>{{ circuito.fecha_evento|date:"d/m" }}{% if circuito.hora_evento %} {{ circuito.hora_evento|time:"H:i" }}hs{% endif %}</strong></span>
-            {% else %}
-                <i class="fa-solid fa-person-walking-dashed-line-arrow-right"></i>
-                <span class="desktop-text">Modo Libre Recreativo • Recorre a tu propio ritmo</span>
-                <span class="mobile-text">Modo Libre Recreativo</span>
-            {% endif %}
+        <div class="carrera-modalidad-strip strip-libre">
+            <i class="fa-solid fa-person-walking-dashed-line-arrow-right"></i>
+            <span class="desktop-text">Modo Libre Recreativo • Telemetría GPS en Vivo</span>
+            <span class="mobile-text">Modo Libre Recreativo</span>
         </div>
 
         <div class="carrera-hud-card">
@@ -214,7 +204,7 @@
         <!-- Botón Iniciar Carrera -->
         <button type="button" class="btn-carrera-action btn-action-start" id="btn-carrera-start">
             <i class="fa-solid fa-play"></i>
-            <span>{% if tipo_sesion == 'CARRERA_OFICIAL' %}INICIAR CARRERA OFICIAL{% elif tipo_sesion == 'ENTRENAMIENTO_PREVIO' %}INICIAR ENTRENAMIENTO{% else %}INICIAR RECORRIDO{% endif %}</span>
+            <span>INICIAR RECORRIDO</span>
         </button>
 
         <!-- Botón Detener / Parada Táctica (Visible durante la marcha) -->
@@ -527,7 +517,7 @@
     window.carreraCircuitoId = {{ circuito.id|default:1 }};
     window.carreraTotalSubcircuitos = {{ total_subcircuitos|default:3 }};
     window.carreraEstado = '{{ estado_carrera|default:"LISTO" }}';
-    window.carreraModalidad = '{{ modalidad_recorrido|default:"LIBRE" }}';
+    window.carreraModalidad = 'LIBRE';
     window.carreraPuntoLargada = {% if punto_largada_json %}{{ punto_largada_json|safe }}{% else %}null{% endif %};
     window.carreraPuntoMeta = {% if punto_meta_json %}{{ punto_meta_json|safe }}{% else %}null{% endif %};
     window.carreraRadioLargadaMetros = {{ radio_largada_metros|default:80 }};

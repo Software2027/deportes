@@ -547,15 +547,15 @@
     align-items: center;
     justify-content: center;
     gap: 0.6rem;
-    background-color: #eab308;
-    color: #1e293b !important;
+    background-color: #16a34a;
+    color: #ffffff !important;
     font-family: 'Outfit', sans-serif;
     font-size: 0.98rem;
     font-weight: 700;
     padding: 0.75rem 1.6rem;
     border-radius: 10px;
     text-decoration: none;
-    box-shadow: 0 4px 14px rgba(234, 179, 8, 0.32);
+    box-shadow: 0 4px 14px rgba(22, 163, 74, 0.3);
     transition: all 0.2s ease;
     border: none;
     cursor: pointer;
@@ -563,9 +563,9 @@
 }
 
 .btn-inscribir-circuito:hover {
-    background-color: #ca8a04;
+    background-color: #15803d;
     transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(234, 179, 8, 0.42);
+    box-shadow: 0 6px 18px rgba(22, 163, 74, 0.45);
 }
 
 /* ------------------------------------------------------------------------------
