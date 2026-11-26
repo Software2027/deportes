@@ -2,7 +2,7 @@
 {% if messages %}
 <div class="muni-messages-wrapper" id="muniMessagesContainer" role="region" aria-label="Mensajes del sistema">
     {% for message in messages %}
-        <div class="muni-alert {% if message.tags == 'success' %}muni-alert-success{% elif message.tags == 'error' or message.tags == 'danger' %}muni-alert-error{% elif message.tags == 'warning' %}muni-alert-warning{% else %}muni-alert-info{% endif %}" role="alert">
+        <div class="muni-alert {% if message.tags == 'success' %}muni-alert-success{% elif message.tags == 'error' or message.tags == 'danger' %}muni-alert-error{% elif message.tags == 'warning' %}muni-alert-warning{% else %}muni-alert-info{% endif %}" role="alert" data-auto-dismiss="5500">
             <div class="muni-alert-icon-box">
                 {% if message.tags == 'success' %}
                     <i class="fa-solid fa-circle-check"></i>
@@ -30,10 +30,98 @@
                 <div class="muni-alert-text">{{ message }}</div>
             </div>
 
-            <button type="button" class="muni-alert-close" onclick="this.closest('.muni-alert').remove();" aria-label="Cerrar notificación">
+            <button type="button" class="muni-alert-close" onclick="cerrarAlertaMuni(this.closest('.muni-alert'))" aria-label="Cerrar notificación">
                 <i class="fa-solid fa-xmark"></i>
             </button>
+            <div class="muni-alert-progress"></div>
         </div>
     {% endfor %}
 </div>
+
+<script>
+(function() {
+    function dismissAlert(alertEl) {
+        if (!alertEl || alertEl.classList.contains('muni-alert-closing')) return;
+        alertEl.classList.add('muni-alert-closing');
+        setTimeout(function() {
+            alertEl.remove();
+            const container = document.getElementById('muniMessagesContainer');
+            if (container && container.querySelectorAll('.muni-alert').length === 0) {
+                const parentBar = container.closest('.site-global-messages-bar');
+                if (parentBar) {
+                    parentBar.remove();
+                } else {
+                    container.remove();
+                }
+            }
+        }, 360);
+    }
+
+    window.cerrarAlertaMuni = dismissAlert;
+
+    function initAutoDismissAlerts() {
+        const alerts = document.querySelectorAll('.muni-alert[data-auto-dismiss]');
+        alerts.forEach(function(alertEl) {
+            if (alertEl._timerInitialized) return;
+            alertEl._timerInitialized = true;
+
+            const duration = parseInt(alertEl.getAttribute('data-auto-dismiss'), 10) || 5500;
+            let remaining = duration;
+            let startTime = Date.now();
+            let timerId = null;
+
+            const progressBar = alertEl.querySelector('.muni-alert-progress');
+            if (progressBar) {
+                progressBar.style.transition = 'width ' + duration + 'ms linear';
+                requestAnimationFrame(function() {
+                    progressBar.style.width = '0%';
+                });
+            }
+
+            function startTimer() {
+                startTime = Date.now();
+                timerId = setTimeout(function() {
+                    dismissAlert(alertEl);
+                }, remaining);
+            }
+
+            function pauseTimer() {
+                if (timerId) {
+                    clearTimeout(timerId);
+                    timerId = null;
+                    remaining -= (Date.now() - startTime);
+                    if (progressBar) {
+                        const currentWidth = window.getComputedStyle(progressBar).width;
+                        progressBar.style.transition = 'none';
+                        progressBar.style.width = currentWidth;
+                    }
+                }
+            }
+
+            function resumeTimer() {
+                if (remaining > 0 && !timerId) {
+                    if (progressBar) {
+                        progressBar.style.transition = 'width ' + remaining + 'ms linear';
+                        requestAnimationFrame(function() {
+                            progressBar.style.width = '0%';
+                        });
+                    }
+                    startTimer();
+                }
+            }
+
+            alertEl.addEventListener('mouseenter', pauseTimer);
+            alertEl.addEventListener('mouseleave', resumeTimer);
+
+            startTimer();
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initAutoDismissAlerts);
+    } else {
+        initAutoDismissAlerts();
+    }
+})();
+</script>
 {% endif %}

@@ -462,6 +462,9 @@
     font-weight: 600;
     text-decoration: none;
     transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
 }
 
 .btn-page-step:hover:not(.disabled) {
@@ -471,8 +474,19 @@
 }
 
 .btn-page-step.disabled {
-    opacity: 0.5;
+    opacity: 0.45;
     cursor: not-allowed;
+    background-color: #f8fafc;
+    color: #94a3b8;
+    border-color: #e2e8f0;
+    pointer-events: none;
+}
+
+.pagination-current-page {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #0f172a;
+    padding: 0 0.4rem;
 }
 
 /* ------------------------------------------------------------------------------

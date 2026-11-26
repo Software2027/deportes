@@ -288,37 +288,35 @@
             </table>
         </div>
 
-        <!-- Pie de Tabla: Paginador -->
-        <div class="table-pagination-footer">
-            <span class="pagination-counter-text">
-                Mostrando {{ page_obj.start_index|default:0 }} a {{ page_obj.end_index|default:0 }} de {{ total_resultados }} resultados
+        <!-- Pie de Tabla: Paginador Estandarizado -->
+        <div class="table-card-footer">
+            <span class="table-records-count">
+                Mostrando {{ page_obj.start_index|default:0 }} a {{ page_obj.end_index|default:0 }} de {{ total_resultados }} noticias
             </span>
 
-            <div class="pagination-buttons-group">
+            <div class="table-pagination-nav">
                 {% if page_obj.has_previous %}
-                <a href="?page={{ page_obj.previous_page_number }}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}{% if query_q %}&q={{ query_q }}{% endif %}{% if categoria_filtro %}&categoria={{ categoria_filtro }}{% endif %}"
-                   class="btn-page-step">
-                    <i class="fa-solid fa-chevron-left"></i>
-                    <span>Anterior</span>
-                </a>
+                    <a href="?page={{ page_obj.previous_page_number }}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}{% if query_q %}&q={{ query_q }}{% endif %}{% if categoria_filtro %}&categoria={{ categoria_filtro }}{% endif %}" class="btn-page-step" title="Página anterior">
+                        <i class="fa-solid fa-chevron-left"></i> Anterior
+                    </a>
                 {% else %}
-                <span class="btn-page-step disabled">
-                    <i class="fa-solid fa-chevron-left"></i>
-                    <span>Anterior</span>
-                </span>
+                    <span class="btn-page-step disabled">
+                        <i class="fa-solid fa-chevron-left"></i> Anterior
+                    </span>
                 {% endif %}
 
-                {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}{% if query_q %}&q={{ query_q }}{% endif %}{% if categoria_filtro %}&categoria={{ categoria_filtro }}{% endif %}"
-                   class="btn-page-step">
-                    <span>Siguiente</span>
-                    <i class="fa-solid fa-chevron-right"></i>
-                </a>
-                {% else %}
-                <span class="btn-page-step disabled">
-                    <span>Siguiente</span>
-                    <i class="fa-solid fa-chevron-right"></i>
+                <span class="pagination-current-page">
+                    Página {{ page_obj.number|default:1 }} de {{ page_obj.paginator.num_pages|default:1 }}
                 </span>
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}{% if query_q %}&q={{ query_q }}{% endif %}{% if categoria_filtro %}&categoria={{ categoria_filtro }}{% endif %}" class="btn-page-step" title="Página siguiente">
+                        Siguiente <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                {% else %}
+                    <span class="btn-page-step disabled">
+                        Siguiente <i class="fa-solid fa-chevron-right"></i>
+                    </span>
                 {% endif %}
             </div>
         </div>

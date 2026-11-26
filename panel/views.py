@@ -508,6 +508,13 @@ def ciclistas_list_view(request):
     if estado_filtro in ['Validado', 'Pendiente', 'Rechazado']:
         queryset = queryset.filter(estado=estado_filtro)
 
+    total_filtrados = queryset.count()
+
+    # Paginación (10 ciclistas por página)
+    paginator = Paginator(queryset, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     # Métricas para tarjetas superiores
     total_db = Ciclista.objects.count()
     pendientes_db = Ciclista.objects.filter(estado='Pendiente').count()
@@ -518,7 +525,9 @@ def ciclistas_list_view(request):
     nuevos_semana_db = Ciclista.objects.filter(fecha_registro__gte=hace_7).count()
 
     context = {
-        'ciclistas': queryset,
+        'ciclistas': page_obj,
+        'page_obj': page_obj,
+        'total_filtrados': total_filtrados,
         'query': query,
         'estado_filtro': estado_filtro,
         'total_registrados': f"{total_db:,}".replace(',', '.') if total_db > 0 else "0",
@@ -891,6 +900,13 @@ def comercios_list_view(request):
     if estado_filtro:
         queryset = queryset.filter(estado=estado_filtro)
 
+    total_filtrados = queryset.count()
+
+    # Paginación (10 comercios por página)
+    paginator = Paginator(queryset, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     # Métricas de KPIs de la imagen
     total = ComercioAdherido.objects.count()
     activos = ComercioAdherido.objects.filter(estado='Activo').count()
@@ -898,7 +914,9 @@ def comercios_list_view(request):
     inactivos = ComercioAdherido.objects.filter(estado='Inactivo').count()
 
     context = {
-        'comercios': queryset,
+        'comercios': page_obj,
+        'page_obj': page_obj,
+        'total_filtrados': total_filtrados,
         'query': query,
         'estado_filtro': estado_filtro,
         'total_comercios': total,
@@ -1061,16 +1079,22 @@ def circuitos_list_view(request):
     """
     Listado institucional de circuitos generales, etapas activas y comercios asociados.
     """
-    circuitos = CircuitoGeneral.objects.all().prefetch_related('subcircuitos', 'comercios')
+    circuitos_qs = CircuitoGeneral.objects.all().order_by('-activo', 'id').prefetch_related('subcircuitos', 'comercios')
 
-    total_circuitos = circuitos.count()
-    circuitos_activos = circuitos.filter(activo=True).count()
-    circuito_activo = circuitos.filter(activo=True).first()
+    total_circuitos = circuitos_qs.count()
+    circuitos_activos = circuitos_qs.filter(activo=True).count()
+    circuito_activo = circuitos_qs.filter(activo=True).first()
     total_subcircuitos = SubCircuito.objects.count()
     total_comercios_en_circuito = ComercioAdherido.objects.filter(circuito_general__isnull=False).count()
 
+    # Paginación (10 circuitos por página)
+    paginator = Paginator(circuitos_qs, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     context = {
-        'circuitos': circuitos,
+        'circuitos': page_obj,
+        'page_obj': page_obj,
         'total_circuitos': total_circuitos,
         'circuitos_activos': circuitos_activos,
         'circuito_activo': circuito_activo,
@@ -1599,10 +1623,17 @@ def ranking_evento_view(request, circuito_id=None):
     # Subcircuitos / Tramos del circuito actual
     subcircuitos = SubCircuito.objects.filter(circuito_general=circuito_actual).order_by('orden') if circuito_actual else []
 
+    # Paginación para la tabla clasificatoria (10 participantes por página)
+    paginator = Paginator(participantes_data, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     context = {
         'circuito': circuito_actual,
         'todos_circuitos': todos_circuitos,
-        'participantes': participantes_data,
+        'circuitos_libres': todos_circuitos,
+        'participantes': page_obj,
+        'page_obj': page_obj,
         'podio': podio,
         'total_iniciados': total_iniciados,
         'total_finalizados': total_finalizados,

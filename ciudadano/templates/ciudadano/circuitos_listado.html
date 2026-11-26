@@ -1,7 +1,7 @@
 {% extends "base/base_ciudadano.html" %}
 {% load static %}
 
-{% block title %}Circuitos y Carreras Oficiales | Ciclismo Malagueño{% endblock %}
+{% block title %}Recorridos Oficiales | Ciclismo Malagueño{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/pages/circuitos_cards.css' %}">
@@ -91,14 +91,14 @@
         <div class="circuitos-public-content">
             <div class="circuitos-public-badge">
                 <i class="fa-solid fa-route"></i>
-                <span>Red de Circuitos Municipales</span>
+                <span>Red de Recorridos Municipales</span>
             </div>
             <h1 class="circuitos-public-title">
-                Circuitos y Carreras <br>
+                Recorridos <br>
                 <span class="highlight-yellow">Oficiales de Malagueño</span>
             </h1>
             <p class="circuitos-public-desc">
-                Explora los trazados oficiales de nuestra ciudad. Puedes inscribirte a las carreras competitivas para disputar el podio municipal o realizar los circuitos recreativos de forma libre con seguimiento satelital GPS.
+                Explora los trazados oficiales de nuestra ciudad. Puedes recorrerlos de forma libre a tu propio ritmo con telemetría y seguimiento satelital GPS.
             </p>
         </div>
     </div>
@@ -116,9 +116,9 @@
                     <i class="fa-solid fa-route"></i>
                     <span>Trazados Habilitados ({{ circuitos_activos|length }})</span>
                 </div>
-                <h2 class="all-circuits-title">Conoce Todos los Circuitos</h2>
+                <h2 class="all-circuits-title">Conoce Todos los Recorridos</h2>
                 <p class="all-circuits-desc">
-                    Explora los circuitos municipales de Malagueño, habilítalos en tu panel y recórrelos a tu propio ritmo con telemetría GPS.
+                    Participa de los diferentes recorridos, habilítalos en tu panel y recórrelos a tu propio ritmo con telemetría GPS.
                 </p>
             </div>
 
@@ -163,7 +163,7 @@
                 <!-- Topbar de la Card -->
                 <div class="circuit-card-topbar">
                     <span class="badge-circuit-free" title="Trazado permanente para práctica libre">
-                        <i class="fa-solid fa-route"></i> Circuito Libre
+                        <i class="fa-solid fa-route"></i> Recorrido Libre
                     </span>
 
                     {% if c.dificultad == 'FACIL' %}
@@ -233,7 +233,7 @@
                 <!-- Acciones de la Card -->
                 <div class="circuit-card-actions">
                     {% if c.id in inscriptos_ids %}
-                        <a href="{% url 'mi_progreso' %}?circuito_id={{ c.id }}" class="btn-card-select" title="Ver mi progreso en este circuito">
+                        <a href="{% url 'mi_progreso' %}?circuito_id={{ c.id }}" class="btn-card-select" title="Ver mi progreso en este recorrido">
                             <i class="fa-solid fa-chart-line"></i>
                             <span>Mi Progreso</span>
                         </a>
@@ -241,7 +241,7 @@
                         {% if user.is_authenticated %}
                             <form method="POST" action="{% url 'inscribir_circuito' c.id %}" style="display: flex;">
                                 {% csrf_token %}
-                                <button type="submit" class="btn-card-select" title="Añadir a mis circuitos">
+                                <button type="submit" class="btn-card-select" title="Añadir a mis recorridos">
                                     <i class="fa-solid fa-plus"></i>
                                     <span>Sumar a Panel</span>
                                 </button>
@@ -262,7 +262,7 @@
             <!-- Mensaje cuando ningún circuito coincide con el filtro -->
             <div id="no-circuits-msg" style="display: none; text-align: center; padding: 3.5rem 1rem; color: #64748b; grid-column: 1 / -1;">
                 <i class="fa-solid fa-filter-circle-xmark" style="font-size: 2.8rem; color: #cbd5e1; margin-bottom: 1rem; display: block;"></i>
-                <p style="font-weight: 700; font-size: 1.15rem; color: #334155; margin-bottom: 0.35rem;">No hay circuitos con la dificultad seleccionada</p>
+                <p style="font-weight: 700; font-size: 1.15rem; color: #334155; margin-bottom: 0.35rem;">No hay recorridos con la dificultad seleccionada</p>
                 <p style="font-size: 0.92rem; color: #64748b; margin: 0;">Prueba seleccionando otro nivel o haz clic en "Todos".</p>
             </div>
         </div>

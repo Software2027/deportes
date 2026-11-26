@@ -65,7 +65,7 @@
                                     <div class="circuit-quick-switch-left">
                                         <label for="quickCircuitSelector" class="circuit-switch-label">
                                             <i class="fa-solid fa-route" style="color: #16a34a;"></i> 
-                                            <span>Circuito seleccionado:</span>
+                                            <span>Recorrido seleccionado:</span>
                                         </label>
                                         <select id="quickCircuitSelector" class="circuit-select-input" onchange="if(this.value) window.location.href='?circuito_id='+this.value;">
                                             {% for item in mis_circuitos_inscriptos %}
@@ -73,13 +73,13 @@
                                                 {{ item.circuito.nombre }} ({{ item.circuito.distancia_total_km|default:item.distancia_total_km }} km)
                                             </option>
                                             {% empty %}
-                                            <option value="" disabled selected>No tienes circuitos añadidos</option>
+                                            <option value="" disabled selected>No tienes recorridos añadidos</option>
                                             {% endfor %}
                                         </select>
                                     </div>
                                     <div class="circuit-quick-switch-right">
-                                        <a href="{% url 'circuitos_ciclista' %}" class="circuit-quick-link" title="Explorar catálogo de circuitos y agregar más a tu panel">
-                                            <i class="fa-solid fa-plus-circle"></i> Explorar Más Circuitos
+                                        <a href="{% url 'circuitos_ciclista' %}" class="circuit-quick-link" title="Explorar catálogo de recorridos y agregar más a tu panel">
+                                            <i class="fa-solid fa-plus-circle"></i> Explorar Más Recorridos
                                         </a>
                                     </div>
                                 </div>
@@ -133,7 +133,7 @@
                     {% if not esta_inscripto %}
                         <div class="circuit-action-msg">
                             <i class="fa-solid fa-person-biking"></i>
-                            <span>Circuito disponible. Súmalo a tu panel para entrenar y registrar tu avance en <strong>Modo Libre</strong>.</span>
+                            <span>Recorrido disponible. Súmalo a tu panel para entrenar y registrar tu avance en <strong>Modo Libre</strong>.</span>
                         </div>
                         <div style="display: flex; gap: 0.65rem; align-items: center; flex-wrap: wrap;">
                             <form method="POST" action="{% url 'mi_progreso' %}">
@@ -149,11 +149,11 @@
                     {% else %}
                         <div class="circuit-action-msg">
                             <i class="fa-solid fa-circle-check" style="color: #16a34a;"></i>
-                            <span>Circuito Activo • Modo Libre Recreativo</span>
+                            <span>Recorrido Activo • Modo Libre Recreativo</span>
                         </div>
                         <a href="{% url 'mapa_carrera' %}?circuito_id={{ circuito.id }}" class="btn-start-gps-race">
                             <i class="fa-solid fa-person-walking-dashed-line-arrow-right"></i>
-                            <span>{% if esta_en_carrera %}Continuar Recorrido en Vivo{% else %}Iniciar Recorrido en este Circuito (GPS){% endif %}</span>
+                            <span>{% if esta_en_carrera %}Continuar Recorrido en Vivo{% else %}Iniciar Recorrido Satelital (GPS){% endif %}</span>
                             <i class="fa-solid fa-arrow-right" style="font-size: 0.85rem;"></i>
                         </a>
                     {% endif %}
@@ -169,12 +169,12 @@
                     <i class="fa-solid fa-route"></i>
                 </div>
                 <div class="banner-sin-content">
-                    <h3>¡Aún no te has sumado a ningún circuito!</h3>
-                    <p>Agrega un circuito a tu panel para entrenar, recorrer los rincones de Malagueño y registrar tu telemetría GPS a tu propio ritmo.</p>
+                    <h3>¡Aún no te has sumado a ningún recorrido!</h3>
+                    <p>Agrega un recorrido a tu panel para entrenar, recorrer los rincones de Malagueño y registrar tu telemetría GPS a tu propio ritmo.</p>
                 </div>
                 <a href="{% url 'circuitos_ciclista' %}" class="btn-ir-catalogo-circuitos">
                     <i class="fa-solid fa-compass"></i>
-                    <span>Ver Circuitos Disponibles para Inscribirme</span>
+                    <span>Ver Recorridos Disponibles</span>
                 </a>
             </section>
             {% endif %}
@@ -191,7 +191,7 @@
                     <div class="kpi-body">
                         <span class="kpi-label">Distancia</span>
                         <span class="kpi-value">{{ circuito.distancia_total_km|default:total_km }} km</span>
-                        <span class="kpi-subtext">longitud del circuito</span>
+                        <span class="kpi-subtext">longitud del recorrido</span>
                     </div>
                 </div>
 
@@ -227,7 +227,7 @@
                 <div class="preview-top-flex">
                     <h2 class="preview-title">
                         <i class="fa-solid fa-map-location-dot"></i>
-                        <span>Ruta del {{ circuito.nombre|default:"Circuito Municipal" }}</span>
+                        <span>Ruta del {{ circuito.nombre|default:"Recorrido Municipal" }}</span>
                     </h2>
                     <a href="{% url 'mapa_carrera' %}" class="subcircuits-link-map">
                         <span>Abrir Navegador GPS</span>
@@ -286,8 +286,8 @@
                     {% empty %}
                     <div style="grid-column: 1 / -1; padding: 2rem 1.5rem; background: #ffffff; border-radius: 14px; border: 1.5px dashed #cbd5e1; text-align: center; color: #64748b;">
                         <i class="fa-solid fa-layer-group" style="font-size: 2rem; color: #94a3b8; margin-bottom: 0.65rem; display: block;"></i>
-                        <h4 style="font-size: 1.05rem; font-weight: 700; color: #334155; margin: 0 0 0.25rem 0;">Circuito de Trazado Continuo</h4>
-                        <p style="font-size: 0.88rem; margin: 0; color: #64748b;">Este circuito se recorre como una ruta unificada continua sin subdivisión en etapas.</p>
+                        <h4 style="font-size: 1.05rem; font-weight: 700; color: #334155; margin: 0 0 0.25rem 0;">Recorrido de Trazado Continuo</h4>
+                        <p style="font-size: 0.88rem; margin: 0; color: #64748b;">Este recorrido se completa como una ruta unificada continua sin subdivisión en etapas.</p>
                     </div>
                     {% endfor %}
                 </div>
@@ -380,12 +380,44 @@
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Footer de Paginación Estandarizado -->
+                <div class="table-card-footer">
+                    <span class="table-records-count">
+                        Mostrando {{ page_obj_historial.start_index|default:0 }} a {{ page_obj_historial.end_index|default:0 }} de {{ total_historial }} sesiones registradas
+                    </span>
+                    <div class="table-pagination-nav">
+                        {% if page_obj_historial.has_previous %}
+                            <a href="?page={{ page_obj_historial.previous_page_number }}{% if circuito %}&circuito_id={{ circuito.id }}{% endif %}#historial" class="btn-page-step" title="Página anterior">
+                                <i class="fa-solid fa-chevron-left"></i> Anterior
+                            </a>
+                        {% else %}
+                            <span class="btn-page-step disabled">
+                                <i class="fa-solid fa-chevron-left"></i> Anterior
+                            </span>
+                        {% endif %}
+
+                        <span class="pagination-current-page">
+                            Página {{ page_obj_historial.number|default:1 }} de {{ page_obj_historial.paginator.num_pages|default:1 }}
+                        </span>
+
+                        {% if page_obj_historial.has_next %}
+                            <a href="?page={{ page_obj_historial.next_page_number }}{% if circuito %}&circuito_id={{ circuito.id }}{% endif %}#historial" class="btn-page-step" title="Página siguiente">
+                                Siguiente <i class="fa-solid fa-chevron-right"></i>
+                            </a>
+                        {% else %}
+                            <span class="btn-page-step disabled">
+                                Siguiente <i class="fa-solid fa-chevron-right"></i>
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
                 {% else %}
                 <div class="historial-empty-state">
                     <div class="empty-icon-wrap">
                         <i class="fa-solid fa-stopwatch"></i>
                     </div>
-                    <h3>Sin recorridos grabados en este circuito todavía</h3>
+                    <h3>Sin sesiones grabadas en este recorrido todavía</h3>
                     <p>Cuando inicies tu recorrido y actives el seguimiento satelital GPS, aquí quedará registrado tu tiempo, distancia y velocidad de cada intento.</p>
                     <a href="{% url 'mapa_carrera' %}?circuito_id={{ circuito.id }}" class="btn-primer-recorrido">
                         <i class="fa-solid fa-location-crosshairs"></i>

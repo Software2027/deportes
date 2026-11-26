@@ -266,7 +266,7 @@ class FinalizarRecorridoAPIView(APIView):
     """
     POST /api/recorrido/finalizar/
     Finaliza el recorrido del ciclista registrando la fecha/hora de fin.
-    Verifica si se encuentra dentro del radio de tolerancia de 20 metros respecto a la Meta Oficial.
+    Verifica si se encuentra dentro del radio de tolerancia de la Meta Oficial.
     Payload: { "recorrido_id": 102, "latitud": -31.468, "longitud": -64.355, "forzar": false }
     """
     permission_classes = [permissions.IsAuthenticated]
@@ -277,18 +277,32 @@ class FinalizarRecorridoAPIView(APIView):
         longitud = request.data.get('longitud')
         forzar = request.data.get('forzar', False)
 
-        if not recorrido_id:
-            return Response({"error": "Debe especificar recorrido_id"}, status=status.HTTP_400_BAD_REQUEST)
+        recorrido = None
+        if recorrido_id and str(recorrido_id) != '0':
+            try:
+                recorrido = RecorridoCiclista.objects.filter(
+                    id=int(recorrido_id),
+                    ciclista=request.user
+                ).select_related('circuito').first()
+            except (ValueError, TypeError):
+                recorrido = None
 
-        recorrido = get_object_or_404(
-            RecorridoCiclista.objects.select_related('circuito'),
-            id=recorrido_id,
-            ciclista=request.user
-        )
+        if not recorrido:
+            # Buscar el último recorrido activo o más reciente del usuario
+            recorrido = RecorridoCiclista.objects.filter(
+                ciclista=request.user,
+                estado__in=['EN_CURSO', 'PAUSADO', 'LISTO']
+            ).select_related('circuito').order_by('-inicio').first()
 
-        # Validación de Meta (Llegada) con radio oficial de 20 metros
+        if not recorrido:
+            return Response(
+                {"status": "ok", "message": "No había recorrido activo para finalizar.", "estado": "FINALIZADO"},
+                status=status.HTTP_200_OK
+            )
+
+        # Validación de Meta (Llegada)
         punto_meta = recorrido.circuito.punto_meta if recorrido.circuito else None
-        radio_meta = 20
+        radio_meta = getattr(recorrido.circuito, 'radio_meta_metros', 20) or 20
         distancia_a_meta = None
         en_meta = True
 
@@ -296,27 +310,23 @@ class FinalizarRecorridoAPIView(APIView):
             distancia_a_meta = calcular_distancia_metros(latitud, longitud, punto_meta[0], punto_meta[1])
             if distancia_a_meta > radio_meta:
                 en_meta = False
-                if not forzar:
-                    return Response(
-                        {
-                            "fuera_de_meta": True,
-                            "error": (
-                                f"Te encuentras a {int(distancia_a_meta)} metros de la Meta Oficial. "
-                                f"La tolerancia para cerrar carrera es de {radio_meta} metros."
-                            ),
-                            "distancia_metros": round(distancia_a_meta, 1),
-                            "radio_permitido": radio_meta,
-                            "punto_meta": {
-                                "lat": punto_meta[0],
-                                "lng": punto_meta[1]
-                            }
-                        },
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
 
         recorrido.estado = 'FINALIZADO'
         recorrido.fin = timezone.now()
         recorrido.save()
+
+        # Registrar coordenada final si está disponible
+        if latitud is not None and longitud is not None:
+            try:
+                from .models import TelemetriaGPS
+                TelemetriaGPS.objects.create(
+                    recorrido=recorrido,
+                    latitud=latitud,
+                    longitud=longitud,
+                    velocidad_kmh=0.0
+                )
+            except Exception:
+                pass
 
         return Response(
             {

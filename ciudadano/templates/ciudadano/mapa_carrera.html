@@ -29,8 +29,12 @@
             <span class="btn-etapas-text">Etapas ({{ total_subcircuitos|default:3 }})</span>
         </button>
 
-        <!-- Indicador de Señal GPS, SOS Emergencias y Fullscreen -->
+        <!-- Indicador de Señal GPS, SOS Emergencias, Instrucciones y Fullscreen -->
         <div class="topbar-right-controls">
+            <button type="button" class="btn-instrucciones-top" id="btn-instrucciones-top" title="Instrucciones y Consejos del Recorrido" aria-label="Instrucciones">
+                <i class="fa-solid fa-circle-question"></i>
+                <span class="btn-instrucciones-text">Instrucciones</span>
+            </button>
             <button type="button" class="btn-emergency-sos-top" id="btn-emergency-sos" title="Llamada de Emergencia Médica y Auxilio (107)" aria-label="Emergencia SOS">
                 <i class="fa-solid fa-phone-volume"></i>
                 <span>SOS 107</span>
@@ -314,7 +318,80 @@
                     Cancelar
                 </button>
                 <button type="button" class="btn-modal-confirm btn-modal-confirm-movilidad" id="btn-confirmar-movilidad">
-                    <i class="fa-solid fa-play"></i> <span>Continuar e Iniciar</span>
+                    <i class="fa-solid fa-play"></i> <span>Continuar</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- 7.0.b. MODAL INSTRUCCIONES DEL RECORRIDO (ANTES DE INICIAR)             -->
+    <!-- ----------------------------------------------------------------------- -->
+    <div class="modal-confirm-backdrop" id="modal-instrucciones-recorrido" style="display: none; z-index: 9999999;">
+        <div class="modal-confirm-card modal-instrucciones-card">
+            <div class="modal-instrucciones-icon">
+                <i class="fa-solid fa-compass"></i>
+            </div>
+            <span class="modal-instrucciones-badge">PAUTAS OFICIALES</span>
+            <h3 class="modal-confirm-title" style="font-size: 1.35rem; font-weight: 800; margin-bottom: 0.35rem; color: #0f172a;">
+                Antes de Comenzar tu Recorrido
+            </h3>
+            <p class="modal-confirm-desc" style="font-size: 0.88rem; color: #64748b; line-height: 1.45; margin-bottom: 1.15rem;">
+                Ten en cuenta estas instrucciones importantes para que tu experiencia y telemetría queden registradas con éxito:
+            </p>
+
+            <div class="instrucciones-grid-list">
+                <!-- Regla 1: Celular y Pantalla Encendida -->
+                <div class="instruccion-item">
+                    <div class="instruccion-ico-box ico-screen">
+                        <i class="fa-solid fa-mobile-screen-button"></i>
+                    </div>
+                    <div class="instruccion-txt">
+                        <h4>Mantén el celular encendido con pantalla activa</h4>
+                        <p>No apagues ni bloquees la pantalla de tu teléfono. El navegador necesita la pantalla encendida para mantener el seguimiento GPS satelital en tiempo real con máxima precisión.</p>
+                    </div>
+                </div>
+
+                <!-- Regla 2: Notificaciones de tramos y paradas -->
+                <div class="instruccion-item">
+                    <div class="instruccion-ico-box ico-notify">
+                        <i class="fa-solid fa-bell"></i>
+                    </div>
+                    <div class="instruccion-txt">
+                        <h4>Avisos en vivo de tramos y estaciones</h4>
+                        <p>A medida que avances, el sistema te notificará con alertas sonoras y visuales tus cambios de etapa, tramos completados y las estaciones o comercios habilitados donde puedes parar.</p>
+                    </div>
+                </div>
+
+                <!-- Regla 3: Pausas y descansos sin salir de la página -->
+                <div class="instruccion-item">
+                    <div class="instruccion-ico-box ico-pause">
+                        <i class="fa-solid fa-circle-pause"></i>
+                    </div>
+                    <div class="instruccion-txt">
+                        <h4>Pausas y descansos sin salir de la página</h4>
+                        <p>Puedes detenerte en cualquier momento para tomar aire o hidratarte pulsando <strong>"DETENER"</strong>. Podrás retomar la marcha tocando <strong>"REANUDAR"</strong> sin salir de la página ni perder tu sesión.</p>
+                    </div>
+                </div>
+
+                <!-- Regla 4: Registrar paradas para estadísticas -->
+                <div class="instruccion-item">
+                    <div class="instruccion-ico-box ico-stats">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                    <div class="instruccion-txt">
+                        <h4>Pulsa "Detener" al frenar para computar tus paradas</h4>
+                        <p>Para que tu detención en un punto de descanso o comercio cuente oficialmente en tus estadísticas del recorrido, debes presionar el botón <strong>"DETENER"</strong> en el punto exacto de frenado.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions-row modal-instrucciones-actions" style="margin-top: 1.25rem;">
+                <button type="button" class="btn-modal-cancel" id="btn-cancelar-instrucciones" style="background: #f1f5f9; color: #475569;">
+                    Volver
+                </button>
+                <button type="button" class="btn-modal-confirm" id="btn-confirmar-iniciar-instrucciones" style="background: #16a34a; color: #fff; font-weight: 800;">
+                    <i class="fa-solid fa-play"></i> <span>¡Entendido, Iniciar Recorrido!</span>
                 </button>
             </div>
         </div>

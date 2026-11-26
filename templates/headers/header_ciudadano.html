@@ -14,7 +14,7 @@
             <ul class="nav-menu">
                 <li><a href="{% url 'index' %}" class="nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}">Inicio</a></li>
                 <li><a href="{% url 'circuitos_listado' %}" class="nav-link {% if request.resolver_match.url_name in 'circuitos_listado,circuitos_ciclista,inscribir_circuito,inscribir_circuito_post' %}active{% endif %}">
-                    <i class="fa-solid fa-route" style="margin-right: 5px;"></i>Circuitos</a>
+                    <i class="fa-solid fa-route" style="margin-right: 5px;"></i>Recorridos</a>
                 </li>
                 <li><a href="{% url 'noticias_listado' %}" class="nav-link {% if request.resolver_match.url_name in 'noticias_listado,noticia_detalle' %}active{% endif %}">
                     <i class="fa-solid fa-newspaper" style="margin-right: 5px;"></i>Noticias</a>

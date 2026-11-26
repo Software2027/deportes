@@ -223,11 +223,32 @@
         <!-- Footer de Paginación -->
         <div class="table-card-footer">
             <span class="table-records-count">
-                Mostrando {{ ciclistas|length }} de {{ total_registrados }} ciclistas
+                Mostrando {{ page_obj.start_index|default:0 }} a {{ page_obj.end_index|default:0 }} de {{ total_filtrados|default:page_obj.paginator.count }} participantes
             </span>
             <div class="table-pagination-nav">
-                <a href="#" class="btn-page-step disabled">Anterior</a>
-                <a href="#" class="btn-page-step disabled">Siguiente</a>
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}" class="btn-page-step" title="Página anterior">
+                        <i class="fa-solid fa-chevron-left"></i> Anterior
+                    </a>
+                {% else %}
+                    <span class="btn-page-step disabled">
+                        <i class="fa-solid fa-chevron-left"></i> Anterior
+                    </span>
+                {% endif %}
+
+                <span class="pagination-current-page" style="font-size: 0.85rem; font-weight: 700; color: #475569; padding: 0 0.5rem;">
+                    Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages|default:1 }}
+                </span>
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}" class="btn-page-step" title="Página siguiente">
+                        Siguiente <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                {% else %}
+                    <span class="btn-page-step disabled">
+                        Siguiente <i class="fa-solid fa-chevron-right"></i>
+                    </span>
+                {% endif %}
             </div>
         </div>
     </section>

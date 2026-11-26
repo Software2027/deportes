@@ -102,6 +102,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const botonesMovilidad = document.querySelectorAll('.btn-opcion-movilidad');
     let tipoMovilidadSeleccionada = 'BICICLETA';
 
+    // Elementos Modal Instrucciones del Recorrido
+    const modalInstrucciones = document.getElementById('modal-instrucciones-recorrido');
+    const btnInstruccionesTop = document.getElementById('btn-instrucciones-top');
+    const btnConfirmarIniciarInstrucciones = document.getElementById('btn-confirmar-iniciar-instrucciones');
+    const btnCancelarInstrucciones = document.getElementById('btn-cancelar-instrucciones');
+    let modoInstrucciones = 'inicio'; // 'inicio' o 'consulta'
+
     const btnMovDefault = document.querySelector('.btn-opcion-movilidad.seleccionado');
     if (btnMovDefault) {
         tipoMovilidadSeleccionada = btnMovDefault.getAttribute('data-movilidad') || 'BICICLETA';
@@ -738,29 +745,50 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         ultimaCoordenada = { lat, lng };
 
-        // Detección automática de la etapa según proximidad de trazado
+        // Detección automática y secuencial de la etapa (evita saltos en tramos superpuestos)
         if (typeof subIndexForzado === 'number') {
             actualizarEtapaActiva(subIndexForzado);
         } else if (trazados.length > 1) {
-            // Evaluar a qué subcircuito se acerca más la coordenada
-            let menorDistancia = Infinity;
-            let etapaCercanaIndex = subcircuitoActivoIndex;
+            const sigEtapaIndex = subcircuitoActivoIndex + 1;
 
-            trazados.forEach((sub, sIdx) => {
-                if (sub.coordenadas) {
-                    sub.coordenadas.forEach(coord => {
-                        const d = calcularHaversineMetros(lat, lng, coord[0], coord[1]);
-                        if (d < menorDistancia) {
-                            menorDistancia = d;
-                            etapaCercanaIndex = sIdx;
-                        }
-                    });
+            // Solo evaluar avance a la etapa siguiente inmediata (estrictamente secuencial)
+            if (sigEtapaIndex < trazados.length) {
+                const etapaActual = trazados[subcircuitoActivoIndex];
+                const etapaSiguiente = trazados[sigEtapaIndex];
+                const coordsActual = etapaActual.coordenadas || [];
+                const coordsSig = etapaSiguiente.coordenadas || [];
+
+                const puntoFinActual = coordsActual.length > 0 ? coordsActual[coordsActual.length - 1] : null;
+                const puntoInicioSig = coordsSig.length > 0 ? coordsSig[0] : null;
+
+                const distAlFinActual = puntoFinActual ? calcularHaversineMetros(lat, lng, puntoFinActual[0], puntoFinActual[1]) : Infinity;
+                const distAlInicioSig = puntoInicioSig ? calcularHaversineMetros(lat, lng, puntoInicioSig[0], puntoInicioSig[1]) : Infinity;
+
+                // 1. Detección por empalme: cuando el participante llega al fin de la etapa actual o inicio de la siguiente
+                const enPuntoEmpalme = (distAlFinActual <= 65 || distAlInicioSig <= 65);
+
+                // 2. Detección por alejamiento de la etapa actual y entrada en la siguiente
+                let distMinimaEtapaActual = Infinity;
+                for (let i = 0; i < coordsActual.length; i++) {
+                    const d = calcularHaversineMetros(lat, lng, coordsActual[i][0], coordsActual[i][1]);
+                    if (d < distMinimaEtapaActual) distMinimaEtapaActual = d;
                 }
-            });
 
-            // Si se encuentra a menos de 100m de la etapa más cercana y avanza
-            if (menorDistancia < 120 && etapaCercanaIndex !== subcircuitoActivoIndex) {
-                actualizarEtapaActiva(etapaCercanaIndex);
+                let distMinimaEtapaSig = Infinity;
+                for (let j = 0; j < coordsSig.length; j++) {
+                    const d = calcularHaversineMetros(lat, lng, coordsSig[j][0], coordsSig[j][1]);
+                    if (d < distMinimaEtapaSig) distMinimaEtapaSig = d;
+                }
+
+                // Criterio de transición estricta:
+                // Si la etapa actual y una etapa posterior comparten camino/calle, el participante
+                // permanecerá en la etapa actual porque no está en el empalme final de la etapa actual.
+                // Solo avanza si:
+                // a) Está en el punto de empalme entre la actual y la siguiente (<= 65m), O
+                // b) Ya se alejó del trazado de la etapa actual (> 85m) y está sobre la etapa siguiente (< 45m).
+                if (enPuntoEmpalme || (distMinimaEtapaActual > 85 && distMinimaEtapaSig < 45)) {
+                    actualizarEtapaActiva(sigEtapaIndex);
+                }
             }
         }
 
@@ -1294,13 +1322,61 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Botón Iniciar (Abre modal de movilidad o dispara directamente)
+    // Modal de Instrucciones del Recorrido
+    function abrirModalInstrucciones(modo = 'inicio') {
+        modoInstrucciones = modo;
+        if (!modalInstrucciones) {
+            if (modo === 'inicio') ejecutarDisparoInicio();
+            return;
+        }
+
+        if (btnConfirmarIniciarInstrucciones) {
+            if (modo === 'inicio') {
+                btnConfirmarIniciarInstrucciones.innerHTML = '<i class="fa-solid fa-play"></i> <span>¡Entendido, Iniciar Recorrido!</span>';
+                if (btnCancelarInstrucciones) btnCancelarInstrucciones.style.display = 'inline-flex';
+            } else {
+                btnConfirmarIniciarInstrucciones.innerHTML = '<i class="fa-solid fa-check"></i> <span>Entendido</span>';
+                if (btnCancelarInstrucciones) btnCancelarInstrucciones.style.display = 'none';
+            }
+        }
+        modalInstrucciones.style.display = 'flex';
+    }
+
+    function cerrarModalInstrucciones() {
+        if (modalInstrucciones) {
+            modalInstrucciones.style.display = 'none';
+        }
+    }
+
+    if (btnInstruccionesTop) {
+        btnInstruccionesTop.addEventListener('click', () => {
+            abrirModalInstrucciones('consulta');
+        });
+    }
+
+    if (btnConfirmarIniciarInstrucciones) {
+        btnConfirmarIniciarInstrucciones.addEventListener('click', () => {
+            const eraInicio = modoInstrucciones === 'inicio';
+            cerrarModalInstrucciones();
+            if (eraInicio) {
+                ejecutarDisparoInicio();
+            }
+        });
+    }
+
+    if (btnCancelarInstrucciones) {
+        btnCancelarInstrucciones.addEventListener('click', () => {
+            cerrarModalInstrucciones();
+        });
+    }
+
+    // Botón Iniciar (Abre modal de movilidad o instrucciones directamente)
     if (btnStart) {
         btnStart.addEventListener('click', () => {
             if (modalMovilidad) {
                 modalMovilidad.style.display = 'flex';
             } else {
-                ejecutarDisparoInicio();
+                abrirModalInstrucciones('inicio');
             }
         });
     }
@@ -1309,7 +1385,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnConfirmarMovilidad) {
         btnConfirmarMovilidad.addEventListener('click', () => {
             if (modalMovilidad) modalMovilidad.style.display = 'none';
-            ejecutarDisparoInicio();
+            abrirModalInstrucciones('inicio');
         });
     }
 
@@ -1513,25 +1589,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnAcceptModal) {
         btnAcceptModal.addEventListener('click', () => {
             if (modalConfirm) modalConfirm.style.display = 'none';
-
-            // Validar si el ciclista está dentro del radio de 20 metros de la Meta Oficial
-            const refMeta = coordMeta || puntoMeta;
-            if (refMeta && refMeta.length === 2 && ultimaCoordenada) {
-                const distMeta = calcularHaversineMetros(
-                    ultimaCoordenada.lat,
-                    ultimaCoordenada.lng,
-                    refMeta[0],
-                    refMeta[1]
-                );
-                if (distMeta > radioMetaMetros) {
-                    if (modalFueraMeta) {
-                        if (metaDistActual) metaDistActual.textContent = `${Math.round(distMeta)} metros`;
-                        modalFueraMeta.style.display = 'flex';
-                    }
-                    return;
-                }
-            }
-            ejecutarFinalizacionRecorrido(false);
+            ejecutarFinalizacionRecorrido(true);
         });
     }
 
@@ -1555,24 +1613,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const lat = ultimaCoordenada ? ultimaCoordenada.lat : (refMeta ? refMeta[0] : null);
         const lng = ultimaCoordenada ? ultimaCoordenada.lng : (refMeta ? refMeta[1] : null);
 
-        if (recorridoId) {
-            fetch('/api/recorrido/finalizar/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-                body: JSON.stringify({
-                    recorrido_id: recorridoId,
-                    latitud: lat,
-                    longitud: lng,
-                    forzar: !!forzar
-                })
-            }).finally(() => {
-                const cId = window.carreraCircuitoId || '';
-                window.location.href = cId ? `/mi-progreso/?circuito_id=${cId}` : '/mi-progreso/';
-            });
-        } else {
+        // Deshabilitar botón para evitar dobles clics
+        if (btnAcceptModal) btnAcceptModal.disabled = true;
+
+        const payload = {
+            recorrido_id: recorridoId || window.carreraRecorridoId || 0,
+            latitud: lat,
+            longitud: lng,
+            forzar: true
+        };
+
+        fetch('/api/recorrido/finalizar/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .catch(err => {
+            console.warn('[Finalizar Error]', err);
+        })
+        .finally(() => {
             const cId = window.carreraCircuitoId || '';
             window.location.href = cId ? `/mi-progreso/?circuito_id=${cId}` : '/mi-progreso/';
-        }
+        });
     }
 
     if (btnContinuarMeta) {

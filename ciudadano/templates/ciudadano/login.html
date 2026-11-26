@@ -18,10 +18,7 @@
 
             <!-- Título y Subtítulo -->
             <h1 class="login-title">Bienvenido</h1>
-            <p class="login-subtitle">Ingresa tus credenciales para acceder a tu panel de ciclista.</p>
-
-            <!-- Mensajes Flash de Django Institucionales -->
-            {% include "includes/mensajes.html" %}
+            <p class="login-subtitle">Ingresa tus credenciales para acceder a tu panel de participante.</p>
 
             <!-- Formulario de Inicio de Sesión -->
             <form method="POST" action="{% url 'login' %}{% if next_url or request.GET.next %}?next={{ next_url|default:request.GET.next }}{% endif %}" class="login-form">
@@ -92,7 +89,7 @@
 
             <!-- Registro en el evento -->
             <div class="login-footer-actions">
-                <p class="register-prompt">¿Aún no tienes una cuenta de ciclista?</p>
+                <p class="register-prompt">¿Aún no tienes una cuenta de participante?</p>
                 <a href="{% url 'contacto' %}" class="btn-register-link">Registrarme en el evento</a>
             </div>
         </div>
@@ -112,7 +109,7 @@
                 </div>
                 <div>
                     <h2 id="modalRecoveryTitle" class="modal-title">Recuperación de Clave</h2>
-                    <span class="modal-subtitle">Asistencia oficial a ciclistas</span>
+                    <span class="modal-subtitle">Asistencia oficial a participantes</span>
                 </div>
             </div>
             <button type="button" class="btn-close-modal" onclick="cerrarModalRecuperarPass()" aria-label="Cerrar ventana">
@@ -163,7 +160,7 @@
 
             <p class="recovery-note-text">
                 <i class="fa-solid fa-circle-info"></i>
-                <span>El administrador municipal validará tu identidad contra el padrón de ciclistas y te responderá a la brevedad con tu clave de acceso.</span>
+                <span>El administrador municipal validará tu identidad contra el padrón de participantes y te responderá a la brevedad con tu clave de acceso.</span>
             </p>
         </div>
 
@@ -172,7 +169,7 @@
             <button type="button" class="btn-modal-cancel" onclick="cerrarModalRecuperarPass()">
                 Cerrar
             </button>
-            <a href="mailto:ciclismo@malagueno.gob.ar?subject=Recuperaci%C3%B3n%20de%20Clave%20-%20Ciclismo%20Malague%C3%B1o&body=Hola%20Equipo%20de%20Ciclismo%20Municipal%2C%0A%0ASolicito%20la%20recuperaci%C3%B3n%20de%20mi%20clave%20de%20acceso%20para%20la%20App%20Ciclista.%0A%0AMis%20datos%20registrados%20son%3A%0A-%20Nombre%20y%20Apellido%3A%20%0A-%20Edad%3A%20%0A-%20DNI%3A%20%0A%0AGracias." class="btn-modal-sendmail">
+            <a href="mailto:ciclismo@malagueno.gob.ar?subject=Recuperaci%C3%B3n%20de%20Clave%20-%20Ciclismo%20Malague%C3%B1o&body=Hola%20Equipo%20de%20Ciclismo%20Municipal%2C%0A%0ASolicito%20la%20recuperaci%C3%B3n%20de%20mi%20clave%20de%20acceso%20para%20la%20App%20Participante.%0A%0AMis%20datos%20registrados%20son%3A%0A-%20Nombre%20y%20Apellido%3A%20%0A-%20Edad%3A%20%0A-%20DNI%3A%20%0A%0AGracias." class="btn-modal-sendmail">
                 <i class="fa-solid fa-envelope-open-text"></i>
                 <span>Redactar Correo</span>
             </a>

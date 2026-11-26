@@ -168,6 +168,48 @@
     background: rgba(0, 0, 0, 0.06);
 }
 
+/* Barra de Progreso del Temporizador */
+.muni-alert-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3.5px;
+    width: 100%;
+    opacity: 0.65;
+    pointer-events: none;
+    border-radius: 0 0 14px 14px;
+}
+
+.muni-alert-success .muni-alert-progress {
+    background: #16a34a;
+}
+
+.muni-alert-error .muni-alert-progress,
+.muni-alert-danger .muni-alert-progress {
+    background: #dc2626;
+}
+
+.muni-alert-warning .muni-alert-progress {
+    background: #d97706;
+}
+
+.muni-alert-info .muni-alert-progress {
+    background: #2563eb;
+}
+
+/* Transición de Cierre Suave al expirar o cerrar */
+.muni-alert.muni-alert-closing {
+    opacity: 0 !important;
+    transform: translateY(-10px) scale(0.98) !important;
+    max-height: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+    border-width: 0 !important;
+    overflow: hidden !important;
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
 /* Responsive Móvil */
 @media (max-width: 640px) {
     .muni-alert {

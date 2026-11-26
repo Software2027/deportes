@@ -1879,3 +1879,158 @@ body.carrera-mode {
         transform: scale(1);
     }
 }
+
+/* ------------------------------------------------------------------------------
+   MODAL Y BOTÓN DE INSTRUCCIONES DEL RECORRIDO
+   ------------------------------------------------------------------------------ */
+.btn-instrucciones-top {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 9999px;
+    padding: 0.45rem 0.85rem;
+    color: #0284c7;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+    transition: all 0.15s ease;
+}
+
+.btn-instrucciones-top i {
+    color: #0284c7;
+    font-size: 0.95rem;
+}
+
+.btn-instrucciones-top:hover {
+    background-color: #f0f9ff;
+    border-color: #bae6fd;
+    transform: translateY(-1px);
+}
+
+@media (max-width: 640px) {
+    .btn-instrucciones-text {
+        display: none;
+    }
+    .btn-instrucciones-top {
+        padding: 0.45rem;
+        width: 38px;
+        height: 38px;
+        justify-content: center;
+        border-radius: 50%;
+    }
+}
+
+.modal-instrucciones-card {
+    max-width: 520px !important;
+    text-align: left !important;
+    padding: 1.75rem 1.6rem !important;
+}
+
+.modal-instrucciones-icon {
+    background: #ecfdf5;
+    color: #16a34a;
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.65rem;
+    margin: 0 auto 0.65rem auto;
+}
+
+.modal-instrucciones-badge {
+    display: table;
+    margin: 0 auto 0.5rem auto;
+    background: #ecfdf5;
+    color: #059669;
+    border: 1px solid #a7f3d0;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.modal-instrucciones-card .modal-confirm-title,
+.modal-instrucciones-card .modal-confirm-desc {
+    text-align: center;
+}
+
+.instrucciones-grid-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    max-height: 48vh;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.instruccion-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 0.85rem 1rem;
+    transition: border-color 0.15s ease;
+}
+
+.instruccion-item:hover {
+    border-color: #cbd5e1;
+}
+
+.instruccion-ico-box {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+}
+
+.instruccion-ico-box.ico-screen {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+.instruccion-ico-box.ico-notify {
+    background: #fefce8;
+    color: #ca8a04;
+}
+
+.instruccion-ico-box.ico-pause {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.instruccion-ico-box.ico-stats {
+    background: #f0fdf4;
+    color: #16a34a;
+}
+
+.instruccion-txt h4 {
+    margin: 0 0 0.25rem 0;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.94rem;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.25;
+}
+
+.instruccion-txt p {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.82rem;
+    color: #475569;
+    line-height: 1.45;
+}

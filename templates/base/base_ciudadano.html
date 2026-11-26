@@ -35,10 +35,12 @@
     {% include "headers/header_ciudadano.html" %}
 
     <!-- Contenido Principal -->
-    <main id="main-content">
+    <main id="main-content" style="background-color: #f8fafc;">
         {% if messages %}
-        <div class="container" style="padding-top: 6.5rem; margin-bottom: -4.5rem; position: relative; z-index: 100;">
-            {% include "includes/mensajes.html" %}
+        <div class="site-global-messages-bar" style="background-color: #f8fafc; padding-top: 5.75rem; margin-bottom: -4.5rem; position: relative; z-index: 100;">
+            <div class="container" style="max-width: 960px; margin: 0 auto; padding: 0 1.25rem;">
+                {% include "includes/mensajes.html" %}
+            </div>
         </div>
         {% endif %}
         {% block content %}{% endblock %}

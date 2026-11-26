@@ -957,6 +957,11 @@ def mi_progreso_view(request):
                 'paradas_count': paradas_count,
             })
 
+    # Paginación para historial de recorridos (5 por página)
+    paginator_historial = Paginator(historial_recorridos_data, 5)
+    page_number_hist = request.GET.get('page')
+    page_obj_historial = paginator_historial.get_page(page_number_hist)
+
     context = {
         'ciclista': ciclista,
         'circuito': circuito_activo,
@@ -981,7 +986,9 @@ def mi_progreso_view(request):
         'cronograma': cronograma,
         'trazado_json': trazado_geojson,
         'comercios_json': comercios_geojson,
-        'historial_recorridos': historial_recorridos_data,
+        'historial_recorridos': page_obj_historial,
+        'page_obj_historial': page_obj_historial,
+        'total_historial': len(historial_recorridos_data),
     }
     return render(request, 'ciudadano/mi_progreso.html', context)
 

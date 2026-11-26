@@ -560,6 +560,68 @@
         font-size: 0.75rem;
     }
 }
+
+/* Pie de Tabla Estandarizado de Paginación */
+.table-card-footer {
+    padding: 1.15rem 1.5rem;
+    border-top: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    background-color: #ffffff;
+    border-radius: 0 0 16px 16px;
+}
+
+.table-records-count {
+    font-size: 0.84rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.table-pagination-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.pagination-current-page {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #0f172a;
+    padding: 0 0.35rem;
+}
+
+.btn-page-step {
+    padding: 0.45rem 0.95rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background-color: #ffffff;
+    color: #475569;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.btn-page-step:hover:not(.disabled) {
+    background-color: #f8fafc;
+    border-color: #cbd5e1;
+    color: #0f172a;
+}
+
+.btn-page-step.disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    background-color: #f8fafc;
+    color: #94a3b8;
+    border-color: #e2e8f0;
+    pointer-events: none;
+}
 </style>
 {% endblock %}
 
@@ -820,6 +882,38 @@
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
+
+        <!-- Footer de Paginación Estandarizado -->
+        <div class="table-card-footer">
+            <span class="table-records-count">
+                Mostrando {{ page_obj.start_index|default:0 }} a {{ page_obj.end_index|default:0 }} de {{ total_finalizados }} participantes clasificados
+            </span>
+            <div class="table-pagination-nav">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}{% if circuito %}&circuito_id={{ circuito.id }}{% endif %}" class="btn-page-step" title="Página anterior">
+                        <i class="fa-solid fa-chevron-left"></i> Anterior
+                    </a>
+                {% else %}
+                    <span class="btn-page-step disabled">
+                        <i class="fa-solid fa-chevron-left"></i> Anterior
+                    </span>
+                {% endif %}
+
+                <span class="pagination-current-page">
+                    Página {{ page_obj.number|default:1 }} de {{ page_obj.paginator.num_pages|default:1 }}
+                </span>
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% if circuito %}&circuito_id={{ circuito.id }}{% endif %}" class="btn-page-step" title="Página siguiente">
+                        Siguiente <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                {% else %}
+                    <span class="btn-page-step disabled">
+                        Siguiente <i class="fa-solid fa-chevron-right"></i>
+                    </span>
+                {% endif %}
+            </div>
         </div>
     </div>
 
