@@ -1,17 +1,25 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Portal del Participante | Circuitos y Movilidad Malagueño{% endblock %}</title>
-    <meta name="description" content="{% block meta_description %}Plataforma oficial de movilidad, eventos y circuitos de Malagueño (A pie, Running, Ciclismo, Moto y más).{% endblock %}">
+    <title>{% block title %}Portal del Participante | Recorridos Malagueño{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}Plataforma de recorridos para la comunidad y los ciudadanos de Malagueño (caminata, running, bicicleta y más).{% endblock %}">
+
+    <!-- Metadatos Open Graph / WhatsApp / Redes Sociales -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Recorridos Malagueño">
+    <meta property="og:title" content="{% block og_title %}Portal del Participante | Recorridos Malagueño{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Plataforma de recorridos para la comunidad y los ciudadanos de Malagueño (caminata, running, bicicleta y más).{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'IMG/logo_iso_municipalidad.png' %}{% endblock %}">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    {% load static %}
     <!-- Leaflet CSS (Local para alta disponibilidad sin timeouts) -->
     <link rel="stylesheet" href="{% static 'vendor/leaflet/leaflet.css' %}">
 
