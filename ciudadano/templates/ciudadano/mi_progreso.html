@@ -322,6 +322,7 @@
                                 <th>Fecha y Hora</th>
                                 <th>Medio de Movilidad</th>
                                 <th>Estado</th>
+                                <th>Completado</th>
                                 <th>Tiempo</th>
                                 <th>Distancia</th>
                                 <th>Vel. Promedio</th>
@@ -351,13 +352,28 @@
                                 </td>
                                 <td>
                                     {% if rec.estado == 'FINALIZADO' %}
-                                        <span class="hist-badge hist-badge-finalizado"><i class="fa-solid fa-circle-check"></i> Finalizado</span>
+                                        <span class="hist-badge hist-badge-finalizado"><i class="fa-solid fa-flag-checkered"></i> Finalizado</span>
                                     {% elif rec.estado == 'EN_CURSO' %}
                                         <span class="hist-badge hist-badge-encurso"><i class="fa-solid fa-person-walking-dashed-line-arrow-right"></i> En Curso</span>
                                     {% elif rec.estado == 'PAUSADO' %}
                                         <span class="hist-badge hist-badge-pausado"><i class="fa-solid fa-pause"></i> Pausado</span>
                                     {% else %}
                                         <span class="hist-badge hist-badge-listo"><i class="fa-solid fa-hourglass-start"></i> Inscripto</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if rec.completado %}
+                                        <span class="hist-badge hist-badge-completado" title="Completó todo el recorrido oficial">
+                                            <i class="fa-solid fa-circle-check"></i> Completado
+                                        </span>
+                                    {% elif rec.estado == 'FINALIZADO' %}
+                                        <span class="hist-badge hist-badge-incompleto" title="Finalizó antes de completar el recorrido">
+                                            <i class="fa-solid fa-circle-xmark"></i> No completó
+                                        </span>
+                                    {% else %}
+                                        <span class="hist-badge hist-badge-encurso" title="Recorrido en progreso">
+                                            <i class="fa-solid fa-clock"></i> En curso
+                                        </span>
                                     {% endif %}
                                 </td>
                                 <td>

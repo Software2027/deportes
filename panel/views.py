@@ -1596,7 +1596,7 @@ def ranking_evento_view(request, circuito_id=None):
             'comercios': comercios_count,
             'tipo_movilidad': r.tipo_movilidad or 'BICICLETA',
             'tipo_movilidad_display': r.get_tipo_movilidad_display() if hasattr(r, 'get_tipo_movilidad_display') else (r.tipo_movilidad or 'Bicicleta'),
-            'fecha': r.inicio.strftime("%d/%m/%Y %H:%M") if r.inicio else ""
+            'fecha': timezone.localtime(r.inicio).strftime("%d/%m/%Y %H:%M") if r.inicio else ""
         }
 
     participantes_data = list(mejores_por_ciclista.values())

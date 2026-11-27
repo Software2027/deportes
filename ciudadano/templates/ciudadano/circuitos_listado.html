@@ -9,13 +9,18 @@
 /* Hero Público Institucional (Misma identidad que Comercios y Noticias) */
 .circuitos-public-hero {
     position: relative;
-    padding: 8.5rem 0 4.5rem 0;
-    background-image: url('https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=1920&q=80');
+    min-height: 380px;
+    display: flex;
+    align-items: center;
+    padding: 7.5rem 0 4.5rem 0;
+    background-image: url('{% static 'IMG/distancia.jpg' %}');
     background-size: cover;
-    background-position: center 35%;
+    background-position: center center;
     background-repeat: no-repeat;
     background-color: #061d0f;
     color: #ffffff;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: auto;
 }
 
 .circuitos-public-overlay {
@@ -24,7 +29,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(90deg, rgba(8, 28, 14, 0.95) 0%, rgba(8, 28, 14, 0.88) 55%, rgba(8, 28, 14, 0.5) 100%);
+    background: linear-gradient(90deg, rgba(6, 29, 15, 0.94) 0%, rgba(6, 29, 15, 0.85) 50%, rgba(6, 29, 15, 0.38) 100%);
     z-index: 1;
 }
 
@@ -85,7 +90,7 @@
 <!-- --------------------------------------------------------------------------- -->
 <!-- 1. HERO INSTITUCIONAL PÚBLICO (BASE CIUDADANO)                              -->
 <!-- --------------------------------------------------------------------------- -->
-<section class="circuitos-public-hero">
+<section class="circuitos-public-hero" style="background-image: url('{% static 'IMG/distancia.jpg' %}');">
     <div class="circuitos-public-overlay"></div>
     <div class="container" style="position: relative; z-index: 2;">
         <div class="circuitos-public-content">
@@ -105,7 +110,7 @@
 </section>
 
 <!-- --------------------------------------------------------------------------- -->
-<!-- 2. CATÁLOGO COMPLETO DE CIRCUITOS Y CARRERAS                                -->
+<!-- 2. CATÁLOGO COMPLETO DE RECORRIDOS Y EVENTOS                                -->
 <!-- --------------------------------------------------------------------------- -->
 <section class="circuitos-page-body" id="circuitos-disponibles">
     <div class="container">

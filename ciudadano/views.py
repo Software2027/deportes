@@ -941,15 +941,30 @@ def mi_progreso_view(request):
 
             paradas_count = rec.paradas_registradas.count()
 
+            # Conversión explícita a la zona horaria oficial argentina (UTC-3)
+            inicio_local = timezone.localtime(rec.inicio) if rec.inicio else None
+            fecha_str = inicio_local.strftime("%d/%m/%Y %H:%M") if inicio_local else "--"
+
+            # Evaluación de completitud del recorrido
+            dist_total_circuito = float(circuito_activo.distancia_total_km or 0.0) if circuito_activo else 0.0
+            es_completado = rec.es_completado if hasattr(rec, 'es_completado') else False
+            if not es_completado and rec.estado == 'FINALIZADO':
+                if dist_total_circuito > 0 and dist_km >= (dist_total_circuito * 0.85):
+                    es_completado = True
+                elif dist_total_circuito == 0 and dist_km > 0.5:
+                    es_completado = True
+
             historial_recorridos_data.append({
                 'id': rec.id,
                 'inicio': rec.inicio,
-                'fecha_str': rec.inicio.strftime("%d/%m/%Y %H:%M") if rec.inicio else "--",
+                'inicio_local': inicio_local,
+                'fecha_str': fecha_str,
                 'tipo_movilidad': rec.tipo_movilidad or 'BICICLETA',
                 'tipo_movilidad_display': rec.get_tipo_movilidad_display() if hasattr(rec, 'get_tipo_movilidad_display') else (rec.tipo_movilidad or 'Bicicleta'),
                 'estado': rec.estado,
                 'estado_display': rec.get_estado_display(),
                 'finalizado': rec.estado == 'FINALIZADO',
+                'completado': es_completado,
                 'duracion_str': duracion_formateada,
                 'distancia_km': dist_km,
                 'vel_prom': vel_prom,

@@ -7,15 +7,17 @@
    ------------------------------------------------------------------------- */
 .hero-section {
   position: relative;
-  min-height: 82vh;
+  min-height: 72vh;
   display: flex;
   align-items: center;
-  padding: 8.5rem 0 5rem 0;
-  background-image: url('https://images.unsplash.com/photo-1541625602330-2277a4c46182?auto=format&fit=crop&w=1920&q=80');
+  padding: 8rem 0 5rem 0;
+  background-image: url('../../IMG/recorrido.jpg');
   background-size: cover;
-  background-position: center 30%;
+  background-position: center center;
   background-repeat: no-repeat;
   color: #ffffff;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: auto;
 }
 
 .hero-bg-overlay {

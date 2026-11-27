@@ -1479,9 +1479,21 @@
 }
 
 .hist-badge-finalizado {
+    background: #e2e8f0;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+}
+
+.hist-badge-completado {
     background: #dcfce7;
     color: #15803d;
     border: 1px solid #bbf7d0;
+}
+
+.hist-badge-incompleto {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
 }
 
 .hist-badge-encurso {

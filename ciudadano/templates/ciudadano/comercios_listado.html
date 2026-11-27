@@ -1,7 +1,7 @@
 {% extends "base/base_ciudadano.html" %}
 {% load static %}
 
-{% block title %}Comercios y Puntos Adheridos | Ciclismo Malagueño{% endblock %}
+{% block title %}Comercios y Puntos Adheridos | Recorridos Malagueño{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/pages/comercios_publicos.css' %}">
@@ -11,7 +11,7 @@
 <!-- --------------------------------------------------------------------------- -->
 <!-- 1. HERO INSTITUCIONAL DE COMERCIOS                                          -->
 <!-- --------------------------------------------------------------------------- -->
-<section class="commerce-hero-section">
+<section class="commerce-hero-section" style="background-image: url('{% static 'IMG/afiliados.jpg' %}');">
     <div class="commerce-hero-overlay"></div>
     <div class="container" style="position: relative; z-index: 2;">
         <div class="commerce-hero-content">
@@ -23,11 +23,11 @@
 
             <h1 class="commerce-hero-title">
                 Comercios y Puntos <br>
-                <span class="highlight-yellow">Adheridos al Circuito</span>
+                <span class="highlight-yellow">Adheridos a los Recorridos</span>
             </h1>
 
             <p class="commerce-hero-desc">
-                Conoce los locales gastronómicos, talleres mecánicos, puestos de hidratación y tiendas que apoyan a nuestra comunidad de ciclistas con atención preferencial y beneficios exclusivos en la ciudad.
+                Conoce los locales gastronómicos, talleres mecánicos, puestos de hidratación y tiendas que apoyan a nuestra comunidad de participantes con atención preferencial y beneficios exclusivos en la ciudad.
             </p>
         </div>
     </div>
@@ -113,7 +113,7 @@
                     </div>
 
                     <p class="commerce-clean-desc">
-                        {{ c.descripcion|default:"Establecimiento adherido al programa municipal de ciclismo con atención y servicios preferenciales."|truncatewords:20 }}
+                        {{ c.descripcion|default:"Establecimiento adherido al programa municipal de recorridos y movilidad con atención y servicios preferenciales."|truncatewords:20 }}
                     </p>
 
                     <div class="commerce-card-bottom">

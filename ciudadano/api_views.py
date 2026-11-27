@@ -311,6 +311,16 @@ class FinalizarRecorridoAPIView(APIView):
             if distancia_a_meta > radio_meta:
                 en_meta = False
 
+        # Evaluación de completitud del recorrido
+        dist_km = recorrido.distancia_km
+        dist_oficial = float(recorrido.circuito.distancia_total_km or 0.0) if recorrido.circuito else 0.0
+        fue_completado = False
+        if en_meta and (dist_oficial == 0 or dist_km >= (dist_oficial * 0.5)):
+            fue_completado = True
+        elif dist_oficial > 0 and dist_km >= (dist_oficial * 0.85):
+            fue_completado = True
+
+        recorrido.completado = fue_completado
         recorrido.estado = 'FINALIZADO'
         recorrido.fin = timezone.now()
         recorrido.save()

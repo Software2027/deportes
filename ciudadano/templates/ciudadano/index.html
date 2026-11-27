@@ -1,7 +1,7 @@
 {% extends "base/base_ciudadano.html" %}
 {% load static %}
 
-{% block title %}Circuitos y Movilidad Malagueño | Explora, camina, corre o pedalea por una ciudad activa{% endblock %}
+{% block title %}Recorridos y Movilidad Malagueño | Explora, camina, corre o pedalea por una ciudad activa{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/pages/home.css' %}">
@@ -15,19 +15,19 @@
 <!-- ----------------------------------------------------------------------- -->
 <!-- 1. SECCIÓN HERO                                                         -->
 <!-- ----------------------------------------------------------------------- -->
-<section id="inicio" class="hero-section">
+<section id="inicio" class="hero-section" style="background-image: url('{% static 'IMG/recorrido.jpg' %}');">
     <div class="hero-bg-overlay"></div>
     <div class="container" style="position: relative; z-index: 2;">
         <div class="hero-content">
             <!-- Badge dorado: Próximo Evento -->
             <div class="badge-proximo-evento">
                 <i class="fa-solid fa-calendar-days"></i>
-                <span>Circuitos y Movilidad Malagueño</span>
+                <span>Recorridos y Movilidad Malagueño</span>
             </div>
 
             <h1 class="hero-title">
                 Malagueño <br>
-                <span class="highlight-yellow">Descubrí los diferentes circuitos</span>
+                <span class="highlight-yellow">Descubrí los diferentes recorridos</span>
             </h1>
 
             <p class="hero-description">
@@ -41,7 +41,7 @@
                 </a>
                 <a href="#circuito" class="btn-ver-circuitos">
                     <i class="fa-solid fa-route" style="margin-right: 6px;"></i>
-                    <span>Ver Circuitos</span>
+                    <span>Ver Recorridos</span>
                 </a>
             </div>
         </div>
@@ -63,7 +63,7 @@
                 Conectando Malagueño a través del Deporte, la Comunidad y el Comercio Local
             </h2>
             <p class="foundation-description">
-                El <strong>Sistema de Ciclismo y Movilidad Municipal</strong> nace con el propósito de recorrer e integrar los diferentes rincones de Malagueño, conectando nuestros comercios de cercanía, puntos turísticos y lugares de interés patrimonial con la actividad física al aire libre. Promovemos una ciudad activa, saludable y sustentable donde peatones, ciclistas y deportistas disfrutan de circuitos planificados mientras impulsan el desarrollo de la economía local.
+               Este proyecto nace con el propósito de recorrer e integrar los diferentes rincones de Malagueño, conectando nuestros comercios de cercanía, puntos turísticos y lugares de interés patrimonial con la actividad física al aire libre. Promovemos una ciudad activa, saludable y sustentable donde peatones, participantes y deportistas disfrutan de recorridos planificados mientras impulsan el desarrollo de la economía local.
             </p>
         </div>
 
@@ -86,7 +86,7 @@
             <div class="metric-card">
                 <img src="{% static 'IMG/distancia.jpg' %}" alt="Rutas Definidas" class="metric-bg-img">
                 <div class="metric-green-overlay"></div>
-                <div class="metric-icon-box" title="Distancia de Circuitos">
+                <div class="metric-icon-box" title="Distancia de Recorridos">
                     <i class="fa-solid fa-route"></i>
                 </div>
                 <div class="metric-center-content">
@@ -110,16 +110,16 @@
                 <div class="metric-bottom-bar"></div>
             </div>
 
-            <!-- Card 4: Circuitos Activos -->
+            <!-- Card 4: Recorridos Activos -->
             <div class="metric-card">
-                <img src="{% static 'IMG/retos.jpg' %}" alt="Circuitos Activos" class="metric-bg-img">
+                <img src="{% static 'IMG/retos.jpg' %}" alt="Recorridos Activos" class="metric-bg-img">
                 <div class="metric-green-overlay"></div>
-                <div class="metric-icon-box" title="Circuitos Oficiales y Libres">
+                <div class="metric-icon-box" title="Recorridos Oficiales y Libres">
                     <i class="fa-solid fa-trophy"></i>
                 </div>
                 <div class="metric-center-content">
                     <span class="metric-number">{{ stat_circuitos }}</span>
-                    <span class="metric-label">CIRCUITOS ACTIVOS</span>
+                    <span class="metric-label">RECORRIDOS ACTIVOS</span>
                 </div>
                 <div class="metric-bottom-bar"></div>
             </div>
@@ -128,7 +128,7 @@
 </section>
 
 <!-- ----------------------------------------------------------------------- -->
-<!-- 3. SECCIÓN: EXPLORA EL CIRCUITO MUNICIPAL                               -->
+<!-- 3. SECCIÓN: EXPLORA EL RECORRIDO MUNICIPAL                              -->
 <!-- ----------------------------------------------------------------------- -->
 <section id="circuito" class="circuit-map-section">
     <div class="container">
@@ -136,10 +136,10 @@
             <div>
                 <div class="circuit-badge">
                     <i class="fa-solid fa-map-location-dot" style="margin-right: 4px;"></i>
-                    <span>Mapa del Circuito</span>
+                    <span>Mapa del Recorrido</span>
                 </div>
                 <h2 class="circuit-header-title">
-                    Explora el <span class="highlight-gold" id="map-circuito-nombre">{{ circuito.nombre|default:"Circuito Municipal" }}</span>
+                    Explora el <span class="highlight-gold" id="map-circuito-nombre">{{ circuito.nombre|default:"Recorrido Municipal" }}</span>
                 </h2>
                 <p class="circuit-header-desc">
                     Visualiza los puntos de control, zonas de hidratación y comercios afiliados en tiempo real. Nuestra red de ciclovías está diseñada para tu seguridad y comodidad.
@@ -153,12 +153,12 @@
             </div>
         </div>
 
-        <!-- Selector de Circuitos Activos -->
+        <!-- Selector de Recorridos Activos -->
         {% if circuitos_activos %}
         <div class="circuitos-tabs-container" style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin: 1.25rem 0; padding: 0.75rem 1rem; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);">
             <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
                 <span style="font-size: 0.78rem; font-weight: 800; color: #15803d; text-transform: uppercase; letter-spacing: 0.5px;">
-                    <i class="fa-solid fa-route"></i> Circuitos Municipales:
+                    <i class="fa-solid fa-route"></i> Recorridos Municipales:
                 </span>
                 {% for c in circuitos_activos %}
                 <a href="?circuito_id={{ c.id }}#circuito" data-circuito-id="{{ c.id }}" class="btn-circuito-pill btn-ver-recorrido" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.85rem; border-radius: 999px; font-size: 0.82rem; font-weight: 700; text-decoration: none; border: 1.5px solid {% if c.id == circuito.id %}#16a34a{% else %}#cbd5e1{% endif %}; background: {% if c.id == circuito.id %}#16a34a{% else %}#ffffff{% endif %}; color: {% if c.id == circuito.id %}#ffffff{% else %}#334155{% endif %}; transition: all 0.2s;">
@@ -186,7 +186,7 @@
             <div class="floating-circuit-card">
                 <div class="floating-card-status">
                     <span class="status-dot-active"></span>
-                    <span id="floating-circuito-nombre">{% if circuito %}Circuito: {{ circuito.nombre|truncatechars:18 }}{% else %}Circuito Oficial Activo{% endif %}</span>
+                    <span id="floating-circuito-nombre">{% if circuito %}Recorrido: {{ circuito.nombre|truncatechars:18 }}{% else %}Recorrido Oficial Activo{% endif %}</span>
                 </div>
 
                 <div class="floating-distance-row">
@@ -234,7 +234,7 @@
 </section>
 
 <!-- ----------------------------------------------------------------------- -->
-<!-- 3.1. SECCIÓN: CIRCUITOS DESTACADOS Y ACCESO A EXPLORAR MÁS              -->
+<!-- 3.1. SECCIÓN: RECORRIDOS DESTACADOS Y ACCESO A EXPLORAR MÁS             -->
 <!-- ----------------------------------------------------------------------- -->
 <section id="circuitos-disponibles" class="all-circuits-section" style="background: #0b321a; border-top: none; margin: 0; padding-top: 1.5rem; padding-bottom: 5rem;">
     <div class="container">
@@ -242,9 +242,9 @@
             <div class="all-circuits-header-info">
                 <div class="all-circuits-badge" style="background: rgba(250, 204, 21, 0.15); color: #facc15; border: 1px solid rgba(250, 204, 21, 0.4);">
                     <i class="fa-solid fa-person-walking-dashed-line-arrow-right"></i>
-                    <span>Red de Circuitos y Rutas Municipales</span>
+                    <span>Red de Recorridos y Rutas Municipales</span>
                 </div>
-                <h2 class="all-circuits-title" style="color: #ffffff;">Circuitos y Recorridos Habilitados</h2>
+                <h2 class="all-circuits-title" style="color: #ffffff;">Recorridos Habilitados</h2>
                 <p class="all-circuits-desc" style="color: #cbd5e1;">
                     Conoce los trazados oficiales de Malagueño o explora el catálogo completo para inscribirte o realizar los recorridos en modo libre con telemetría GPS.
                 </p>
@@ -254,7 +254,7 @@
             <div>
                 <a href="{% url 'circuitos_listado' %}" class="btn-fullscreen" style="display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none;">
                     <i class="fa-solid fa-compass" style="color: #16a34a;"></i>
-                    <span>Explorar Más Circuitos</span>
+                    <span>Explorar Más Recorridos</span>
                     <i class="fa-solid fa-arrow-right"></i>
                 </a>
             </div>
@@ -267,7 +267,7 @@
                 <!-- Topbar de la Card -->
                 <div class="circuit-card-topbar">
                     <span class="badge-circuit-free" title="Trazado permanente para práctica y recorrido libre">
-                        <i class="fa-solid fa-route"></i> Circuito Libre
+                        <i class="fa-solid fa-route"></i> Recorrido Libre
                     </span>
 
                     {% if c.id == circuito.id %}
@@ -329,7 +329,7 @@
                     </a>
 
                     <!-- 2. Iniciar Recorrido: lleva al login para ingresar a su panel -->
-                    <a href="{% if user.is_authenticated %}{% url 'mi_progreso' %}?circuito_id={{ c.id }}{% else %}{% url 'login' %}?next={% url 'mi_progreso' %}?circuito_id={{ c.id }}{% endif %}" class="btn-card-primary" title="Iniciar sesión para acceder al panel de ciclista">
+                    <a href="{% if user.is_authenticated %}{% url 'mi_progreso' %}?circuito_id={{ c.id }}{% else %}{% url 'login' %}?next={% url 'mi_progreso' %}?circuito_id={{ c.id }}{% endif %}" class="btn-card-primary" title="Iniciar sesión para acceder al panel de participante">
                         <i class="fa-solid fa-person-biking"></i>
                         <span>Iniciar Recorrido</span>
                     </a>
@@ -338,11 +338,11 @@
             {% empty %}
             <div style="grid-column: 1 / -1; text-align: center; padding: 3rem 1.5rem; background: rgba(255, 255, 255, 0.06); border: 1.5px dashed rgba(255, 255, 255, 0.2); border-radius: 16px;">
                 <i class="fa-solid fa-route" style="font-size: 2.5rem; color: #cbd5e1; margin-bottom: 0.75rem; display: block;"></i>
-                <h3 style="font-size: 1.15rem; font-weight: 700; color: #ffffff; margin-bottom: 0.35rem;">Próximamente nuevos circuitos habilitados</h3>
+                <h3 style="font-size: 1.15rem; font-weight: 700; color: #ffffff; margin-bottom: 0.35rem;">Próximamente nuevos recorridos habilitados</h3>
                 <p style="font-size: 0.88rem; color: #cbd5e1; margin-bottom: 1.25rem;">El municipio está diagramando los nuevos trazados para la comunidad.</p>
                 <a href="{% url 'circuitos_listado' %}" class="btn-fullscreen" style="display: inline-flex; width: auto; padding: 0.6rem 1.4rem;">
                     <i class="fa-solid fa-compass" style="color: #16a34a;"></i>
-                    <span>Ver Directorio de Circuitos</span>
+                    <span>Ver Directorio de Recorridos</span>
                 </a>
             </div>
             {% endfor %}
@@ -352,11 +352,11 @@
         <div class="explorar-mas-circuitos-row" style="text-align: center; margin-top: 2.75rem;">
             <a href="{% url 'circuitos_listado' %}" class="btn-explorar-mas-circuitos" style="display: inline-flex; align-items: center; gap: 0.75rem; background: linear-gradient(135deg, #facc15 0%, #eab308 100%); color: #0f172a; padding: 0.95rem 2.25rem; border-radius: 999px; font-family: 'Outfit', sans-serif; font-size: 1rem; font-weight: 800; text-decoration: none; box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35); transition: transform 0.2s, box-shadow 0.2s;">
                 <i class="fa-solid fa-compass" style="font-size: 1.1rem; color: #0f172a;"></i>
-                <span>Explorar Más Circuitos y Carreras</span>
+                <span>Explorar Más Recorridos y Carreras</span>
                 <i class="fa-solid fa-arrow-right"></i>
             </a>
             <span style="display: block; font-size: 0.82rem; color: #cbd5e1; margin-top: 0.65rem;">
-                Consulta la red completa de circuitos oficiales, altimetrías y puntos de asistencia de Malagueño.
+                Consulta la red completa de recorridos oficiales, altimetrías y puntos de asistencia de Malagueño.
             </span>
         </div>
     </div>
@@ -371,7 +371,7 @@
             <div>
                 <div class="news-badge">
                     <i class="fa-solid fa-newspaper" style="margin-right: 4px;"></i>
-                    <span>Blog del Circuito</span>
+                    <span>Blog de Recorridos</span>
                 </div>
                 <h2 class="news-clean-title">Noticias y Novedades</h2>
                 <p class="news-clean-desc">
@@ -416,14 +416,14 @@
                 <!-- Card 1: Preparación -->
                 <article class="news-clean-card">
                     <div class="news-clean-img-wrap">
-                        <img src="https://images.unsplash.com/photo-1517649763962-0c623266ddc0?auto=format&fit=crop&w=600&q=80" alt="Ciclista preparándose">
+                        <img src="https://images.unsplash.com/photo-1517649763962-0c623266ddc0?auto=format&fit=crop&w=600&q=80" alt="Participante preparándose">
                     </div>
                     <div class="news-clean-body">
                         <div class="news-meta-row">
                             <span class="category-tag">Preparación</span>
                             <span class="news-date-text">12 Mayo, 2026</span>
                         </div>
-                        <h3 class="news-clean-headline">Cómo prepararte para el Gran Reto CicloVilla</h3>
+                        <h3 class="news-clean-headline">Cómo prepararte para el Gran Reto Malagueño</h3>
                         <p class="news-clean-summary">
                             Consejos expertos sobre equipamiento, nutrición y entrenamiento para que disfrutes al máximo de nuestra próxima jornada deportiva.
                         </p>
@@ -465,7 +465,7 @@
                             <span class="category-tag">Infraestructura</span>
                             <span class="news-date-text">05 Mayo, 2026</span>
                         </div>
-                        <h3 class="news-clean-headline">Nuevas señalizaciones en el Circuito Norte</h3>
+                        <h3 class="news-clean-headline">Nuevas señalizaciones en el Recorrido Norte</h3>
                         <p class="news-clean-summary">
                             Hemos completado la instalación de marcadores inteligentes y señales reflectantes para mejorar la seguridad en los trayectos nocturnos.
                         </p>

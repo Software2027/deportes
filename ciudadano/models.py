@@ -352,6 +352,10 @@ class RecorridoCiclista(models.Model):
         default='LISTO',
         verbose_name="Estado del Recorrido"
     )
+    completado = models.BooleanField(
+        default=False,
+        verbose_name="¿Completó el Recorrido?"
+    )
     tipo_movilidad = models.CharField(
         max_length=20,
         choices=TIPOS_MOVILIDAD,
@@ -366,6 +370,19 @@ class RecorridoCiclista(models.Model):
 
     def __str__(self):
         return f"Recorrido #{self.id} - {self.ciclista.username} [{self.get_estado_display()}]"
+
+    @property
+    def es_completado(self):
+        """Retorna True si el participante completó el recorrido oficial o al menos el 85% de la distancia."""
+        if self.completado:
+            return True
+        if self.estado == 'FINALIZADO' and self.circuito:
+            dist_oficial = float(self.circuito.distancia_total_km or 0.0)
+            if dist_oficial > 0 and self.distancia_km >= (dist_oficial * 0.85):
+                return True
+            elif dist_oficial == 0 and self.distancia_km > 0.5:
+                return True
+        return False
 
     @property
     def distancia_km(self):
